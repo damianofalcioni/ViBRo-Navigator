@@ -80,8 +80,8 @@ final class MainActivityProfileCoordinator {
         return profilesRepository.isBRouterInstalled(activity);
     }
 
-    boolean wasSegmentsFolderOffered() {
-        return startup.wasSegmentsFolderOffered();
+    String skippedSegmentsFolder() {
+        return startup.skippedSegmentsFolder();
     }
 
     void refresh() {

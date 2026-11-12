@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 
 import vibro.navigator.android.brouter.AndroidBRouterSegmentsRepositoryFactory;
 import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
+import vibro.navigator.brouter.BRouterSegmentSourceSettings;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.location.NavigationLocation;
@@ -16,9 +17,12 @@ import vibro.navigator.nav.streets.SurroundingStreetOverlayController;
 final class NavigationServiceStreetOverlay {
     @NonNull
     private final SurroundingStreetOverlayController controller;
+    @NonNull
+    private final Runnable stopObservingSources;
 
-    private NavigationServiceStreetOverlay(@NonNull SurroundingStreetOverlayController controller) {
+    private NavigationServiceStreetOverlay(@NonNull Context context, @NonNull SurroundingStreetOverlayController controller) {
         this.controller = controller;
+        stopObservingSources = BRouterSegmentSourceSettings.observe(context, controller::onSourcesChanged);
     }
 
     @NonNull
@@ -27,7 +31,7 @@ final class NavigationServiceStreetOverlay {
             @NonNull TaskScheduler scheduler,
             @NonNull Runnable stateEmitter
     ) {
-        return new NavigationServiceStreetOverlay(new SurroundingStreetOverlayController(
+        return new NavigationServiceStreetOverlay(context, new SurroundingStreetOverlayController(
                 context,
                 scheduler,
                 AndroidElapsedRealtimeClock.INSTANCE,
@@ -58,6 +62,7 @@ final class NavigationServiceStreetOverlay {
     }
 
     void shutdown() {
+        stopObservingSources.run();
         controller.shutdown();
     }
 }

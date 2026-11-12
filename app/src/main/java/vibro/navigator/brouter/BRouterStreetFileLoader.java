@@ -32,6 +32,10 @@ final class BRouterStreetFileLoader {
         this.decodedStreetCache = decodedStreetCache;
     }
 
+    void clearSources() {
+        segmentFileDirectoryIds.clear();
+    }
+
     void read(
             @NonNull Context context,
             @NonNull String fileName,

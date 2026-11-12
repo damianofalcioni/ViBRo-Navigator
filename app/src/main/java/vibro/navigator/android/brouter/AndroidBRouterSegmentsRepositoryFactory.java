@@ -25,7 +25,8 @@ public final class AndroidBRouterSegmentsRepositoryFactory {
                 new AndroidDocuments(),
                 new AndroidSegmentFiles(),
                 AndroidStorageVolumes::secondaryStorageRootIds,
-                AndroidBRouterFolderAccess::hasPersistedReadPermission
+                (context, uri) -> AndroidBRouterFolderAccess.hasPersistedReadPermission(
+                        context, uri, AndroidBRouterFolderAccess.Kind.SEGMENTS)
         ));
     }
 

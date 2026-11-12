@@ -172,7 +172,7 @@ public class AboutActivity extends AndroidLocalizedActivity {
         }
         AboutActivityResultHandlers.handleActivityResult(
                 settingsSwitches,
-                diagnosticSection,
+                this::diagnosticSection,
                 databaseBackupActions,
                 requestCode,
                 resultCode,

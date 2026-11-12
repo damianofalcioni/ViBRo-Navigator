@@ -3,6 +3,7 @@ package vibro.navigator.nav.ui;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -12,6 +13,7 @@ import androidx.annotation.Nullable;
 import vibro.navigator.R;
 import vibro.navigator.android.brouter.AndroidBRouterFolderAccess;
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
+import vibro.navigator.android.brouter.AndroidBRouterPickerRequest;
 import vibro.navigator.android.brouter.AndroidBRouterSegmentsRepositoryFactory;
 import vibro.navigator.android.brouter.AndroidBRouterSegmentsTreeAccessPrompt;
 import vibro.navigator.android.storage.AndroidLegacyExternalStorageAccess;
@@ -38,25 +40,35 @@ final class NavigationStartupSegmentsTreeAccess {
             AndroidBRouterSegmentsRepositoryFactory.create();
     @NonNull
     private final Runnable continueStartup;
+    private final AndroidBRouterPickerRequest picker;
     private Step step = Step.IDLE;
     private boolean resumed;
+    private boolean discovering;
+    private int discoveryGeneration;
+    @Nullable
+    private String skippedFolder;
     @Nullable
     private AlertDialog folderDialog;
 
     NavigationStartupSegmentsTreeAccess(@NonNull Activity activity, @NonNull Runnable continueStartup) {
         this.activity = activity;
         this.continueStartup = continueStartup;
+        picker = new AndroidBRouterPickerRequest(activity, "navigation_segments_picker");
     }
 
     boolean restoreState(@Nullable Bundle state) {
         if (state != null) {
             step = Step.valueOf(state.getString(STATE_STEP, Step.IDLE.name()));
         }
+        if (picker.restore(state)) {
+            step = Step.CONTINUE;
+        }
         return step != Step.IDLE;
     }
 
     void saveState(@NonNull Bundle state) {
         state.putString(STATE_STEP, step.name());
+        picker.save(state);
     }
 
     void onResume() {
@@ -70,18 +82,20 @@ final class NavigationStartupSegmentsTreeAccess {
 
     void onPause() {
         resumed = false;
+        cancelDiscovery();
     }
 
-    boolean deferStartup(boolean autoStart, boolean skipPrompt) {
+    boolean deferStartup(boolean autoStart, @Nullable String skippedFolder) {
         if (!autoStart) {
             clear();
             return false;
         }
+        this.skippedFolder = skippedFolder;
         if (step == Step.IDLE) {
             if (!needsFolderGrant()) {
                 return false;
             }
-            step = skipPrompt ? Step.CONTINUE : Step.CHECK_FOLDER;
+            step = Step.CHECK_FOLDER;
         }
         advance();
         return true;
@@ -95,10 +109,10 @@ final class NavigationStartupSegmentsTreeAccess {
     }
 
     private void advance() {
-        if (!resumed || activity.isFinishing() || activity.isDestroyed()) {
+        if (!canAdvance()) {
             return;
         }
-        if (step == Step.CHECK_FOLDER && folderDialog == null) {
+        if (step == Step.CHECK_FOLDER && folderDialog == null && !discovering) {
             checkFolder();
         }
         if (step == Step.CONTINUE) {
@@ -107,25 +121,41 @@ final class NavigationStartupSegmentsTreeAccess {
         }
     }
 
+    private boolean canAdvance() {
+        return resumed && !activity.isFinishing() && !activity.isDestroyed();
+    }
+
     private void checkFolder() {
-        if (!needsFolderGrant()) {
-            step = Step.CONTINUE;
+        discovering = true;
+        int generation = ++discoveryGeneration;
+        AndroidBRouterSegmentsTreeAccessPrompt.findAvailableFolder(activity, segmentsRepository,
+                uri -> onFolderFound(generation, uri));
+    }
+
+    private void onFolderFound(int generation, @Nullable Uri uri) {
+        if (generation != discoveryGeneration || !canAdvance()) {
             return;
         }
-        folderDialog = AndroidBRouterSegmentsTreeAccessPrompt.showIfAvailable(
+        cancelDiscovery();
+        if (uri == null || uri.toString().equals(skippedFolder) || !needsFolderGrant()) {
+            finishCheck();
+            return;
+        }
+        folderDialog = AndroidBRouterSegmentsTreeAccessPrompt.showNow(
                 activity,
-                segmentsRepository,
+                uri,
                 REQUEST_SEGMENTS_TREE,
                 TAG,
-                () -> step = Step.WAIT_FOR_PICKER,
+                () -> {
+                    picker.begin(REQUEST_SEGMENTS_TREE);
+                    step = Step.WAIT_FOR_PICKER;
+                },
                 () -> {
                     denySurroundingStreetStorage();
                     finishCheck();
-                }
+                },
+                this::finishCheck
         );
-        if (folderDialog == null) {
-            step = Step.CONTINUE;
-        }
     }
 
     boolean handleActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -135,12 +165,17 @@ final class NavigationStartupSegmentsTreeAccess {
         if (step != Step.WAIT_FOR_PICKER) {
             return true;
         }
-        if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null
-                && AndroidBRouterFolderAccess.persistReadPermission(activity, data, data.getData())) {
-            segmentsRepository.saveSegmentsTreeUri(activity, data.getData());
+        if (resultCode == Activity.RESULT_OK) {
+            Uri granted = AndroidBRouterFolderAccess.persistSelection(activity, data, AndroidBRouterFolderAccess.Kind.SEGMENTS);
+            if (granted != null) {
+                segmentsRepository.saveSegmentsTreeUri(activity, granted);
+            } else {
+                explainMissingStorage();
+            }
         } else {
             denySurroundingStreetStorage();
         }
+        picker.complete();
         finishCheck();
         return true;
     }
@@ -152,6 +187,7 @@ final class NavigationStartupSegmentsTreeAccess {
     }
 
     void clear() {
+        cancelDiscovery();
         step = Step.IDLE;
         if (folderDialog != null) {
             folderDialog.dismiss();
@@ -161,6 +197,15 @@ final class NavigationStartupSegmentsTreeAccess {
 
     private void denySurroundingStreetStorage() {
         AppCompassSettings.setSurroundingStreetsEnabled(activity, false);
+        explainMissingStorage();
+    }
+
+    private void cancelDiscovery() {
+        discoveryGeneration++;
+        discovering = false;
+    }
+
+    private void explainMissingStorage() {
         Toast.makeText(
                 activity,
                 R.string.msg_compass_surrounding_streets_storage_permission_required,

@@ -1,7 +1,6 @@
 package vibro.navigator.brouter;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
@@ -12,6 +11,7 @@ import java.util.HashSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import vibro.navigator.logging.AppLogger;
@@ -22,8 +22,6 @@ import vibro.navigator.nav.streets.SurroundingStreetRepository;
 
 public final class BRouterSegmentsRepository implements SurroundingStreetRepository {
     private static final String TAG = "BRouterSegments";
-    private static final String PREFS = "vibenavigator_brouter";
-    private static final String KEY_SEGMENTS_TREE_URI = "segments_tree_uri";
 
     @NonNull
     private final BRouterSegmentDependencies dependencies;
@@ -39,6 +37,8 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
     private List<String> discoveryDirectoryIds;
     private final BRouterDecodedStreetCache decodedStreetCache = new BRouterDecodedStreetCache();
     private final BRouterStreetFileLoader streetFileLoader;
+    @Nullable
+    private String sourceRevision;
 
     public BRouterSegmentsRepository(@NonNull BRouterSegmentDependencies dependencies) {
         this.dependencies = dependencies;
@@ -51,24 +51,11 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
 
     @Nullable
     public Uri getSegmentsTreeUri(@NonNull Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        String raw = prefs.getString(KEY_SEGMENTS_TREE_URI, null);
-        if (raw == null || raw.trim().isEmpty()) {
-            return null;
-        }
-        try {
-            return Uri.parse(raw);
-        } catch (Exception e) {
-            AppLogger.w(TAG, "Failed to parse saved BRouter segments tree URI raw=" + raw, e);
-            return null;
-        }
+        return BRouterSegmentSourceSettings.getTreeUri(context);
     }
 
     public void saveSegmentsTreeUri(@NonNull Context context, @NonNull Uri treeUri) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .edit()
-                .putString(KEY_SEGMENTS_TREE_URI, treeUri.toString())
-                .apply();
+        BRouterSegmentSourceSettings.save(context, treeUri);
         AppLogger.i(TAG, "Saved BRouter segments tree uri=" + treeUri);
     }
 
@@ -106,6 +93,7 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
 
     @Nullable
     Uri resolveSegmentFileUri(@NonNull Context context, @NonNull String fileName) {
+        refreshSourceCaches(context);
         if (missingSegmentFiles.contains(fileName)) {
             return null;
         }
@@ -120,6 +108,20 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
             }
         }
         return null;
+    }
+
+    private void refreshSourceCaches(@NonNull Context context) {
+        String revision = BRouterSegmentSourceSettings.getRevision(context);
+        if (Objects.equals(sourceRevision, revision)) {
+            return;
+        }
+        sourceRevision = revision;
+        discoveryTreeUris = null;
+        discoveryDirectoryIds = null;
+        segmentFileUris.clear();
+        missingSegmentFiles.clear();
+        streetFileLoader.clearSources();
+        decodedStreetCache.clear();
     }
 
     @NonNull

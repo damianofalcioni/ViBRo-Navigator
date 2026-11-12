@@ -180,6 +180,18 @@ public class AndroidBRouterProfilesStorageAccessTest {
     }
 
     @Test
+    public void savedProfileInCustomBaseProvidesFolderHintWhenDiscoveryIsDenied() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        TestBRouterStorage.requireGrantToQueryPrimaryFolder(activity, PROFILES_FOLDER);
+        BRouterProfilesRepository repository = AndroidBRouterProfilesRepositoryFactory.create();
+        String folder = "CustomBase/brouter/profiles2";
+        repository.saveCustomProfile(activity, DocumentsContract.buildDocumentUri(AUTHORITY,
+                PRIMARY_ROOT_ID + folder + "/custom.brf"), "custom");
+
+        assertFolderPermissionStartsAt(activity, repository, folder);
+    }
+
+    @Test
     public void finishingActivityDoesNotReceiveDeferredFolderPrompt() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         AndroidBRouterProfilesStorageAccess.request(activity, AndroidBRouterProfilesRepositoryFactory.create(),

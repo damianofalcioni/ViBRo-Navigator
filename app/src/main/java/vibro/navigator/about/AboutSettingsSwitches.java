@@ -261,7 +261,7 @@ final class AboutSettingsSwitches {
             return null;
         }
         Uri uri = data.getData();
-        return AndroidBRouterFolderAccess.persistReadPermission(activity, data, uri) ? uri : null;
+        return AndroidBRouterFolderAccess.persistReadPermission(activity, data, uri, AndroidBRouterFolderAccess.Kind.SEGMENTS) ? uri : null;
     }
 
     private void configureLogEnabledSwitch() {

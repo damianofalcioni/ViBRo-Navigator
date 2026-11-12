@@ -22,6 +22,16 @@ final class BRouterProfileDirectoryCandidates {
     }
 
     @NonNull
+    List<String> getNamedProfileDocumentIdCandidates(@NonNull Context context) {
+        return BRouterDirectoryCandidates.buildStandardDocumentIdCandidates(getSecondaryStorageRootIds(context),
+                PROFILES_DIRECTORY);
+    }
+
+    static String legacySharedProfilesDocumentId() {
+        return BRouterDirectoryCandidates.legacySharedPrimaryDocumentId(PROFILES_DIRECTORY);
+    }
+
+    @NonNull
     List<String> getSecondaryStorageRootIds(@NonNull Context context) {
         return storageVolumeAccess.secondaryStorageRootIds(context);
     }

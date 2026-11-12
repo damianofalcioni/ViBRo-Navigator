@@ -165,7 +165,9 @@ public class NavigationActivityStartupStorageRobolectricTest {
     @Test
     public void mainScreenDismissalSkipsPromptAndKeepsSurroundingStreetsEnabled() {
         TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
-        Intent intent = navigationIntent().putExtra(NavigationActivity.EXTRA_SKIP_SEGMENTS_PROMPT, true);
+        Intent intent = navigationIntent().putExtra(NavigationActivity.EXTRA_SKIPPED_SEGMENTS_FOLDER,
+                DocumentsContract.buildDocumentUri("com.android.externalstorage.documents",
+                        "primary:Android/media/btools.routingapp/brouter/segments4").toString());
         try (var controller = Robolectric.buildActivity(TestNavigationActivity.class, intent).create().start()) {
             TestNavigationActivity activity = controller.get();
             assertNull(shadowOf(activity).getLastRequestedPermission());
@@ -183,6 +185,19 @@ public class NavigationActivityStartupStorageRobolectricTest {
         try (var recreated = Robolectric.buildActivity(TestNavigationActivity.class, navigationIntent()).setup(state)) {
             assertEquals(NavigationStartupCoordinator.REQUEST_PERMISSIONS,
                     shadowOf(recreated.get()).getLastRequestedPermission().requestCode);
+        }
+    }
+
+    @Test
+    public void dismissalOfDifferentFolderDoesNotSuppressNavigationPrompt() {
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
+        Intent intent = navigationIntent().putExtra(NavigationActivity.EXTRA_SKIPPED_SEGMENTS_FOLDER,
+                DocumentsContract.buildDocumentUri("com.android.externalstorage.documents",
+                        "primary:brouter/segments4").toString());
+
+        try (var controller = Robolectric.buildActivity(TestNavigationActivity.class, intent).setup()) {
+            assertTrue(ShadowAlertDialog.getLatestAlertDialog().isShowing());
+            assertNull(shadowOf(controller.get()).getLastRequestedPermission());
         }
     }
 

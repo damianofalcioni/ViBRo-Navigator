@@ -16,11 +16,11 @@ final class MainActivityNavigationLauncher {
     private MainActivityNavigationLauncher() {
     }
 
-    static void launch(@NonNull Activity activity, @NonNull NavigationRequest request, boolean skipSegmentsPrompt) {
+    static void launch(@NonNull Activity activity, @NonNull NavigationRequest request, String skippedSegmentsFolder) {
         AppLogger.i(TAG, "Starting NavigationActivity " + request.describe());
         Intent intent = new Intent(activity, NavigationActivity.class);
         AndroidNavigationRequestIntentContract.putInto(intent, request);
-        intent.putExtra(NavigationActivity.EXTRA_SKIP_SEGMENTS_PROMPT, skipSegmentsPrompt);
+        intent.putExtra(NavigationActivity.EXTRA_SKIPPED_SEGMENTS_FOLDER, skippedSegmentsFolder);
         activity.startActivity(intent);
     }
 }

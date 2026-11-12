@@ -47,8 +47,6 @@ final class AboutPermissionStatusRows {
     @NonNull
     private final BRouterSegmentsRepository segmentsRepository =
             AndroidBRouterSegmentsRepositoryFactory.create();
-    private boolean waitingForSurroundingStreetSegmentsTree;
-    private boolean waitingForProfilesTree;
 
     AboutPermissionStatusRows(@NonNull Activity activity) {
         this.activity = activity;
@@ -112,6 +110,10 @@ final class AboutPermissionStatusRows {
         renderProfileStorage();
     }
 
+    static boolean handlesTreeResult(int requestCode) {
+        return requestCode == REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE || requestCode == REQUEST_PROFILES_STORAGE;
+    }
+
     boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (requestCode == REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE) {
             return onSurroundingStreetSegmentsTreeActivityResult(resultCode, data);
@@ -123,12 +125,9 @@ final class AboutPermissionStatusRows {
     }
 
     private boolean onSurroundingStreetSegmentsTreeActivityResult(int resultCode, @Nullable Intent data) {
-        if (!waitingForSurroundingStreetSegmentsTree) {
-            return true;
-        }
-        waitingForSurroundingStreetSegmentsTree = false;
         if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null
-                && AndroidBRouterFolderAccess.persistReadPermission(activity, data, data.getData())) {
+                && AndroidBRouterFolderAccess.persistReadPermission(
+                        activity, data, data.getData(), AndroidBRouterFolderAccess.Kind.SEGMENTS)) {
             segmentsRepository.saveSegmentsTreeUri(activity, data.getData());
         } else {
             showStorageRequiredToast(R.string.msg_compass_surrounding_streets_storage_permission_required);
@@ -138,12 +137,9 @@ final class AboutPermissionStatusRows {
     }
 
     private boolean onProfilesTreeActivityResult(int resultCode, @Nullable Intent data) {
-        if (!waitingForProfilesTree) {
-            return true;
-        }
-        waitingForProfilesTree = false;
         if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null
-                && AndroidBRouterFolderAccess.persistReadPermission(activity, data, data.getData())) {
+                && AndroidBRouterFolderAccess.persistReadPermission(
+                        activity, data, data.getData(), AndroidBRouterFolderAccess.Kind.PROFILES)) {
             profilesRepository.saveProfilesTreeUri(activity, data.getData());
         } else {
             showStorageRequiredToast(R.string.msg_brouter_profiles_storage_permission_required);
@@ -224,7 +220,7 @@ final class AboutPermissionStatusRows {
                 segmentsRepository,
                 REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE,
                 TAG,
-                () -> waitingForSurroundingStreetSegmentsTree = true,
+                () -> { },
                 () -> {
                 }
         );
@@ -236,7 +232,7 @@ final class AboutPermissionStatusRows {
                 profilesRepository,
                 REQUEST_PROFILES_STORAGE,
                 TAG,
-                () -> waitingForProfilesTree = true,
+                () -> { },
                 () -> {
                 }
         );

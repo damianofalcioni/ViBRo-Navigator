@@ -126,6 +126,15 @@ public final class SurroundingStreetOverlayController {
         clearViewportIfActive();
     }
 
+    public void onSourcesChanged() {
+        boolean reloadViewport = viewportActive;
+        clearAll();
+        if (reloadViewport) {
+            onCompassViewport(lastCompassState);
+            stateEmitter.run();
+        }
+    }
+
     @NonNull
     public CompassStreetOverlay currentOverlay() {
         return runtime.isSurroundingStreetsEnabled() && viewportActive
@@ -136,6 +145,7 @@ public final class SurroundingStreetOverlayController {
     public void shutdown() {
         shutdown = true;
         generation++;
+        clearViewportState();
         executor.shutdown();
     }
 
@@ -153,7 +163,7 @@ public final class SurroundingStreetOverlayController {
     }
 
     private void requestOverlayIfNeeded() {
-        if (shutdown || inFlight || !isReadyForLoading()) {
+        if (inFlight || !isReadyForLoading()) {
             return;
         }
         List<SurroundingStreetChunkKey> urgentMissing =
@@ -186,7 +196,6 @@ public final class SurroundingStreetOverlayController {
 
     private boolean isReadyForLoading() {
         return runtime.isSurroundingStreetsEnabled()
-                && viewportActive
                 && lastAcceptedLocation != null
                 && !activeSelection.isEmpty();
     }

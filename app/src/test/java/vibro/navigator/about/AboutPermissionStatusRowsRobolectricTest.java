@@ -15,6 +15,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.os.Build;
 import android.os.Looper;
+import android.provider.DocumentsContract;
 import android.provider.Settings;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -39,6 +40,7 @@ import org.robolectric.shadows.ShadowToast;
 import java.util.concurrent.TimeUnit;
 
 import vibro.navigator.R;
+import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
 import vibro.navigator.android.brouter.TestBRouterStorage;
 import vibro.navigator.android.startup.AndroidNavigationPreflight;
 import vibro.navigator.brouter.BRouterProfilesRepository;
@@ -202,6 +204,32 @@ public class AboutPermissionStatusRowsRobolectricTest {
         assertNotNull(started);
         assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, started.intent.getAction());
         assertEquals(AboutPermissionStatusRows.REQUEST_PROFILES_STORAGE, started.requestCode);
+    }
+
+    @Test
+    @Config(sdk = Build.VERSION_CODES.Q)
+    public void restoredAboutScreenConsumesProfileGrantBeforeDiagnosticsRender() {
+        installBRouterPackage();
+        TestBRouterStorage.createPrimaryFolder("profiles2");
+        try (var controller = Robolectric.buildActivity(AboutActivity.class).setup()) {
+            AboutActivity activity = controller.get();
+            idleInitialDiagnosticRender();
+            activity.findViewById(R.id.aboutPermissionProfileStorageRow).performClick();
+            shadowOf(Looper.getMainLooper()).idleFor(android.view.ViewConfiguration.getPressedStateDuration(),
+                    TimeUnit.MILLISECONDS);
+            ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            shadowOf(Looper.getMainLooper()).idle();
+            int request = shadowOf(activity).getNextStartedActivityForResult().requestCode;
+
+            controller.recreate();
+            AboutActivity restored = controller.get();
+            Intent result = new Intent().setData(DocumentsContract.buildTreeDocumentUri(
+                    "com.android.externalstorage.documents", "primary:Android/media/btools.routingapp/brouter/profiles2"))
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            restored.onActivityResult(request, android.app.Activity.RESULT_OK, result);
+
+            assertTrue(AndroidBRouterProfilesRepositoryFactory.create().hasPersistedProfilesTreeAccess(restored));
+        }
     }
 
     @Test

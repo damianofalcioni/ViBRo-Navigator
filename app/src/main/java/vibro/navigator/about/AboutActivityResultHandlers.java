@@ -4,6 +4,7 @@ import android.content.Intent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.util.Supplier;
 
 final class AboutActivityResultHandlers {
     private AboutActivityResultHandlers() {
@@ -11,7 +12,7 @@ final class AboutActivityResultHandlers {
 
     static void handleActivityResult(
             @NonNull AboutSettingsSwitches settingsSwitches,
-            @Nullable AboutDiagnosticSection diagnosticSection,
+            @NonNull Supplier<AboutDiagnosticSection> diagnosticSection,
             @NonNull AboutDatabaseBackupActions databaseBackupActions,
             int requestCode,
             int resultCode,
@@ -22,7 +23,8 @@ final class AboutActivityResultHandlers {
             afterDiagnosticChanged.run();
             return;
         }
-        if (diagnosticSection != null && diagnosticSection.onActivityResult(requestCode, resultCode, data)) {
+        if (AboutPermissionStatusRows.handlesTreeResult(requestCode)
+                && diagnosticSection.get().onActivityResult(requestCode, resultCode, data)) {
             afterDiagnosticChanged.run();
             return;
         }

@@ -136,7 +136,7 @@ final class NavigationCustomButtonController {
             return null;
         }
         Uri uri = data.getData();
-        return AndroidBRouterFolderAccess.persistReadPermission(activity, data, uri) ? uri : null;
+        return AndroidBRouterFolderAccess.persistReadPermission(activity, data, uri, AndroidBRouterFolderAccess.Kind.SEGMENTS) ? uri : null;
     }
 
     private boolean shouldRequestSurroundingStreetPermission(@NonNull Target target, boolean enabled) {

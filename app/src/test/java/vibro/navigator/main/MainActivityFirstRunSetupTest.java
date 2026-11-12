@@ -210,7 +210,9 @@ public class MainActivityFirstRunSetupTest {
             Intent trip = shadowOf(activity).getNextStartedActivity();
             assertNotNull(trip);
             assertEquals(NavigationActivity.class.getName(), trip.getComponent().getClassName());
-            assertTrue(trip.getBooleanExtra(NavigationActivity.EXTRA_SKIP_SEGMENTS_PROMPT, false));
+            assertEquals(DocumentsContract.buildDocumentUri("com.android.externalstorage.documents",
+                            "primary:Android/media/btools.routingapp/brouter/segments4").toString(),
+                    trip.getStringExtra(NavigationActivity.EXTRA_SKIPPED_SEGMENTS_FOLDER));
             assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(activity));
         }
         try (var reopened = Robolectric.buildActivity(MainActivity.class).setup()) {

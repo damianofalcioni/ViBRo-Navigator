@@ -43,6 +43,11 @@ final class BRouterDecodedStreetCache {
         }
     }
 
+    void clear() {
+        cells.clear();
+        bytes = 0;
+    }
+
     private void remove(String key) {
         BRouterPackedStreetCell removed = cells.remove(key);
         if (removed != null) {

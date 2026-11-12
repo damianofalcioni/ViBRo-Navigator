@@ -266,7 +266,7 @@ public class MainActivity extends AndroidLocalizedActivity {
             return;
         }
         if (routeModeController.isRoundTripMode()) {
-            routeModeController.startRoundTripNavigation(profileSelection, profileCoordinator.wasSegmentsFolderOffered());
+            routeModeController.startRoundTripNavigation(profileSelection, profileCoordinator.skippedSegmentsFolder());
             return;
         }
         NavigationInputResolver.Result input = NavigationInputResolver.resolve(
@@ -283,7 +283,7 @@ public class MainActivity extends AndroidLocalizedActivity {
     }
 
     private void launchNavigation(@NonNull NavigationInputResolver.Result input) {
-        MainActivityNavigationLauncher.launch(this, input.request, profileCoordinator.wasSegmentsFolderOffered());
+        MainActivityNavigationLauncher.launch(this, input.request, profileCoordinator.skippedSegmentsFolder());
     }
 
     @Nullable

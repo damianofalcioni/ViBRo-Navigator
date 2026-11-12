@@ -1,6 +1,7 @@
 package vibro.navigator.brouter;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import android.app.Activity;
 import android.content.Context;
@@ -30,6 +31,23 @@ public class BRouterSegmentsRepositoryTest {
         repository.saveSegmentsTreeUri(activity, treeUri);
 
         assertEquals(treeUri, repository.getSegmentsTreeUri(activity));
+    }
+
+    @Test
+    public void reloadsCachedSourcesAndMissesAfterAnotherInstanceSavesGrant() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        Uri tree = Uri.parse("content://segments/tree/granted");
+        TestSegmentDependencies testDependencies = TestSegmentDependencies.createWithGrantedTree(tree);
+        BRouterSegmentsRepository active = new BRouterSegmentsRepository(testDependencies.dependencies);
+        BRouterSegmentsRepository picker = new BRouterSegmentsRepository(testDependencies.dependencies);
+        String tile = "E015_N45.rd5";
+        assertNull(active.resolveSegmentFileUri(activity, tile));
+        active.recordMissingSegmentFile(tile);
+
+        picker.saveSegmentsTreeUri(activity, tree);
+        active.resolveSegmentFileUri(activity, tile);
+
+        assertEquals(tree, testDependencies.documentAccess.firstChildTreeUri);
     }
 
     @Test

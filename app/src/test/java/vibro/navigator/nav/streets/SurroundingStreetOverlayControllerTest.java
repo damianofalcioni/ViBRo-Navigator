@@ -132,6 +132,22 @@ public class SurroundingStreetOverlayControllerTest {
     }
 
     @Test
+    public void sourceChangeReloadsAnAlreadyVisibleViewport() throws InterruptedException {
+        controller.onAcceptedLocation(location(48.2082d, 16.3738d));
+        controller.onCompassViewport(compassState());
+        assertStateEmitted();
+        int initialCalls = chunkLoader.calls;
+
+        stateLatch = new CountDownLatch(2);
+        controller.onSourcesChanged();
+        assertTrue(controller.currentOverlay().isEmpty());
+        assertStateEmitted();
+
+        assertTrue(chunkLoader.calls > initialCalls);
+        assertFalse(controller.currentOverlay().isEmpty());
+    }
+
+    @Test
     public void routeAheadPrefetchStartsAfterVisibleChunkLoad() throws InterruptedException {
         stateLatch = new CountDownLatch(2);
 

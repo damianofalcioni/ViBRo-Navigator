@@ -57,7 +57,7 @@ final class BRouterProfileDirectories {
         // A file grant may identify the folder even when probing cannot read its parent.
         if (savedProfileHint != null) {
             String parent = toParentDocumentId(savedProfileHint);
-            if (parent != null && getProfilesDocumentIdCandidates(context).contains(parent)) {
+            if (parent != null && (parent.endsWith("/profiles2") || parent.endsWith(":profiles2"))) {
                 return buildExternalStorageDocumentUri(parent);
             }
         }
@@ -77,10 +77,12 @@ final class BRouterProfileDirectories {
             boolean hasSavedTreeReadPermission
     ) {
         List<Uri> out = new ArrayList<>();
-        if (hasSavedTreeReadPermission && savedTreeUri != null) {
+        Uri sharedLegacyTree = buildExternalStorageTreeUri(BRouterProfileDirectoryCandidates.legacySharedProfilesDocumentId());
+        if (hasSavedTreeReadPermission && savedTreeUri != null && !sharedLegacyTree.equals(savedTreeUri)) {
             addDiscoveryTreeUri(out, savedTreeUri);
         }
-        for (String documentId : getProfilesDocumentIdCandidates(context)) {
+        // A leftover shared folder does not identify the base BRouter uses for named requests.
+        for (String documentId : directoryCandidates.getNamedProfileDocumentIdCandidates(context)) {
             if (documentExists(context, documentId)) {
                 addDiscoveryTreeUri(out, buildExternalStorageTreeUri(documentId));
             }

@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 
+import vibro.navigator.R;
 import vibro.navigator.android.startup.AndroidFirstRunPermissions;
 import vibro.navigator.settings.AppMainUiSettings;
 
@@ -35,6 +36,8 @@ final class MainActivityStartupCoordinator {
     void start(Bundle state, Runnable onReady) {
         this.onReady = onReady;
         permissions = new AndroidFirstRunPermissions(activity, state, this::complete);
+        permissions.bindBRouterActions(activity.findViewById(R.id.brouterProfilesAccessButton),
+                activity.findViewById(R.id.brouterSegmentsAccessButton));
         if (state != null) {
             installDone = state.getBoolean(STATE_INSTALL_DONE);
             waitingForInstall = state.getBoolean(STATE_INSTALL_WAITING);
@@ -84,8 +87,8 @@ final class MainActivityStartupCoordinator {
         return !ready;
     }
 
-    boolean wasSegmentsFolderOffered() {
-        return permissions.wasSegmentsFolderOffered();
+    String skippedSegmentsFolder() {
+        return permissions.skippedSegmentsFolder();
     }
 
     boolean onActivityResult(int requestCode, int resultCode, Intent data) {

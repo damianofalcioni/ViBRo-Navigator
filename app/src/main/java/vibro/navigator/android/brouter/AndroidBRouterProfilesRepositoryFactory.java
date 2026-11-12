@@ -30,7 +30,8 @@ public final class AndroidBRouterProfilesRepositoryFactory {
                 new AndroidDocuments(),
                 AndroidStorageVolumes::secondaryStorageRootIds,
                 new AndroidPackagesAccess(),
-                AndroidBRouterFolderAccess::hasPersistedReadPermission
+                (context, uri) -> AndroidBRouterFolderAccess.hasPersistedReadPermission(
+                        context, uri, AndroidBRouterFolderAccess.Kind.PROFILES)
         );
     }
 

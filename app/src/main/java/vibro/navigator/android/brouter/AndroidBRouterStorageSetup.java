@@ -5,19 +5,21 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
 import android.view.ViewConfiguration;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
+import vibro.navigator.android.brouter.AndroidBRouterFolderAccess.Kind;
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.android.storage.AndroidLegacyExternalStorageAccess;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.brouter.BRouterSegmentsRepository;
 import vibro.navigator.settings.AppCompassSettings;
 
-/** Sequences BRouter folder grants during first run and checks for newly available folders on return. */
+/** Sequences first-run folder grants and owns manual and automatic main-screen requests. */
 public final class AndroidBRouterStorageSetup {
     private static final int REQUEST_PROFILES = 1102;
     private static final int REQUEST_SEGMENTS = 1103;
@@ -45,20 +47,32 @@ public final class AndroidBRouterStorageSetup {
         if (!needsFolderAccess() || !needsGrant(requestCode)) {
             return false;
         }
-        AndroidTaskScheduler.main().postDelayed(() -> {
-            if (canShowDialog()) {
-                showFolder(requestCode, findLocation(requestCode), beforeLaunch, onCancel);
-            }
-        }, ViewConfiguration.getPressedStateDuration());
+        AndroidTaskScheduler.main().postDelayed(() -> discoverFirstRun(requestCode, beforeLaunch, onCancel),
+                ViewConfiguration.getPressedStateDuration());
         return true;
     }
 
-    public void setForegroundChecksEnabled(boolean enabled) {
-        foreground.enabled = enabled;
-        foreground.refresh();
+    private void discoverFirstRun(int requestCode, Runnable beforeLaunch, Runnable onCancel) {
+        if (canShowDialog()) {
+            AndroidBRouterFolderDiscovery.find(() -> findLocation(requestCode), AndroidBRouterPickerLocation.browse(),
+                    location -> {
+                        if (canShowDialog()) {
+                            showFolder(requestCode, location, beforeLaunch, onCancel);
+                        }
+                    });
+        }
     }
 
-    public boolean wasSegmentsFolderOffered() {
+    public void bindManualActions(View profilesAction, View segmentsAction) {
+        foreground.bindActions(profilesAction, segmentsAction);
+    }
+
+    public void setForegroundChecksEnabled(boolean enabled) {
+        foreground.setEnabled(enabled);
+    }
+
+    @Nullable
+    public String skippedSegmentsFolder() {
         return foreground.segmentsOffered;
     }
 
@@ -77,20 +91,18 @@ public final class AndroidBRouterStorageSetup {
 
     private void showFolder(int requestCode, AndroidBRouterPickerLocation location, Runnable beforeLaunch, Runnable onCancel) {
         Runnable launch = () -> {
-            if (location.confirmed) {
-                foreground.setOffered(requestCode, true);
-            }
+            foreground.setOffered(requestCode, location.confirmedUri());
             beforeLaunch.run();
         };
         Runnable cancel = () -> {
-            if (location.confirmed) {
-                foreground.setOffered(requestCode, true);
-            }
+            foreground.setOffered(requestCode, location.confirmedUri());
             onCancel.run();
         };
         folderDialog = requestCode == REQUEST_PROFILES
-                ? AndroidBRouterProfilesTreeAccessPrompt.showNow(activity, location.initialUri, requestCode, TAG, launch, cancel)
-                : AndroidBRouterSegmentsTreeAccessPrompt.showNow(activity, location.initialUri, requestCode, TAG, launch, cancel);
+                ? AndroidBRouterProfilesTreeAccessPrompt.showNow(activity, location.initialUri, requestCode, TAG,
+                        launch, cancel, cancel)
+                : AndroidBRouterSegmentsTreeAccessPrompt.showNow(activity, location.initialUri, requestCode, TAG,
+                        launch, cancel, cancel);
     }
 
     public boolean handleForegroundResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -114,20 +126,21 @@ public final class AndroidBRouterStorageSetup {
             Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
             onRetry.run();
         } else {
+            if (resultCode == Activity.RESULT_OK) {
+                foreground.setOffered(requestCode, null);
+            }
             onAdvance.run();
         }
         return true;
     }
 
     private boolean persist(int requestCode, @Nullable Intent data) {
-        if (data == null) {
+        Kind kind = requestCode == REQUEST_PROFILES ? Kind.PROFILES : Kind.SEGMENTS;
+        Uri uri = AndroidBRouterFolderAccess.persistSelection(activity, data, kind);
+        if (uri == null) {
             return false;
         }
-        Uri uri = data.getData();
-        if (uri == null || !AndroidBRouterFolderAccess.persistReadPermission(activity, data, uri)) {
-            return false;
-        }
-        if (requestCode == REQUEST_PROFILES) {
+        if (kind == Kind.PROFILES) {
             profiles.saveProfilesTreeUri(activity, uri);
         } else {
             segments.saveSegmentsTreeUri(activity, uri);
@@ -149,72 +162,149 @@ public final class AndroidBRouterStorageSetup {
     }
 
     public void dispose() {
-        foreground.enabled = false;
+        foreground.setEnabled(false);
         if (folderDialog != null) {
             folderDialog.dismiss();
         }
     }
 
     private final class ForegroundChecks {
-        private static final String STATE_PROFILES_OFFERED = "brouter_profiles_offered";
-        private static final String STATE_SEGMENTS_OFFERED = "brouter_segments_offered";
+        private static final String STATE_PROFILES_OFFERED = "brouter_profiles_offered_uri";
+        private static final String STATE_SEGMENTS_OFFERED = "brouter_segments_offered_uri";
         private static final String STATE_REQUEST = "brouter_foreground_request";
-
+        private final AndroidBRouterPickerRequest picker = new AndroidBRouterPickerRequest(activity, STATE_REQUEST);
         private boolean enabled;
-        private boolean profilesOffered;
-        private boolean segmentsOffered;
-        private int pendingRequest;
+        private String profilesOffered;
+        private String segmentsOffered;
+        private int discoveryGeneration;
+        private boolean discovering;
+        private View profilesAction;
+        private View segmentsAction;
 
         ForegroundChecks(@Nullable Bundle state) {
             if (state != null) {
-                profilesOffered = state.getBoolean(STATE_PROFILES_OFFERED);
-                segmentsOffered = state.getBoolean(STATE_SEGMENTS_OFFERED);
-                pendingRequest = state.getInt(STATE_REQUEST);
+                profilesOffered = state.getString(STATE_PROFILES_OFFERED);
+                segmentsOffered = state.getString(STATE_SEGMENTS_OFFERED);
             }
+            picker.restore(state);
+        }
+
+        void bindActions(View profilesAction, View segmentsAction) {
+            this.profilesAction = profilesAction;
+            this.segmentsAction = segmentsAction;
+            profilesAction.setOnClickListener(view -> discover(REQUEST_PROFILES));
+            segmentsAction.setOnClickListener(view -> discover(REQUEST_SEGMENTS));
+        }
+
+        void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+            if (!enabled) {
+                discoveryGeneration++;
+                discovering = false;
+                return;
+            }
+            refresh();
         }
 
         void refresh() {
-            if (!enabled || hasActiveRequest() || !canShowDialog() || !needsFolderAccess()) {
+            discover(0);
+        }
+
+        private void discover(int manualRequest) {
+            if (!enabled) {
                 return;
             }
-            if (!offerAvailableFolder(REQUEST_PROFILES, profilesOffered)) {
-                offerAvailableFolder(REQUEST_SEGMENTS, segmentsOffered);
+            boolean supported = needsFolderAccess();
+            boolean checkProfiles = supported && needsGrant(REQUEST_PROFILES);
+            boolean checkSegments = supported && needsGrant(REQUEST_SEGMENTS);
+            updateAction(profilesAction, checkProfiles);
+            updateAction(segmentsAction, checkSegments);
+            if (hasActivePicker() || (!checkProfiles && !checkSegments)) {
+                return;
+            }
+            // An explicit tap can supersede an automatic probe already in flight.
+            if (discovering && manualRequest == 0) {
+                return;
+            }
+            queueDiscovery(manualRequest, checkProfiles, checkSegments);
+        }
+
+        private void queueDiscovery(int manualRequest, boolean checkProfiles, boolean checkSegments) {
+            int generation = ++discoveryGeneration;
+            discovering = true;
+            String lastProfilesOffer = profilesOffered;
+            String lastSegmentsOffer = segmentsOffered;
+            if (manualRequest == 0) {
+                AndroidBRouterFolderDiscovery.find(
+                        () -> findAutomaticOffer(checkProfiles, checkSegments, lastProfilesOffer, lastSegmentsOffer),
+                        null, offer -> applyOffer(generation, offer));
+            } else {
+                AndroidBRouterFolderDiscovery.find(() -> findLocation(manualRequest), AndroidBRouterPickerLocation.browse(),
+                        location -> applyOffer(generation, new FolderOffer(manualRequest, location)));
             }
         }
 
-        private boolean hasActiveRequest() {
-            return pendingRequest != 0 || (folderDialog != null && folderDialog.isShowing());
+        private FolderOffer findAutomaticOffer(boolean checkProfiles, boolean checkSegments,
+                                               @Nullable String lastProfilesOffer, @Nullable String lastSegmentsOffer) {
+            if (checkProfiles) {
+                AndroidBRouterPickerLocation location = findLocation(REQUEST_PROFILES);
+                if (isNewOffer(location, lastProfilesOffer)) {
+                    return new FolderOffer(REQUEST_PROFILES, location);
+                }
+            }
+            if (checkSegments) {
+                AndroidBRouterPickerLocation location = findLocation(REQUEST_SEGMENTS);
+                if (isNewOffer(location, lastSegmentsOffer)) {
+                    return new FolderOffer(REQUEST_SEGMENTS, location);
+                }
+            }
+            return null;
         }
 
-        private boolean offerAvailableFolder(int requestCode, boolean alreadyOffered) {
-            if (!needsGrant(requestCode)) {
-                setOffered(requestCode, false);
-                return false;
+        private boolean isNewOffer(AndroidBRouterPickerLocation location, @Nullable String offered) {
+            Uri uri = location.confirmedUri();
+            return uri != null && !uri.toString().equals(offered);
+        }
+
+        private void applyOffer(int generation, @Nullable FolderOffer offer) {
+            if (generation != discoveryGeneration) {
+                return;
             }
-            if (alreadyOffered) {
-                return false;
+            discovering = false;
+            if (offer == null || !canShowDialog() || hasActivePicker()) {
+                return;
             }
-            AndroidBRouterPickerLocation location = findLocation(requestCode);
-            if (!location.confirmed) {
-                return false;
+            if (!needsFolderAccess() || !needsGrant(offer.requestCode)) {
+                refresh();
+                return;
             }
-            showFolder(requestCode, location, () -> pendingRequest = requestCode, () -> { });
+            showFolder(offer.requestCode, offer.location, () -> picker.begin(offer.requestCode), () -> { });
             folderDialog.setOnDismissListener(dialog -> refresh());
-            return true;
+        }
+
+        private void updateAction(@Nullable View action, boolean visible) {
+            if (action != null) {
+                action.setVisibility(visible ? View.VISIBLE : View.GONE);
+            }
+        }
+
+        private boolean hasActivePicker() {
+            return picker.isPending() || (folderDialog != null && folderDialog.isShowing());
         }
 
         boolean handleResult(int requestCode, int resultCode, @Nullable Intent data) {
-            if (pendingRequest == 0 || requestCode != pendingRequest) {
+            if (!picker.matches(requestCode)) {
                 return false;
             }
-            pendingRequest = 0;
+            picker.complete();
             return AndroidBRouterStorageSetup.this.handleResult(requestCode, resultCode, data, this::refresh, () -> {
-                setOffered(requestCode, false);
+                setOffered(requestCode, null);
                 refresh();
             });
         }
 
-        void setOffered(int requestCode, boolean offered) {
+        void setOffered(int requestCode, @Nullable Uri uri) {
+            String offered = uri == null ? null : uri.toString();
             if (requestCode == REQUEST_PROFILES) {
                 profilesOffered = offered;
             } else {
@@ -223,9 +313,19 @@ public final class AndroidBRouterStorageSetup {
         }
 
         void saveState(Bundle state) {
-            state.putBoolean(STATE_PROFILES_OFFERED, profilesOffered);
-            state.putBoolean(STATE_SEGMENTS_OFFERED, segmentsOffered);
-            state.putInt(STATE_REQUEST, pendingRequest);
+            state.putString(STATE_PROFILES_OFFERED, profilesOffered);
+            state.putString(STATE_SEGMENTS_OFFERED, segmentsOffered);
+            picker.save(state);
+        }
+    }
+
+    private static final class FolderOffer {
+        final int requestCode;
+        final AndroidBRouterPickerLocation location;
+
+        FolderOffer(int requestCode, AndroidBRouterPickerLocation location) {
+            this.requestCode = requestCode;
+            this.location = location;
         }
     }
 }

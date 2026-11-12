@@ -6,6 +6,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.core.app.ActivityCompat;
 
@@ -162,8 +163,12 @@ public final class AndroidFirstRunPermissions {
         storage.setForegroundChecksEnabled(enabled);
     }
 
-    public boolean wasSegmentsFolderOffered() {
-        return storage.wasSegmentsFolderOffered();
+    public void bindBRouterActions(View profilesAction, View segmentsAction) {
+        storage.bindManualActions(profilesAction, segmentsAction);
+    }
+
+    public String skippedSegmentsFolder() {
+        return storage.skippedSegmentsFolder();
     }
 
     public void dispose() {

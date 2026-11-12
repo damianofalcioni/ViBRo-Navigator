@@ -10,6 +10,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.provider.DocumentsContractCompat;
 
+import java.util.List;
+
 import vibro.navigator.R;
 import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.android.storage.AndroidDocumentAccess.DirectoryPresence;
@@ -24,6 +26,11 @@ final class AndroidBRouterPickerLocation {
     private AndroidBRouterPickerLocation(@Nullable Uri initialUri, boolean confirmed) {
         this.initialUri = initialUri;
         this.confirmed = confirmed;
+    }
+
+    @NonNull
+    static AndroidBRouterPickerLocation browse() {
+        return new AndroidBRouterPickerLocation(null, false);
     }
 
     @NonNull
@@ -47,14 +54,28 @@ final class AndroidBRouterPickerLocation {
             @Nullable String preferredId
     ) {
         String unverifiedId = null;
-        for (String id : BRouterDirectoryCandidates.buildLikelyDocumentIdCandidates(
-                AndroidStorageVolumes.secondaryStorageRootIds(context), folderName)) {
+        List<String> candidates = BRouterDirectoryCandidates.buildLikelyDocumentIdCandidates(
+                AndroidStorageVolumes.secondaryStorageRootIds(context), folderName);
+        for (String id : candidates) {
             DirectoryPresence presence = selectablePresence(context, id);
             if (presence == DirectoryPresence.PRESENT) {
                 return new AndroidBRouterPickerLocation(AndroidDocumentAccess.buildExternalStorageDocumentUri(id), true);
             }
             if (presence == DirectoryPresence.UNKNOWN && (unverifiedId == null || id.equals(preferredId))) {
                 unverifiedId = id;
+            }
+        }
+        return fallbackLocation(context, candidates, preferredId, unverifiedId);
+    }
+
+    private static AndroidBRouterPickerLocation fallbackLocation(Context context, List<String> candidates,
+                                                                 @Nullable String preferredId,
+                                                                 @Nullable String unverifiedId) {
+        if (preferredId != null && !candidates.contains(preferredId)) {
+            DirectoryPresence presence = selectablePresence(context, preferredId);
+            if (presence != DirectoryPresence.MISSING) {
+                return new AndroidBRouterPickerLocation(AndroidDocumentAccess.buildExternalStorageDocumentUri(preferredId),
+                        presence == DirectoryPresence.PRESENT);
             }
         }
         Uri hint = unverifiedId == null ? null : AndroidDocumentAccess.buildExternalStorageDocumentUri(unverifiedId);

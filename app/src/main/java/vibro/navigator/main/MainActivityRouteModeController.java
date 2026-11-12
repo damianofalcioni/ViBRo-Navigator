@@ -194,12 +194,12 @@ final class MainActivityRouteModeController {
         }
     }
 
-    void startRoundTripNavigation(@NonNull ProfileSelection profileSelection, boolean skipSegmentsPrompt) {
+    void startRoundTripNavigation(@NonNull ProfileSelection profileSelection, String skippedSegmentsFolder) {
         NavigationRequest request = roundTripRequestFactory.resolveRequest(profileSelection);
         if (request == null) {
             return;
         }
-        MainActivityNavigationLauncher.launch(activity, request, skipSegmentsPrompt);
+        MainActivityNavigationLauncher.launch(activity, request, skippedSegmentsFolder);
     }
 
     private void render(@NonNull NavigationRoutingMode mode) {
