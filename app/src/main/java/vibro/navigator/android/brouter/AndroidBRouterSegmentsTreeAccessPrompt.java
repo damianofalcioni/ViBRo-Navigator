@@ -32,7 +32,8 @@ public final class AndroidBRouterSegmentsTreeAccessPrompt {
     ) {
         AndroidTaskScheduler.main().postDelayed(() -> {
             if (!activity.isFinishing() && !activity.isDestroyed()) {
-                showNow(activity, findInitialUri(activity, segmentsRepository), requestCode, logTag, beforeLaunch, onCancel);
+                Uri initialUri = findLocation(activity, segmentsRepository).initialUri;
+                showNow(activity, initialUri, requestCode, logTag, beforeLaunch, onCancel);
             }
         }, ViewConfiguration.getPressedStateDuration());
     }
@@ -46,12 +47,15 @@ public final class AndroidBRouterSegmentsTreeAccessPrompt {
             @NonNull Runnable beforeLaunch,
             @NonNull Runnable onCancel
     ) {
-        Uri initialUri = findInitialUri(activity, segmentsRepository);
+        Uri initialUri = findLocation(activity, segmentsRepository).confirmedUri();
         return initialUri == null ? null : showNow(activity, initialUri, requestCode, logTag, beforeLaunch, onCancel);
     }
 
-    @Nullable
-    static Uri findInitialUri(@NonNull Activity activity, @NonNull BRouterSegmentsRepository segmentsRepository) {
+    @NonNull
+    static AndroidBRouterPickerLocation findLocation(
+            @NonNull Activity activity,
+            @NonNull BRouterSegmentsRepository segmentsRepository
+    ) {
         return AndroidBRouterPickerLocation.resolve(
                 activity, initialDocumentUri(segmentsRepository.getGrantedSegmentsTreeUri(activity)), FOLDER_NAME);
     }

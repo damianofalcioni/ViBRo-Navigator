@@ -68,7 +68,8 @@ public class NavigationActivityStartupStorageRobolectricTest {
     }
 
     @Test
-    public void missingSegmentsFolderKeepsSurroundingStreetsEnabledAndContinuesStartup() {
+    public void unverifiedSegmentsFolderKeepsSurroundingStreetsEnabledAndContinuesStartup() {
+        TestBRouterStorage.requireGrantToQueryPrimaryFolder(ApplicationProvider.getApplicationContext(), SEGMENTS_FOLDER);
         TestNavigationActivity activity = Robolectric.buildActivity(TestNavigationActivity.class, navigationIntent())
                 .setup().get();
 

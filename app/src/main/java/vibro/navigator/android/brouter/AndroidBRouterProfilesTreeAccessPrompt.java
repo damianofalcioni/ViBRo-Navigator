@@ -32,13 +32,17 @@ public final class AndroidBRouterProfilesTreeAccessPrompt {
     ) {
         AndroidTaskScheduler.main().postDelayed(() -> {
             if (!activity.isFinishing() && !activity.isDestroyed()) {
-                showNow(activity, findInitialUri(activity, profilesRepository), requestCode, logTag, beforeLaunch, onCancel);
+                Uri initialUri = findLocation(activity, profilesRepository).initialUri;
+                showNow(activity, initialUri, requestCode, logTag, beforeLaunch, onCancel);
             }
         }, ViewConfiguration.getPressedStateDuration());
     }
 
-    @Nullable
-    static Uri findInitialUri(@NonNull Activity activity, @NonNull BRouterProfilesRepository profilesRepository) {
+    @NonNull
+    static AndroidBRouterPickerLocation findLocation(
+            @NonNull Activity activity,
+            @NonNull BRouterProfilesRepository profilesRepository
+    ) {
         Uri savedProfileHint = Build.VERSION.SDK_INT == Build.VERSION_CODES.Q
                 ? profilesRepository.getCustomProfileUri(activity) : null;
         return AndroidBRouterPickerLocation.resolve(

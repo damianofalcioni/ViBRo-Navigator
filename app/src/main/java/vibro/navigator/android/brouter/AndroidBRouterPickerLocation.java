@@ -17,20 +17,31 @@ import vibro.navigator.android.storage.AndroidStorageVolumes;
 import vibro.navigator.brouter.BRouterDirectoryCandidates;
 
 final class AndroidBRouterPickerLocation {
-    private AndroidBRouterPickerLocation() {
+    @Nullable
+    final Uri initialUri;
+    final boolean confirmed;
+
+    private AndroidBRouterPickerLocation(@Nullable Uri initialUri, boolean confirmed) {
+        this.initialUri = initialUri;
+        this.confirmed = confirmed;
     }
 
-    @Nullable
-    static Uri resolve(@NonNull Context context, @Nullable Uri hint, @NonNull String folderName) {
+    @NonNull
+    static AndroidBRouterPickerLocation resolve(@NonNull Context context, @Nullable Uri hint, @NonNull String folderName) {
         if (hint != null && DocumentsContractCompat.isTreeUri(hint)) {
-            return hint;
+            return new AndroidBRouterPickerLocation(hint, true);
         }
         String preferredId = hint == null ? null : AndroidDocumentAccess.documentId(hint);
         return findSelectableFolder(context, folderName, preferredId);
     }
 
     @Nullable
-    private static Uri findSelectableFolder(
+    Uri confirmedUri() {
+        return confirmed ? initialUri : null;
+    }
+
+    @NonNull
+    private static AndroidBRouterPickerLocation findSelectableFolder(
             @NonNull Context context,
             @NonNull String folderName,
             @Nullable String preferredId
@@ -40,13 +51,14 @@ final class AndroidBRouterPickerLocation {
                 AndroidStorageVolumes.secondaryStorageRootIds(context), folderName)) {
             DirectoryPresence presence = selectablePresence(context, id);
             if (presence == DirectoryPresence.PRESENT) {
-                return AndroidDocumentAccess.buildExternalStorageDocumentUri(id);
+                return new AndroidBRouterPickerLocation(AndroidDocumentAccess.buildExternalStorageDocumentUri(id), true);
             }
             if (presence == DirectoryPresence.UNKNOWN && (unverifiedId == null || id.equals(preferredId))) {
                 unverifiedId = id;
             }
         }
-        return unverifiedId == null ? null : AndroidDocumentAccess.buildExternalStorageDocumentUri(unverifiedId);
+        Uri hint = unverifiedId == null ? null : AndroidDocumentAccess.buildExternalStorageDocumentUri(unverifiedId);
+        return new AndroidBRouterPickerLocation(hint, false);
     }
 
     @NonNull

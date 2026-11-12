@@ -3,6 +3,7 @@ package vibro.navigator.android.brouter;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
@@ -91,21 +92,20 @@ public class AndroidBRouterSegmentsTreeAccessPromptTest {
     }
 
     @Test
-    public void offersSegmentsPickerWhenProviderRequiresGrantBeforeQuerying() {
+    public void keepsManualSegmentsBrowsingAvailableWhenProviderRequiresGrant() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         String folder = "Android/media/btools.routingapp/brouter/segments4";
         assertFalse(new File(AndroidStorageVolumes.storageRoot(activity, "primary"), folder).exists());
-        TestBRouterStorage.requireGrantToQueryDirectory(activity, "primary:" + folder);
+        TestBRouterStorage.requireGrantToQueryPrimaryFolder(activity, "segments4");
 
         BRouterSegmentsRepository repository = AndroidBRouterSegmentsRepositoryFactory.create();
-        AlertDialog prompt = AndroidBRouterSegmentsTreeAccessPrompt.showIfAvailable(
-                activity, repository, 42, "StorageTest", () -> { }, () -> { });
-        assertNotNull(prompt);
-        prompt.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
-        shadowOf(Looper.getMainLooper()).idle();
+        assertNull(AndroidBRouterSegmentsTreeAccessPrompt.showIfAvailable(
+                activity, repository, 42, "StorageTest", () -> { }, () -> { }));
 
-        Intent picker = shadowOf(activity).getNextStartedActivityForResult().intent;
+        Intent picker = openPicker(activity, repository);
         assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, picker.getAction());
+        assertEquals(DocumentsContract.buildDocumentUri(AUTHORITY, "primary:" + folder),
+                IntentCompat.getParcelableExtra(picker, DocumentsContract.EXTRA_INITIAL_URI, Uri.class));
     }
 
     @Test

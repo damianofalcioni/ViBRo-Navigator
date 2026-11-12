@@ -124,6 +124,7 @@ public class MainActivityFirstRunSetupTest {
 
             controller.pause().stop();
             installBRouter(app);
+            TestBRouterStorage.requireGrantToQueryPrimaryFolder(app, PROFILES_FOLDER);
             controller.start().resume();
             idle();
             assertTrue(((ListAdapter) modes.getAdapter()).isEnabled(route));
@@ -158,6 +159,32 @@ public class MainActivityFirstRunSetupTest {
             idle();
             assertEquals(roundTrip, modes.getSelectedItemPosition());
             assertFalse(ShadowAlertDialog.getLatestAlertDialog().isShowing());
+        }
+    }
+
+    @Test
+    public void skippingUnverifiedProfilesDuringSetupAllowsOfferAfterDiscovery() {
+        Application app = ApplicationProvider.getApplicationContext();
+        installBRouter(app);
+        TestBRouterStorage.requireGrantToQueryPrimaryFolder(app, PROFILES_FOLDER);
+
+        try (var controller = Robolectric.buildActivity(MainActivity.class).setup()) {
+            continueWelcome();
+            idle();
+            ShadowActivity.IntentForResult request = openFolderPicker(controller.get());
+            assertTrue(request.intent.hasExtra(DocumentsContract.EXTRA_INITIAL_URI));
+            controller.get().onActivityResult(request.requestCode, Activity.RESULT_CANCELED, null);
+            idle();
+            cancelPrompt();
+            finishPermissions(controller.get());
+            assertFalse(ShadowAlertDialog.getLatestAlertDialog().isShowing());
+
+            controller.pause().stop();
+            TestBRouterStorage.createPrimaryFolder(PROFILES_FOLDER);
+            controller.start().resume();
+            AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+            assertTrue(dialog.isShowing());
+            assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains(PROFILES_FOLDER));
         }
     }
 

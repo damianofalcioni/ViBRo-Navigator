@@ -135,7 +135,7 @@ public class AndroidBRouterProfilesStorageAccessTest {
         Uri custom = DocumentsContract.buildDocumentUri(AUTHORITY, PRIMARY_ROOT_ID + LEGACY_FOLDER + "/custom.brf");
         assertEquals(DocumentsContract.buildDocumentUri(AUTHORITY, documentId),
                 AndroidBRouterPickerLocation.resolve(context,
-                        repository.getProfilesTreePickerHint(context, custom), PROFILES_FOLDER));
+                        repository.getProfilesTreePickerHint(context, custom), PROFILES_FOLDER).initialUri);
     }
 
     @Test
@@ -150,7 +150,7 @@ public class AndroidBRouterProfilesStorageAccessTest {
         BRouterProfilesRepository repository = AndroidBRouterProfilesRepositoryFactory.create();
         assertEquals(DocumentsContract.buildDocumentUri(AUTHORITY, documentId),
                 AndroidBRouterPickerLocation.resolve(context,
-                        repository.getProfilesTreePickerHint(context, null), PROFILES_FOLDER));
+                        repository.getProfilesTreePickerHint(context, null), PROFILES_FOLDER).confirmedUri());
     }
 
     @Test
@@ -162,7 +162,7 @@ public class AndroidBRouterProfilesStorageAccessTest {
         Context context = contextWithCard(activity, cardRoot);
 
         Uri expected = DocumentsContract.buildDocumentUri(AUTHORITY, TestOutputStorageCard.ID + ":" + LEGACY_FOLDER);
-        assertEquals(expected, AndroidBRouterPickerLocation.resolve(context, null, PROFILES_FOLDER));
+        assertEquals(expected, AndroidBRouterPickerLocation.resolve(context, null, PROFILES_FOLDER).confirmedUri());
     }
 
     private static Context contextWithCard(Activity activity, File cardRoot) {
