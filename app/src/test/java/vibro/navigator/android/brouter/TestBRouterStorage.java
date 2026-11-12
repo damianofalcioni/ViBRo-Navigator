@@ -2,10 +2,21 @@ package vibro.navigator.android.brouter;
 
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
+import android.content.ContentProvider;
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.MatrixCursor;
+import android.net.Uri;
+import android.provider.DocumentsContract;
 
 import androidx.test.core.app.ApplicationProvider;
 
+import org.robolectric.shadows.ShadowContentResolver;
+
+import java.io.File;
+
+import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.android.storage.AndroidStorageVolumes;
 
 public final class TestBRouterStorage {
@@ -16,5 +27,55 @@ public final class TestBRouterStorage {
         File root = AndroidStorageVolumes.storageRoot(ApplicationProvider.getApplicationContext(), "primary");
         File folder = new File(root, "Android/media/btools.routingapp/brouter/" + name);
         assertTrue(folder.isDirectory() || folder.mkdirs());
+    }
+
+    static void exposeDirectoryThroughProvider(Context context, String documentId) {
+        Uri tree = AndroidDocumentAccess.buildExternalStorageTreeUri(documentId);
+        Uri document = DocumentsContract.buildDocumentUriUsingTree(tree, documentId);
+        ShadowContentResolver.registerProviderInternal(document.getAuthority(), new DirectoryProvider(document));
+        assertTrue(AndroidDocumentAccess.externalStorageDocumentExists(context, documentId));
+    }
+
+    private static final class DirectoryProvider extends ContentProvider {
+        private final Uri directory;
+
+        DirectoryProvider(Uri directory) {
+            this.directory = directory;
+        }
+
+        @Override
+        public boolean onCreate() {
+            return true;
+        }
+
+        @Override
+        public Cursor query(Uri uri, String[] projection, String selection, String[] args, String sort) {
+            MatrixCursor cursor = new MatrixCursor(new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+                    DocumentsContract.Document.COLUMN_MIME_TYPE});
+            if (directory.equals(uri)) {
+                cursor.addRow(new Object[]{DocumentsContract.getDocumentId(uri), DocumentsContract.Document.MIME_TYPE_DIR});
+            }
+            return cursor;
+        }
+
+        @Override
+        public String getType(Uri uri) {
+            return directory.equals(uri) ? DocumentsContract.Document.MIME_TYPE_DIR : null;
+        }
+
+        @Override
+        public Uri insert(Uri uri, ContentValues values) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int update(Uri uri, ContentValues values, String selection, String[] args) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int delete(Uri uri, String selection, String[] args) {
+            throw new UnsupportedOperationException();
+        }
     }
 }

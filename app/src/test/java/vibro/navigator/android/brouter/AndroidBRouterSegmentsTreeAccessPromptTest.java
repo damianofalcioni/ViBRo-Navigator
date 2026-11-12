@@ -74,6 +74,23 @@ public class AndroidBRouterSegmentsTreeAccessPromptTest {
     }
 
     @Test
+    public void offersSegmentsFolderVisibleOnlyThroughDocumentProvider() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        String id = "primary:Android/media/btools.routingapp/brouter/segments4";
+        TestBRouterStorage.exposeDirectoryThroughProvider(activity, id);
+
+        BRouterSegmentsRepository repository = AndroidBRouterSegmentsRepositoryFactory.create();
+        assertNotNull(AndroidBRouterSegmentsTreeAccessPrompt.showIfAvailable(
+                activity, repository, 42, "StorageTest", () -> { }, () -> { }));
+        ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+
+        Intent picker = shadowOf(activity).getNextStartedActivityForResult().intent;
+        assertEquals(DocumentsContract.buildDocumentUri(AUTHORITY, id),
+                IntentCompat.getParcelableExtra(picker, DocumentsContract.EXTRA_INITIAL_URI, Uri.class));
+    }
+
+    @Test
     public void rejectsDownloadsAsSegmentsAccess() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         BRouterSegmentsRepository repository = AndroidBRouterSegmentsRepositoryFactory.create();

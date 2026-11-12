@@ -42,7 +42,7 @@ public final class AndroidBRouterProfilesTreeAccessPrompt {
         Uri savedProfileHint = Build.VERSION.SDK_INT == Build.VERSION_CODES.Q
                 ? profilesRepository.getCustomProfileUri(activity) : null;
         return AndroidBRouterPickerLocation.resolve(
-                activity, profilesRepository.getProfilesTreePickerInitialUri(activity, savedProfileHint), FOLDER_NAME);
+                activity, profilesRepository.getProfilesTreePickerHint(activity, savedProfileHint), FOLDER_NAME);
     }
 
     static AlertDialog showNow(

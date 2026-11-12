@@ -53,7 +53,7 @@ public final class AndroidBRouterSegmentsTreeAccessPrompt {
     @Nullable
     static Uri findInitialUri(@NonNull Activity activity, @NonNull BRouterSegmentsRepository segmentsRepository) {
         return AndroidBRouterPickerLocation.resolve(
-                activity, initialDocumentUri(segmentsRepository.getSegmentsTreePickerInitialUri(activity)), FOLDER_NAME);
+                activity, initialDocumentUri(segmentsRepository.getGrantedSegmentsTreeUri(activity)), FOLDER_NAME);
     }
 
     static AlertDialog showNow(

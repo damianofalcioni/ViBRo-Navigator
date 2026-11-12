@@ -32,12 +32,6 @@ public final class AndroidBRouterSegmentsRepositoryFactory {
     private static final class AndroidDocuments implements BRouterSegmentDependencies.DocumentAccess {
         @NonNull
         @Override
-        public Uri buildExternalStorageDocumentUri(@NonNull String documentId) {
-            return AndroidDocumentAccess.buildExternalStorageDocumentUri(documentId);
-        }
-
-        @NonNull
-        @Override
         public Uri buildExternalStorageTreeUri(@NonNull String documentId) {
             return AndroidDocumentAccess.buildExternalStorageTreeUri(documentId);
         }

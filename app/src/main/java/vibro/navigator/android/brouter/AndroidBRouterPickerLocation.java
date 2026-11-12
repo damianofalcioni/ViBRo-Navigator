@@ -51,10 +51,9 @@ final class AndroidBRouterPickerLocation {
 
     @NonNull
     private static DirectoryPresence selectablePresence(@NonNull Context context, @NonNull String id) {
-        DirectoryPresence presence = AndroidDocumentAccess.externalStorageDirectoryPresence(context, id);
         // New tree grants for Android/data are restricted on Android 11 and later.
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && id.contains(":Android/data/")
-                ? DirectoryPresence.MISSING : presence;
+                ? DirectoryPresence.MISSING : AndroidDocumentAccess.externalStorageDirectoryPresence(context, id);
     }
 
     @NonNull

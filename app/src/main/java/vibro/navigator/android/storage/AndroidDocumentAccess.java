@@ -202,21 +202,7 @@ public final class AndroidDocumentAccess {
             AppLogger.d(TAG, "Direct external storage document accessible documentId=" + documentId);
             return true;
         }
-        Uri treeUri = buildExternalStorageTreeUri(documentId);
-        Uri documentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId);
-        try (Cursor cursor = context.getContentResolver().query(
-                documentUri,
-                new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID},
-                null,
-                null,
-                null
-        )) {
-            return cursor != null && cursor.moveToFirst();
-        } catch (Exception e) {
-            AppLogger.d(TAG, "Document not accessible documentId=" + documentId
-                    + " error=" + e.getClass().getSimpleName());
-            return false;
-        }
+        return AndroidExternalDirectoryPresence.documentProviderDirectoryExists(context, documentId);
     }
 
     @NonNull

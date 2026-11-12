@@ -33,9 +33,6 @@ public final class BRouterSegmentDependencies {
 
     public interface DocumentAccess {
         @NonNull
-        Uri buildExternalStorageDocumentUri(@NonNull String documentId);
-
-        @NonNull
         Uri buildExternalStorageTreeUri(@NonNull String documentId);
 
         boolean externalStorageDocumentExists(@NonNull Context context, @NonNull String documentId);

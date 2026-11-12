@@ -85,12 +85,6 @@ public class BRouterSegmentsRepositoryTest {
 
         @NonNull
         @Override
-        public Uri buildExternalStorageDocumentUri(@NonNull String documentId) {
-            return Uri.parse("content://segments/document/" + documentId);
-        }
-
-        @NonNull
-        @Override
         public Uri buildExternalStorageTreeUri(@NonNull String documentId) {
             return Uri.parse("content://segments/tree/" + documentId);
         }

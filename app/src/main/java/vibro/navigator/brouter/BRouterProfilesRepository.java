@@ -220,9 +220,9 @@ public class BRouterProfilesRepository {
     }
 
     @Nullable
-    public Uri getProfilesTreePickerInitialUri(@NonNull Context context, @Nullable Uri savedProfileHint) {
+    public Uri getProfilesTreePickerHint(@NonNull Context context, @Nullable Uri savedProfileHint) {
         Uri treeUri = getProfilesTreeUri(context);
-        return profileDirectories.getProfilesTreePickerInitialUri(
+        return profileDirectories.getProfilesTreePickerHint(
                 context,
                 hasPersistedReadPermission(context, treeUri) ? treeUri : null,
                 savedProfileHint

@@ -41,11 +41,12 @@ final class BRouterProfileDirectories {
             Uri parentUri = toParentDocumentUri(customProfileUri);
             return parentUri != null ? parentUri : customProfileUri;
         }
-        return resolveProfilesPickerInitialUri(context, null);
+        String existing = findExistingProfilesDocumentId(context);
+        return existing != null ? buildExternalStorageDocumentUri(existing) : fallbackPickerUri(context);
     }
 
     @Nullable
-    Uri getProfilesTreePickerInitialUri(
+    Uri getProfilesTreePickerHint(
             @NonNull Context context,
             @Nullable Uri persistedTreeUri,
             @Nullable Uri savedProfileHint
@@ -53,7 +54,14 @@ final class BRouterProfileDirectories {
         if (persistedTreeUri != null) {
             return initialUriForTree(persistedTreeUri);
         }
-        return resolveProfilesPickerInitialUri(context, savedProfileHint);
+        // A file grant may identify the folder even when probing cannot read its parent.
+        if (savedProfileHint != null) {
+            String parent = toParentDocumentId(savedProfileHint);
+            if (parent != null && getProfilesDocumentIdCandidates(context).contains(parent)) {
+                return buildExternalStorageDocumentUri(parent);
+            }
+        }
+        return fallbackPickerUri(context);
     }
 
     @Nullable
@@ -111,30 +119,17 @@ final class BRouterProfileDirectories {
     }
 
     @NonNull
-    private Uri resolveProfilesPickerInitialUri(@NonNull Context context, @Nullable Uri savedProfileHint) {
-        List<String> candidates = getProfilesDocumentIdCandidates(context);
-        String existing = findExistingProfilesDocumentId(context, candidates);
-        if (existing != null) {
-            return buildExternalStorageDocumentUri(existing);
-        }
-        // A file grant may identify the folder even when probing cannot read its parent.
-        if (savedProfileHint != null) {
-            String parent = toParentDocumentId(savedProfileHint);
-            if (parent != null && candidates.contains(parent)) {
-                return buildExternalStorageDocumentUri(parent);
-            }
-        }
+    private Uri fallbackPickerUri(@NonNull Context context) {
         List<String> fallbackCandidates = BRouterProfileDirectoryCandidates.buildFallbackPickerDocumentIdCandidates(
                 directoryCandidates.getSecondaryStorageRootIds(context)
         );
         String fallback = fallbackCandidates.get(0);
-        AppLogger.d(TAG, "Using fallback profiles path documentId=" + fallback);
         return buildExternalStorageDocumentUri(fallback);
     }
 
     @Nullable
-    private String findExistingProfilesDocumentId(@NonNull Context context, @NonNull List<String> candidates) {
-        for (String documentId : candidates) {
+    private String findExistingProfilesDocumentId(@NonNull Context context) {
+        for (String documentId : getProfilesDocumentIdCandidates(context)) {
             if (documentExists(context, documentId)) {
                 AppLogger.d(TAG, "Using detected profiles path documentId=" + documentId);
                 return documentId;

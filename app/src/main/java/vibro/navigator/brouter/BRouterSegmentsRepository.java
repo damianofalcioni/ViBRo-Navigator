@@ -73,17 +73,13 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
     }
 
     public boolean hasPersistedSegmentsTreeAccess(@NonNull Context context) {
-        return hasPersistedReadPermission(context, getSegmentsTreeUri(context));
+        return getGrantedSegmentsTreeUri(context) != null;
     }
 
     @Nullable
-    public Uri getSegmentsTreePickerInitialUri(@NonNull Context context) {
+    public Uri getGrantedSegmentsTreeUri(@NonNull Context context) {
         Uri savedTreeUri = getSegmentsTreeUri(context);
-        return segmentDirectories.getSegmentsTreePickerInitialUri(
-                context,
-                savedTreeUri,
-                hasPersistedReadPermission(context, savedTreeUri)
-        );
+        return hasPersistedReadPermission(context, savedTreeUri) ? savedTreeUri : null;
     }
 
     @NonNull

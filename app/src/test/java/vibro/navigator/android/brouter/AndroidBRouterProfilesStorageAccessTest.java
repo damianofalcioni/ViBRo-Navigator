@@ -102,10 +102,10 @@ public class AndroidBRouterProfilesStorageAccessTest {
     }
 
     @Test
-    public void onlyAndroid10OffersLegacyProfilesForNewGrants() {
+    public void onlyAndroid10OffersProviderVisibleLegacyProfilesForNewGrants() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         BRouterProfilesRepository repository = AndroidBRouterProfilesRepositoryFactory.create();
-        assertTrue(new File(AndroidStorageVolumes.storageRoot(activity, "primary"), LEGACY_FOLDER).mkdirs());
+        TestBRouterStorage.exposeDirectoryThroughProvider(activity, PRIMARY_ROOT_ID + LEGACY_FOLDER);
 
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
             assertFolderPermissionStartsAt(activity, repository, LEGACY_FOLDER);
@@ -135,7 +135,22 @@ public class AndroidBRouterProfilesStorageAccessTest {
         Uri custom = DocumentsContract.buildDocumentUri(AUTHORITY, PRIMARY_ROOT_ID + LEGACY_FOLDER + "/custom.brf");
         assertEquals(DocumentsContract.buildDocumentUri(AUTHORITY, documentId),
                 AndroidBRouterPickerLocation.resolve(context,
-                        repository.getProfilesTreePickerInitialUri(context, custom), PROFILES_FOLDER));
+                        repository.getProfilesTreePickerHint(context, custom), PROFILES_FOLDER));
+    }
+
+    @Test
+    public void providerVisibleSdCardProfilesTakePrecedenceOverPrimaryProfiles() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        TestBRouterStorage.createPrimaryFolder(PROFILES_FOLDER);
+        File cardRoot = new File(activity.getCacheDir(), TestOutputStorageCard.ID);
+        Context context = contextWithCard(activity, cardRoot);
+        String documentId = TestOutputStorageCard.ID + ":" + MEDIA_FOLDER;
+        TestBRouterStorage.exposeDirectoryThroughProvider(context, documentId);
+
+        BRouterProfilesRepository repository = AndroidBRouterProfilesRepositoryFactory.create();
+        assertEquals(DocumentsContract.buildDocumentUri(AUTHORITY, documentId),
+                AndroidBRouterPickerLocation.resolve(context,
+                        repository.getProfilesTreePickerHint(context, null), PROFILES_FOLDER));
     }
 
     @Test
