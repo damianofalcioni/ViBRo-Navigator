@@ -202,7 +202,8 @@ public final class AndroidDocumentAccess {
             AppLogger.d(TAG, "Direct external storage document accessible documentId=" + documentId);
             return true;
         }
-        return AndroidExternalDirectoryPresence.documentProviderDirectoryExists(context, documentId);
+        return AndroidExternalDirectoryPresence.documentProviderDirectoryPresence(context, documentId)
+                == DirectoryPresence.PRESENT;
     }
 
     @NonNull

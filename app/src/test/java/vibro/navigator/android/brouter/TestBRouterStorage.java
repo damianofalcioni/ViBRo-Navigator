@@ -15,8 +15,10 @@ import androidx.test.core.app.ApplicationProvider;
 import org.robolectric.shadows.ShadowContentResolver;
 
 import java.io.File;
+import java.util.function.BooleanSupplier;
 
 import vibro.navigator.android.storage.AndroidDocumentAccess;
+import vibro.navigator.android.storage.AndroidPersistedUriPermissions;
 import vibro.navigator.android.storage.AndroidStorageVolumes;
 
 public final class TestBRouterStorage {
@@ -31,16 +33,28 @@ public final class TestBRouterStorage {
 
     static void exposeDirectoryThroughProvider(Context context, String documentId) {
         Uri tree = AndroidDocumentAccess.buildExternalStorageTreeUri(documentId);
-        Uri document = DocumentsContract.buildDocumentUriUsingTree(tree, documentId);
-        ShadowContentResolver.registerProviderInternal(document.getAuthority(), new DirectoryProvider(document));
+        registerDirectoryProvider(tree, () -> true);
         assertTrue(AndroidDocumentAccess.externalStorageDocumentExists(context, documentId));
+    }
+
+    static void requireGrantToQueryDirectory(Context context, String documentId) {
+        Uri tree = AndroidDocumentAccess.buildExternalStorageTreeUri(documentId);
+        registerDirectoryProvider(tree, () -> AndroidPersistedUriPermissions.hasReadPermission(context, tree));
+    }
+
+    private static void registerDirectoryProvider(Uri tree, BooleanSupplier canQuery) {
+        Uri document = DocumentsContract.buildDocumentUriUsingTree(tree, DocumentsContract.getTreeDocumentId(tree));
+        ShadowContentResolver.registerProviderInternal(document.getAuthority(),
+                new DirectoryProvider(document, canQuery));
     }
 
     private static final class DirectoryProvider extends ContentProvider {
         private final Uri directory;
+        private final BooleanSupplier canQuery;
 
-        DirectoryProvider(Uri directory) {
+        DirectoryProvider(Uri directory, BooleanSupplier canQuery) {
             this.directory = directory;
+            this.canQuery = canQuery;
         }
 
         @Override
@@ -50,6 +64,9 @@ public final class TestBRouterStorage {
 
         @Override
         public Cursor query(Uri uri, String[] projection, String selection, String[] args, String sort) {
+            if (!canQuery.getAsBoolean()) {
+                throw new SecurityException("Directory queries require a URI grant");
+            }
             MatrixCursor cursor = new MatrixCursor(new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID,
                     DocumentsContract.Document.COLUMN_MIME_TYPE});
             if (directory.equals(uri)) {

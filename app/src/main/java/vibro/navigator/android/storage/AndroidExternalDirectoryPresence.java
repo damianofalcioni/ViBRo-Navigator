@@ -25,25 +25,28 @@ final class AndroidExternalDirectoryPresence {
 
     @NonNull
     static DirectoryPresence check(@NonNull Context context, @NonNull String documentId) {
-        DirectoryPresence presence = directDirectoryPresence(context, documentId);
-        // The document provider can see directories hidden from the app's filesystem view.
-        if (presence != DirectoryPresence.PRESENT && documentProviderDirectoryExists(context, documentId)) {
-            return DirectoryPresence.PRESENT;
+        DirectoryPresence directPresence = directDirectoryPresence(context, documentId);
+        if (directPresence == DirectoryPresence.PRESENT) {
+            return directPresence;
         }
-        return presence;
+        // A denied provider query leaves open the possibility that the picker can see the folder.
+        DirectoryPresence providerPresence = documentProviderDirectoryPresence(context, documentId);
+        return providerPresence == DirectoryPresence.MISSING ? directPresence : providerPresence;
     }
 
-    static boolean documentProviderDirectoryExists(@NonNull Context context, @NonNull String documentId) {
+    @NonNull
+    static DirectoryPresence documentProviderDirectoryPresence(@NonNull Context context, @NonNull String documentId) {
         Uri treeUri = AndroidDocumentAccess.buildExternalStorageTreeUri(documentId);
         Uri documentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId);
         String mimeType = DocumentsContract.Document.COLUMN_MIME_TYPE;
         try (Cursor cursor = context.getContentResolver().query(documentUri, new String[]{mimeType}, null, null, null)) {
             return cursor != null && cursor.moveToFirst() && DocumentsContract.Document.MIME_TYPE_DIR.equals(
-                    cursor.getString(cursor.getColumnIndexOrThrow(mimeType)));
+                    cursor.getString(cursor.getColumnIndexOrThrow(mimeType)))
+                    ? DirectoryPresence.PRESENT : DirectoryPresence.MISSING;
         } catch (Exception e) {
             AppLogger.d("AndroidDocumentAccess", "Document not accessible documentId=" + documentId
                     + " error=" + e.getClass().getSimpleName());
-            return false;
+            return DirectoryPresence.UNKNOWN;
         }
     }
 
