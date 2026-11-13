@@ -25,7 +25,7 @@
     <string name="welcome_setup_title">初期設定</string>
     <string name="welcome_brouter_body">• 提供されたリンクを使ってBRouterをインストールし、開いて自分の地域のルーティングデータをダウンロードしてください。</string>
     <string name="welcome_permissions_body">• このウェルカムとオプションのBRouterインストールのプロンプトの後で、位置情報、マイク（音声入力用）、通知、および要求されたストレージアクセスを許可してください。プロンプトが出たらデバイスの位置情報を有効にしてください。リクエストをスキップして後でアクセスを有効にすることもできます。</string>
-    <string name="welcome_storage_body">• プロンプトが表示されたらprofiles2フォルダへのアクセス、または古いAndroidバージョンではストレージの権限を付与してください。</string>
+    <string name="welcome_storage_body">• 求められたら brouter フォルダへのアクセスを許可してください。以前の Android ではストレージへのアクセスを許可してください。</string>
     <string name="welcome_battery_body">• 画面オフ時にも信頼できるガイダンスを提供するために、オプションのバッテリー最適化免除を許可してください。</string>
     <string name="welcome_optional_access_body">• マイクへのアクセスは音声検索が要求された場合のみ必要です。</string>
     <string name="welcome_safety_title">安全と責任について</string>
@@ -155,13 +155,12 @@
     <string name="msg_poi_details_map_check_hint">この場所が意図した場所であることを確認するために地図を使用してください。</string>
     <string name="msg_poi_google_maps_search_info">この POI 検索フィールドのテキストを使用して Google Maps を開きます。Google Maps で場所を選択した後、その場所を共有し、ViBRo Navigator を選択して結果をここに戻します。</string>
     <string name="msg_compass_surrounding_streets_storage_permission_required">ローカルの BRouter の通りを読むにはストレージアクセスが必要です。</string>
-    <string name="title_brouter_segments_storage_access">BRouter 通りのストレージ</string>
-    <string name="msg_brouter_segments_storage_access_prompt">周辺の通りには BRouter segments4 フォルダへのアクセスが必要です。次の画面で %1$s に移動し、フォルダアクセスを確認してください。その場所が利用できない場合は、BRouter が .rd5 ファイルを保存しているフォルダを選択してください。</string>
     <string name="msg_brouter_profiles_storage_permission_required">BRouter プロフィールファイルを読むにはストレージアクセスが必要です。</string>
-    <string name="title_brouter_profiles_storage_access">BRouter プロフィールのストレージ</string>
+    <string name="title_brouter_storage_access">BRouter ストレージ</string>
+    <string name="msg_brouter_storage_access_prompt">%1$s にある BRouter フォルダを選択して、ViBRo がプロファイルと経路データを読み取れるようにします。</string>
+    <string name="msg_brouter_folder_required">profiles2 と segments4 が入っている brouter フォルダを選択してください。</string>
     <string name="action_browse">参照</string>
     <string name="msg_brouter_storage_folder_missing">参照して %1$s フォルダを選択してください。まだ存在しない場合は、BRouter でストレージの設定を完了してください。</string>
-    <string name="msg_brouter_profiles_storage_access_prompt">BRouter プロファイルは profiles2 フォルダーへのアクセスが必要です。次の画面で %1$s に移動し、フォルダーアクセスを確認してください。その場所が利用できない場合は、BRouter が .brf プロファイルを保存するフォルダーを選択してください。</string>
     <string name="msg_symbol_test_notification_sent">シンボルテスト通知が送信されました。</string>
     <string name="msg_map_location_searching">現在地を検索中…</string>
     <string name="msg_map_location_unavailable">現在地は利用できません。</string>
@@ -547,8 +546,6 @@
     <string name="label_permission_location_services">デバイスの位置情報</string>
     <string name="label_permission_notifications">通知</string>
     <string name="label_permission_battery">バッテリー最適化</string>
-    <string name="label_permission_surrounding_street_storage">BRouter 通りのストレージ</string>
-    <string name="label_permission_brouter_profile_storage">BRouter プロフィールのストレージ</string>
     <string name="format_about_permission_status_content_description">%1$s: %2$s。タップして解決します。</string>
     <string name="label_sensor_fused_provider">Google統合プロバイダー</string>
     <string name="label_sensor_gps_provider">GPSプロバイダー</string>

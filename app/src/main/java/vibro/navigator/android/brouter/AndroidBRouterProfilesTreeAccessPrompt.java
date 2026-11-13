@@ -1,7 +1,6 @@
 package vibro.navigator.android.brouter;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.net.Uri;
 import android.os.CancellationSignal;
 
@@ -11,12 +10,10 @@ import java.util.Collections;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.R;
+import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 
 public final class AndroidBRouterProfilesTreeAccessPrompt {
-    private static final String FOLDER_NAME = "profiles2";
-
     private AndroidBRouterProfilesTreeAccessPrompt() {
     }
 
@@ -30,7 +27,8 @@ public final class AndroidBRouterProfilesTreeAccessPrompt {
     ) {
         AndroidBRouterDeferredPrompt.request(activity,
                 signal -> findLocation(activity, profilesRepository, Collections.emptySet(), signal),
-                location -> showNow(activity, location.initialUri, requestCode, logTag, beforeLaunch, onCancel, onCancel));
+                location -> AndroidBRouterFolderPrompt.show(activity, location.initialUri, requestCode, logTag,
+                        beforeLaunch, onCancel, onCancel));
     }
 
     @NonNull
@@ -41,39 +39,22 @@ public final class AndroidBRouterProfilesTreeAccessPrompt {
             CancellationSignal signal
     ) {
         Uri savedProfileHint = profilesRepository.getCustomProfileUri(activity);
+        Uri hint = profilesRepository.getProfilesTreePickerHint(activity, savedProfileHint);
+        String id = hint != null && AndroidDocumentAccess.isExternalStorageDocument(hint)
+                ? AndroidDocumentAccess.documentId(hint) : null;
+        Uri parent = parentHint(id);
         return AndroidBRouterPickerLocation.resolve(
-                activity, profilesRepository.getProfilesTreePickerHint(activity, savedProfileHint),
-                FOLDER_NAME, excluded, signal);
+                activity, parent, AndroidBRouterFolderAccess.FOLDER, excluded, signal);
     }
 
-    static AlertDialog showNow(
-            @NonNull Activity activity,
-            @Nullable Uri initialUri,
-            int requestCode,
-            @NonNull String logTag,
-            @NonNull Runnable beforeLaunch,
-            @NonNull Runnable onCancel,
-            @NonNull Runnable onLaunchFailure
-    ) {
-        if (initialUri == null) {
-            return AndroidBRouterPickerLocation.showMissingFolder(activity, FOLDER_NAME,
-                    () -> AndroidBRouterTreePicker.launch(activity, null, requestCode, logTag,
-                            beforeLaunch, onLaunchFailure), onCancel);
+    @Nullable
+    private static Uri parentHint(@Nullable String id) {
+        if (id == null) {
+            return null;
         }
-        return new AlertDialog.Builder(activity)
-                .setTitle(R.string.title_brouter_profiles_storage_access)
-                .setMessage(activity.getString(R.string.msg_brouter_profiles_storage_access_prompt,
-                        AndroidBRouterStorageInstructions.folderPath(initialUri, FOLDER_NAME)))
-                .setPositiveButton(R.string.action_continue, (dialog, which) -> AndroidBRouterTreePicker.launch(
-                        activity,
-                        initialUri,
-                        requestCode,
-                        logTag,
-                        beforeLaunch,
-                        onLaunchFailure
-                ))
-                .setNegativeButton(R.string.action_cancel, (dialog, which) -> onCancel.run())
-                .setOnCancelListener(dialog -> onCancel.run())
-                .show();
+        if (id.endsWith("/brouter/profiles2") || id.endsWith(":brouter/profiles2")) {
+            return AndroidDocumentAccess.buildExternalStorageDocumentUri(id.substring(0, id.lastIndexOf('/')));
+        }
+        return null;
     }
 }

@@ -26,7 +26,7 @@ public final class AndroidStorageVolumes {
     public static List<String> secondaryStorageRootIds(@NonNull Context context) {
         List<String> rootIds = new ArrayList<>();
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            return rootIds;
+            return legacySecondaryStorageRootIds(context);
         }
         StorageManager storageManager = context.getSystemService(StorageManager.class);
         if (storageManager == null) {
@@ -36,6 +36,19 @@ public final class AndroidStorageVolumes {
             String uuid = volume.getUuid();
             if (isMounted(volume) && hasRootId(uuid) && !rootIds.contains(uuid)) {
                 rootIds.add(uuid);
+            }
+        }
+        return rootIds;
+    }
+
+    private static List<String> legacySecondaryStorageRootIds(Context context) {
+        List<String> rootIds = new ArrayList<>();
+        File[] directories = context.getExternalFilesDirs(null);
+        for (int i = 1; i < directories.length; i++) {
+            File directory = directories[i];
+            File root = storageRootFromAppExternalDir(directory);
+            if (root != null && !rootIds.contains(root.getName())) {
+                rootIds.add(root.getName());
             }
         }
         return rootIds;

@@ -25,7 +25,7 @@
     <string name="welcome_setup_title">Kezdő beállítás</string>
     <string name="welcome_brouter_body">• Telepítse a BRouter alkalmazást a megadott hivatkozások segítségével, majd nyissa meg és töltse le az útvonal-adatokat a saját területére.</string>
     <string name="welcome_permissions_body">• Ez a köszöntés és az opcionális BRouter telepítési kérés után engedélyezze a hely, a mikrofon (hangalapú bevitelhez), az értesítések és a kért tárhelyhozzáférés használatát. A felkéréskor engedélyezze az eszköz helyzetét. Egy kérést kihagyhat, és később engedélyezheti a hozzáférést.</string>
-    <string name="welcome_storage_body">• Adja meg a profiles2 mappához való hozzáférést a felkéréskor, vagy a tárhelyhozzáférést a régebbi Android verziókon.</string>
+    <string name="welcome_storage_body">• Kérésre engedélyezd a hozzáférést a brouter mappához, régebbi Android-verziókon pedig add meg a tárhelyengedélyt.</string>
     <string name="welcome_battery_body">• Engedélyezze az opcionális akkumulátor-optimalizálás alóli kivételt a megbízható útmutatásért a képernyő kikapcsolt állapotában.</string>
     <string name="welcome_optional_access_body">• A mikrofonhoz való hozzáférés csak akkor szükséges, ha hangkereséshez kérték.</string>
     <string name="welcome_safety_title">Biztonság és felelősség</string>
@@ -155,13 +155,12 @@
     <string name="msg_poi_details_map_check_hint">Használja a térképet, hogy ellenőrizze, valóban ez a kívánt hely.</string>
     <string name="msg_poi_google_maps_search_info">Megnyitja a Google Maps-t a POI keresési mező szövegével. Miután kiválasztott egy helyet a Google Maps-ban, ossza meg azt a helyet, és válassza a ViBRo Navigator-t az eredmény idehozásához.</string>
     <string name="msg_compass_surrounding_streets_storage_permission_required">A helyi BRouter utcák olvasásához tárolási hozzáférés szükséges.</string>
-    <string name="title_brouter_segments_storage_access">BRouter utca tárolás</string>
-    <string name="msg_brouter_segments_storage_access_prompt">A környező utcákhoz hozzáférés szükséges a BRouter segments4 mappához. A következő képernyőn tallózzon a %1$s mappához, és erősítse meg a mappa hozzáférést. Ha a hely nem elérhető, válassza azt a mappát, ahol a BRouter tárolja a .rd5 fájlokat.</string>
     <string name="msg_brouter_profiles_storage_permission_required">A BRouter profil fájlok olvasásához tárolási hozzáférés szükséges.</string>
-    <string name="title_brouter_profiles_storage_access">BRouter profil tárolás</string>
+    <string name="title_brouter_storage_access">BRouter-tárhely</string>
+    <string name="msg_brouter_storage_access_prompt">Válaszd ki a BRouter mappáját itt: %1$s, hogy a ViBRo olvashassa a profilokat és az útvonaladatokat.</string>
+    <string name="msg_brouter_folder_required">Válaszd ki a profiles2 és a segments4 mappát tartalmazó brouter mappát.</string>
     <string name="action_browse">Tallózás</string>
     <string name="msg_brouter_storage_folder_missing">Tallózással válassza ki a(z) %1$s mappát. Ha még nem létezik, fejezze be a tárhely beállítását a BRouterben.</string>
-    <string name="msg_brouter_profiles_storage_access_prompt">BRouter profiloknak hozzáférésre van szükségük a profiles2 mappához. A következő képernyőn böngésszen a %1$s mappához, és erősítse meg a mappa-hozzáférést. Ha ez a hely nem elérhető, válassza ki azt a mappát, ahol a BRouter tárolja a .brf profiljait.</string>
     <string name="msg_symbol_test_notification_sent">Szimbólum teszt értesítés elküldve.</string>
     <string name="msg_map_location_searching">Aktuális hely keresése…</string>
     <string name="msg_map_location_unavailable">Az aktuális hely nem elérhető.</string>
@@ -547,8 +546,6 @@
     <string name="label_permission_location_services">Eszköz helyzete</string>
     <string name="label_permission_notifications">értesítések</string>
     <string name="label_permission_battery">Akkumulátor optimalizálás</string>
-    <string name="label_permission_surrounding_street_storage">BRouter utca tárolás</string>
-    <string name="label_permission_brouter_profile_storage">BRouter profil tárolás</string>
     <string name="format_about_permission_status_content_description">%1$s: %2$s. Koppints a megoldáshoz.</string>
     <string name="label_sensor_fused_provider">Google fúziós szolgáltató</string>
     <string name="label_sensor_gps_provider">GPS szolgáltató</string>

@@ -105,10 +105,11 @@ public class AndroidBRouterProfilesStorageAccessTest {
     public void onlyAndroid10OffersProviderVisibleLegacyProfilesForNewGrants() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         BRouterProfilesRepository repository = AndroidBRouterProfilesRepositoryFactory.create();
-        TestBRouterStorage.exposeDirectoryThroughProvider(activity, PRIMARY_ROOT_ID + LEGACY_FOLDER);
+        String parent = LEGACY_FOLDER.substring(0, LEGACY_FOLDER.lastIndexOf('/'));
+        TestBRouterStorage.exposeDirectoryThroughProvider(activity, PRIMARY_ROOT_ID + parent);
 
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
-            assertFolderPermissionStartsAt(activity, repository, LEGACY_FOLDER);
+            assertFolderPermissionStartsAt(activity, repository, parent);
         } else {
             assertManualBrowseAvailable(activity, repository);
         }
@@ -117,7 +118,7 @@ public class AndroidBRouterProfilesStorageAccessTest {
     @Test
     public void offersFixedLegacySharedProfilesFolder() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
-        String folder = "brouter/profiles2";
+        String folder = "brouter";
         assertTrue(new File(AndroidStorageVolumes.storageRoot(activity, "primary"), folder).mkdirs());
 
         assertFolderPermissionStartsAt(activity, AndroidBRouterProfilesRepositoryFactory.create(), folder);
@@ -182,13 +183,13 @@ public class AndroidBRouterProfilesStorageAccessTest {
     @Test
     public void savedProfileInCustomBaseProvidesFolderHintWhenDiscoveryIsDenied() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
-        TestBRouterStorage.requireGrantToQueryPrimaryFolder(activity, PROFILES_FOLDER);
+        TestBRouterStorage.requireGrantToQueryPrimaryFolder(activity);
         BRouterProfilesRepository repository = AndroidBRouterProfilesRepositoryFactory.create();
         String folder = "CustomBase/brouter/profiles2";
         repository.saveCustomProfile(activity, DocumentsContract.buildDocumentUri(AUTHORITY,
                 PRIMARY_ROOT_ID + folder + "/custom.brf"), "custom");
 
-        assertFolderPermissionStartsAt(activity, repository, folder);
+        assertFolderPermissionStartsAt(activity, repository, folder.substring(0, folder.lastIndexOf('/')));
     }
 
     @Test
@@ -226,7 +227,7 @@ public class AndroidBRouterProfilesStorageAccessTest {
         AndroidBRouterProfilesStorageAccess.request(activity, repository, 42, "StorageTest", () -> { }, () -> { });
         idlePrompt();
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
-        assertEquals(activity.getString(R.string.msg_brouter_storage_folder_missing, PROFILES_FOLDER),
+        assertEquals(activity.getString(R.string.msg_brouter_storage_folder_missing, "brouter"),
                 String.valueOf(shadowOf(dialog).getMessage()));
         assertEquals(activity.getString(R.string.action_browse), dialog.getButton(AlertDialog.BUTTON_POSITIVE).getText());
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();

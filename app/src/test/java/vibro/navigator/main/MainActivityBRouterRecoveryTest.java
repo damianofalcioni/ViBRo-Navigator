@@ -43,7 +43,7 @@ import vibro.navigator.settings.AppMainUiSettings;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = Build.VERSION_CODES.Q)
 public class MainActivityBRouterRecoveryTest {
-    private static final String MEDIA_BASE = "Android/media/btools.routingapp/brouter/";
+    private static final String MEDIA_BASE = "Android/media/btools.routingapp/brouter";
     private static final String SEGMENTS_FOLDER = "segments4";
     private Application app;
 
@@ -59,17 +59,17 @@ public class MainActivityBRouterRecoveryTest {
 
     @Test
     public void manualActionOpensPickerWhenDiscoveryCannotConfirmProfiles() {
-        TestBRouterStorage.requireGrantToQueryPrimaryFolder(app, "profiles2");
+        TestBRouterStorage.requireGrantToQueryPrimaryFolder(app);
         try (var controller = Robolectric.buildActivity(MainActivity.class).setup()) {
             MainActivity activity = controller.get();
             assertNull(ShadowAlertDialog.getLatestAlertDialog());
-            View action = activity.findViewById(R.id.brouterProfilesAccessButton);
+            View action = activity.findViewById(R.id.brouterStorageAccessButton);
             assertEquals(View.VISIBLE, action.getVisibility());
 
             action.performClick();
             assertTrue(ShadowAlertDialog.getLatestAlertDialog().isShowing());
             int request = openPicker(activity);
-            activity.onActivityResult(request, Activity.RESULT_OK, profileGrant());
+            activity.onActivityResult(request, Activity.RESULT_OK, folderGrant());
             idle();
 
             assertEquals(View.GONE, action.getVisibility());
@@ -77,7 +77,7 @@ public class MainActivityBRouterRecoveryTest {
     }
 
     @Test
-    public void resultHandledAfterSnapshotDoesNotBlockOtherFolderOnRestore() {
+    public void resultHandledAfterSnapshotSatisfiesBothFeaturesOnRestore() {
         TestBRouterStorage.createPrimaryFolder("profiles2");
         TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
         Bundle snapshot = new Bundle();
@@ -85,11 +85,12 @@ public class MainActivityBRouterRecoveryTest {
             MainActivity activity = controller.get();
             int code = openPicker(activity);
             controller.pause().stop().saveInstanceState(snapshot);
-            activity.onActivityResult(code, Activity.RESULT_OK, profileGrant());
+            activity.onActivityResult(code, Activity.RESULT_OK, folderGrant());
         }
         try (var restored = Robolectric.buildActivity(MainActivity.class).setup(snapshot)) {
             assertTrue(AndroidBRouterProfilesRepositoryFactory.create().hasPersistedProfilesTreeAccess(restored.get()));
-            assertPromptContains(SEGMENTS_FOLDER);
+            assertTrue(AndroidBRouterSegmentsRepositoryFactory.create().hasPersistedSegmentsTreeAccess(restored.get()));
+            assertFalse(ShadowAlertDialog.getLatestAlertDialog().isShowing());
         }
     }
 
@@ -98,7 +99,7 @@ public class MainActivityBRouterRecoveryTest {
         saveProfileGrant();
         TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
         try (var controller = Robolectric.buildActivity(MainActivity.class).setup()) {
-            assertPromptContains(MEDIA_BASE + SEGMENTS_FOLDER);
+            assertPromptContains(MEDIA_BASE);
             ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
             idle();
             controller.pause().stop();
@@ -109,7 +110,7 @@ public class MainActivityBRouterRecoveryTest {
 
             AlertDialog replacement = ShadowAlertDialog.getLatestAlertDialog();
             assertTrue(replacement.isShowing());
-            assertTrue(String.valueOf(shadowOf(replacement).getMessage()).contains("brouter/segments4"));
+            assertTrue(String.valueOf(shadowOf(replacement).getMessage()).contains("brouter"));
             assertFalse(String.valueOf(shadowOf(replacement).getMessage()).contains(MEDIA_BASE));
             replacement.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
             idle();
@@ -122,13 +123,13 @@ public class MainActivityBRouterRecoveryTest {
     public void unmountedGrantAllowsSelectingAnAvailableReplacement() {
         saveProfileGrant();
         TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
-        Uri stale = AndroidDocumentAccess.buildExternalStorageTreeUri("ABCD-1234:" + MEDIA_BASE + SEGMENTS_FOLDER);
+        Uri stale = AndroidDocumentAccess.buildExternalStorageTreeUri("ABCD-1234:" + MEDIA_BASE);
         app.getContentResolver().takePersistableUriPermission(stale, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         AndroidBRouterSegmentsRepositoryFactory.create().saveSegmentsTreeUri(app, stale);
 
         try (var controller = Robolectric.buildActivity(MainActivity.class).setup()) {
-            assertPromptContains(MEDIA_BASE + SEGMENTS_FOLDER);
-            assertEquals(View.VISIBLE, controller.get().findViewById(R.id.brouterSegmentsAccessButton).getVisibility());
+            assertPromptContains(MEDIA_BASE);
+            assertEquals(View.VISIBLE, controller.get().findViewById(R.id.brouterStorageAccessButton).getVisibility());
         }
     }
 
@@ -143,19 +144,19 @@ public class MainActivityBRouterRecoveryTest {
             assertEquals(activity.getString(R.string.msg_output_folder_picker_unavailable),
                     ShadowToast.getTextOfLatestToast());
             assertFalse(ShadowAlertDialog.getLatestAlertDialog().isShowing());
-            activity.findViewById(R.id.brouterSegmentsAccessButton).performClick();
-            assertPromptContains(SEGMENTS_FOLDER);
+            activity.findViewById(R.id.brouterStorageAccessButton).performClick();
+            assertPromptContains(MEDIA_BASE);
         }
     }
 
     private void saveProfileGrant() {
-        Uri profiles = profileGrant().getData();
+        Uri profiles = AndroidDocumentAccess.buildExternalStorageTreeUri("primary:" + MEDIA_BASE + "/profiles2");
         app.getContentResolver().takePersistableUriPermission(profiles, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         AndroidBRouterProfilesRepositoryFactory.create().saveProfilesTreeUri(app, profiles);
     }
 
-    private static Intent profileGrant() {
-        return new Intent().setData(AndroidDocumentAccess.buildExternalStorageTreeUri("primary:" + MEDIA_BASE + "profiles2"))
+    private static Intent folderGrant() {
+        return new Intent().setData(AndroidDocumentAccess.buildExternalStorageTreeUri("primary:" + MEDIA_BASE))
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
     }
 

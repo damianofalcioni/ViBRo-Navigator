@@ -25,7 +25,7 @@
     <string name="welcome_setup_title">Ersteinrichtung</string>
     <string name="welcome_brouter_body">• Installiere BRouter über die angegebenen Links, öffne die App und lade Routendaten für deine Region herunter.</string>
     <string name="welcome_permissions_body">• Erlaube nach dieser Begrüßung und der optionalen BRouter-Installationsaufforderung den Zugriff auf Standort, Mikrofon (für Spracheingabe), Benachrichtigungen und angefragten Speicher. Aktiviere den Gerätestandort, wenn du dazu aufgefordert wirst. Du kannst Anfragen überspringen und den Zugriff später erlauben.</string>
-    <string name="welcome_storage_body">• Erlaube auf Anfrage den Zugriff auf den Ordner profiles2 bzw. die Speicherberechtigung auf älteren Android-Versionen.</string>
+    <string name="welcome_storage_body">• Erlaube auf Anfrage den Zugriff auf den Ordner brouter oder erteile bei älteren Android-Versionen die Speicherberechtigung.</string>
     <string name="welcome_battery_body">• Erlaube die optionale Ausnahme von der Akkuoptimierung für zuverlässige Navigation bei ausgeschaltetem Bildschirm.</string>
     <string name="welcome_optional_access_body">• Mikrofonzugriff wird nur benötigt, wenn er für die Sprachsuche angefragt wird.</string>
     <string name="welcome_safety_title">Sicherheit und Verantwortung</string>
@@ -155,13 +155,12 @@
     <string name="msg_poi_details_map_check_hint">Prüfe auf der Karte, ob dies der gewünschte Standort ist.</string>
     <string name="msg_poi_google_maps_search_info">Öffnet Google Maps mit dem Text aus diesem POI-Suchfeld. Wähle dort einen Ort aus, teile ihn und wähle ViBRo Navigator, um das Ergebnis hierher zu übernehmen.</string>
     <string name="msg_compass_surrounding_streets_storage_permission_required">Speicherzugriff wird benötigt, um lokale BRouter-Straßen zu lesen.</string>
-    <string name="title_brouter_segments_storage_access">BRouter-Straßenspeicher</string>
-    <string name="msg_brouter_segments_storage_access_prompt">Umliegende Straßen benötigen Zugriff auf den BRouter-Ordner segments4. Gehe auf dem nächsten Bildschirm zu %1$s und bestätige den Ordnerzugriff. Falls dieser Ort nicht verfügbar ist, wähle den Ordner, in dem BRouter seine .rd5-Dateien speichert.</string>
     <string name="msg_brouter_profiles_storage_permission_required">Speicherzugriff wird benötigt, um BRouter-Profildateien zu lesen.</string>
-    <string name="title_brouter_profiles_storage_access">BRouter-Profilspeicher</string>
+    <string name="title_brouter_storage_access">BRouter-Speicher</string>
+    <string name="msg_brouter_storage_access_prompt">Wähle den BRouter-Ordner unter %1$s aus, damit ViBRo Profile und Routingdaten lesen kann.</string>
+    <string name="msg_brouter_folder_required">Wähle den Ordner brouter aus, der profiles2 und segments4 enthält.</string>
     <string name="action_browse">Durchsuchen</string>
     <string name="msg_brouter_storage_folder_missing">Suche den Ordner %1$s und wähle ihn aus. Falls er noch nicht existiert, schließe die Speichereinrichtung in BRouter ab.</string>
-    <string name="msg_brouter_profiles_storage_access_prompt">BRouter-Profile benötigen Zugriff auf den Ordner profiles2. Gehe auf dem nächsten Bildschirm zu %1$s und bestätige den Ordnerzugriff. Falls dieser Ort nicht verfügbar ist, wähle den Ordner, in dem BRouter seine .brf-Profile speichert.</string>
     <string name="msg_symbol_test_notification_sent">Symbol-Testbenachrichtigung gesendet.</string>
     <string name="msg_map_location_searching">Aktuellen Standort suchen…</string>
     <string name="msg_map_location_unavailable">Aktueller Standort nicht verfügbar.</string>
@@ -545,8 +544,6 @@
     <string name="label_permission_location_services">Gerätestandort</string>
     <string name="label_permission_notifications">Benachrichtigungen</string>
     <string name="label_permission_battery">Akkuoptimierung</string>
-    <string name="label_permission_surrounding_street_storage">BRouter-Straßenspeicher</string>
-    <string name="label_permission_brouter_profile_storage">BRouter-Profilspeicher</string>
     <string name="format_about_permission_status_content_description">%1$s: %2$s. Zum Beheben tippen.</string>
     <string name="label_sensor_fused_provider">Google Fused Provider</string>
     <string name="label_sensor_gps_provider">GPS-Anbieter</string>

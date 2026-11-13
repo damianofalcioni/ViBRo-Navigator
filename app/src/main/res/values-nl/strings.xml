@@ -25,7 +25,7 @@
     <string name="welcome_setup_title">Initiële setup</string>
     <string name="welcome_brouter_body">• Installeer BRouter via de verstrekte links, open vervolgens de app en download routegegevens voor jouw regio.</string>
     <string name="welcome_permissions_body">• Na dit welkom en de optionele BRouter-installatieprompt, sta locatie, microfoon (voor spraakinput), meldingen en eventuele gevraagde opslagtoegang toe. Schakel apparaatlokaal in wanneer hierom wordt gevraagd. Je kunt een verzoek overslaan en later toegang inschakelen.</string>
-    <string name="welcome_storage_body">• Verleen profiles2-toegang tot de map wanneer hierom wordt gevraagd, of opslagtoestemming op oudere Android-versies.</string>
+    <string name="welcome_storage_body">• Geef toegang tot de map brouter wanneer daarom wordt gevraagd, of geef opslagtoestemming op oudere Android-versies.</string>
     <string name="welcome_battery_body">• Sta de optionele batterijoptimalisatie-uitzondering toe voor betrouwbare begeleiding met het scherm uit.</string>
     <string name="welcome_optional_access_body">• Microfoontoegang is alleen nodig als deze wordt gevraagd voor spraakzoekopdrachten.</string>
     <string name="welcome_safety_title">Veiligheid en verantwoordelijkheid</string>
@@ -155,13 +155,12 @@
     <string name="msg_poi_details_map_check_hint">Gebruik de kaart om te controleren of dit de bedoelde locatie is.</string>
     <string name="msg_poi_google_maps_search_info">Opent Google Maps met de tekst uit dit POI zoekveld. Nadat u een locatie in Google Maps hebt gekozen, deel die locatie en selecteer ViBRo Navigator om het resultaat hier terug te brengen.</string>
     <string name="msg_compass_surrounding_streets_storage_permission_required">Toegang tot opslag is nodig om lokale BRouter-straten te kunnen lezen.</string>
-    <string name="title_brouter_segments_storage_access">BRouter straatopslag</string>
-    <string name="msg_brouter_segments_storage_access_prompt">Aanliggende straten hebben toegang nodig tot de BRouter segments4-map. Navigeer op het volgende scherm naar %1$s en bevestig de maptoegang. Als die locatie niet beschikbaar is, selecteer de map waar BRouter zijn .rd5-bestanden opslaat.</string>
     <string name="msg_brouter_profiles_storage_permission_required">Toegang tot opslag is nodig om BRouter-profielbestanden te kunnen lezen.</string>
-    <string name="title_brouter_profiles_storage_access">BRouter profielopslag</string>
+    <string name="title_brouter_storage_access">BRouter-opslag</string>
+    <string name="msg_brouter_storage_access_prompt">Selecteer de BRouter-map op %1$s zodat ViBRo profielen en routegegevens kan lezen.</string>
+    <string name="msg_brouter_folder_required">Selecteer de map brouter die profiles2 en segments4 bevat.</string>
     <string name="action_browse">Bladeren</string>
     <string name="msg_brouter_storage_folder_missing">Blader naar de map %1$s en selecteer deze. Als de map nog niet bestaat, rond je de opslaginstellingen af in BRouter.</string>
-    <string name="msg_brouter_profiles_storage_access_prompt">BRouter-profielen hebben toegang nodig tot de profiles2-map. Blader op het volgende scherm naar %1$s en bevestig de toegang tot de map. Als die locatie niet beschikbaar is, selecteer dan de map waarin BRouter zijn .brf-profielen opslaat.</string>
     <string name="msg_symbol_test_notification_sent">Symbol-testmelding verzonden.</string>
     <string name="msg_map_location_searching">Huidige locatie opzoeken…</string>
     <string name="msg_map_location_unavailable">Huidige locatie is niet beschikbaar.</string>
@@ -547,8 +546,6 @@
     <string name="label_permission_location_services">Apparaatlocatie</string>
     <string name="label_permission_notifications">Meldingen</string>
     <string name="label_permission_battery">Batterijoptimalisatie</string>
-    <string name="label_permission_surrounding_street_storage">BRouter straatopslag</string>
-    <string name="label_permission_brouter_profile_storage">BRouter profielopslag</string>
     <string name="format_about_permission_status_content_description">%1$s: %2$s. Tik om op te lossen.</string>
     <string name="label_sensor_fused_provider">Google fused-provider</string>
     <string name="label_sensor_gps_provider">GPS-provider</string>

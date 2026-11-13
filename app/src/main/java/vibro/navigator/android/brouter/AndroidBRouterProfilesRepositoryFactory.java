@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.List;
+import java.util.Collections;
 
 import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.android.storage.AndroidStorageVolumes;
@@ -36,10 +37,22 @@ public final class AndroidBRouterProfilesRepositoryFactory {
     }
 
     private static final class AndroidDocuments implements BRouterProfileDependencies.DocumentAccess {
+        private static final String FOLDER = "profiles2";
+
         @Nullable
         @Override
         public Uri buildTreeDocumentUri(@NonNull Uri treeUri) {
             return AndroidDocumentAccess.buildTreeDocumentUri(treeUri);
+        }
+
+        @Nullable
+        @Override
+        public Uri profilePickerDirectory(@NonNull Context context, @NonNull Uri treeUri) {
+            Uri directory = AndroidBRouterFolderAccess.dataDirectory(context, treeUri, FOLDER);
+            if (directory == null || !directory.equals(treeUri)) {
+                return directory;
+            }
+            return buildTreeDocumentUri(treeUri);
         }
 
         @Override
@@ -73,13 +86,15 @@ public final class AndroidBRouterProfilesRepositoryFactory {
         @NonNull
         @Override
         public List<String> childDisplayNames(@NonNull Context context, @NonNull Uri treeUri) {
-            return AndroidDocumentAccess.childDisplayNames(context, treeUri);
+            Uri directory = AndroidBRouterFolderAccess.dataDirectory(context, treeUri, FOLDER);
+            return directory == null ? Collections.emptyList() : AndroidDocumentAccess.childDisplayNames(context, directory);
         }
 
         @Nullable
         @Override
         public Uri childDocumentUri(@NonNull Context context, @NonNull Uri treeUri, @NonNull String displayName) {
-            return AndroidDocumentAccess.childDocumentUri(context, treeUri, displayName);
+            Uri directory = AndroidBRouterFolderAccess.dataDirectory(context, treeUri, FOLDER);
+            return directory == null ? null : AndroidDocumentAccess.childDocumentUri(context, directory, displayName);
         }
 
         @Nullable

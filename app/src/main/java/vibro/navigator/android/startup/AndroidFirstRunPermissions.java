@@ -36,7 +36,7 @@ public final class AndroidFirstRunPermissions {
         this.activity = activity;
         this.onComplete = onComplete;
         storage = new AndroidBRouterStorageSetup(activity, state);
-        steps = new Step[]{this::profiles, this::segments, this::runtime, this::location,
+        steps = new Step[]{this::brouterStorage, this::runtime, this::location,
                 this::notifications, this::battery};
         if (state != null) {
             step = state.getInt(STATE_STEP) + (storage.completedFirstRunStep() ? 1 : 0);
@@ -67,12 +67,8 @@ public final class AndroidFirstRunPermissions {
         start();
     }
 
-    private boolean profiles() {
-        return storage.requestProfiles(this::next);
-    }
-
-    private boolean segments() {
-        return storage.requestSegments(this::next);
+    private boolean brouterStorage() {
+        return storage.requestForFirstRun(this::next);
     }
 
     private boolean runtime() {
@@ -163,8 +159,8 @@ public final class AndroidFirstRunPermissions {
         storage.setResumed(resumed);
     }
 
-    public void bindBRouterActions(View profilesAction, View segmentsAction) {
-        storage.bindManualActions(profilesAction, segmentsAction);
+    public void bindBRouterAction(View action) {
+        storage.bindManualAction(action);
     }
 
     public ArrayList<String> skippedSegmentsFolders() {

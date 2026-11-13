@@ -13,8 +13,6 @@ import android.provider.OpenableColumns;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import vibro.navigator.logging.AppLogger;
@@ -143,42 +141,24 @@ public final class AndroidDocumentAccess {
         }
     }
 
+    @Nullable
+    public static String directoryDocumentId(@NonNull Uri treeUri) {
+        return treeUri.getPathSegments().size() > 2 ? documentId(treeUri) : treeDocumentId(treeUri);
+    }
+
+    @NonNull
+    public static Uri treeGrantUri(@NonNull Uri treeUri, @NonNull String treeDocumentId) {
+        return DocumentsContract.buildTreeDocumentUri(treeUri.getAuthority(), treeDocumentId);
+    }
+
+    @NonNull
+    public static Uri descendantDocumentUri(@NonNull Uri treeUri, @NonNull String documentId) {
+        return DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId);
+    }
+
     @NonNull
     public static List<String> childDisplayNames(@NonNull Context context, @NonNull Uri treeUri) {
-        String treeDocumentId = treeDocumentId(treeUri);
-        if (treeDocumentId == null) {
-            return Collections.emptyList();
-        }
-        List<String> directNames = AndroidExternalStorageDocumentFiles.childDisplayNames(context, treeDocumentId);
-        if (directNames != null) {
-            return directNames;
-        }
-        Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, treeDocumentId);
-        List<String> out = new ArrayList<>();
-        try (Cursor cursor = context.getContentResolver().query(
-                childrenUri,
-                new String[]{DocumentsContract.Document.COLUMN_DISPLAY_NAME},
-                null,
-                null,
-                null
-        )) {
-            if (cursor == null) {
-                AppLogger.w(TAG, "Document tree query returned null cursor uri=" + treeUri);
-                return Collections.emptyList();
-            }
-            int nameCol = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME);
-            if (nameCol < 0) {
-                AppLogger.w(TAG, "Document tree query missing display-name column uri=" + treeUri);
-                return Collections.emptyList();
-            }
-            while (cursor.moveToNext()) {
-                out.add(cursor.getString(nameCol));
-            }
-            return out;
-        } catch (Exception e) {
-            AppLogger.w(TAG, "Failed to list document tree children uri=" + treeUri, e);
-            return Collections.emptyList();
-        }
+        return AndroidDocumentTreeFileAccess.childDisplayNames(context, treeUri);
     }
 
     @Nullable

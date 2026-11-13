@@ -10,7 +10,6 @@ import androidx.annotation.Nullable;
 import vibro.navigator.R;
 import vibro.navigator.android.brouter.AndroidBRouterSegmentsRepositoryFactory;
 import vibro.navigator.android.brouter.AndroidBRouterFolderAccess;
-import vibro.navigator.android.brouter.AndroidBRouterSegmentsTreeAccessPrompt;
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
 import vibro.navigator.android.brouter.AndroidBRouterProfilesStorageAccess;
 import vibro.navigator.android.storage.AndroidLegacyExternalStorageAccess;
@@ -18,12 +17,9 @@ import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.android.startup.AndroidNavigationPreflight;
 import vibro.navigator.brouter.BRouterSegmentsRepository;
 import vibro.navigator.nav.startup.NavigationPreflight;
-import vibro.navigator.settings.AppCompassSettings;
 
 final class AboutPermissionStatusRows {
-    static final int REQUEST_SURROUNDING_STREETS_STORAGE = 3006;
-    static final int REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE = 3007;
-    static final int REQUEST_PROFILES_STORAGE = 3008;
+    static final int REQUEST_BROUTER_STORAGE = 3008;
 
     private static final String TAG = "AboutDiagnostics";
 
@@ -38,9 +34,7 @@ final class AboutPermissionStatusRows {
     @NonNull
     private final AboutPermissionRow batteryOptimizationRow;
     @NonNull
-    private final AboutPermissionRow surroundingStreetStorageRow;
-    @NonNull
-    private final AboutPermissionRow profileStorageRow;
+    private final AboutPermissionRow brouterStorageRow;
     @NonNull
     private final BRouterProfilesRepository profilesRepository =
             AndroidBRouterProfilesRepositoryFactory.create();
@@ -82,21 +76,13 @@ final class AboutPermissionStatusRows {
                 R.id.aboutPermissionBatteryStatus,
                 AboutPermissionStatusRows::newBatteryOptimizationIntent
         );
-        surroundingStreetStorageRow = new AboutPermissionRow(
+        brouterStorageRow = new AboutPermissionRow(
                 activity,
-                R.id.aboutPermissionSurroundingStreetStorageRow,
-                R.id.aboutPermissionSurroundingStreetStorageMark,
-                R.id.aboutPermissionSurroundingStreetStorageLabel,
-                R.id.aboutPermissionSurroundingStreetStorageStatus,
-                this::openSurroundingStreetStorageAccess
-        );
-        profileStorageRow = new AboutPermissionRow(
-                activity,
-                R.id.aboutPermissionProfileStorageRow,
-                R.id.aboutPermissionProfileStorageMark,
-                R.id.aboutPermissionProfileStorageLabel,
-                R.id.aboutPermissionProfileStorageStatus,
-                this::openProfileStorageAccess
+                R.id.aboutPermissionBRouterStorageRow,
+                R.id.aboutPermissionBRouterStorageMark,
+                R.id.aboutPermissionBRouterStorageLabel,
+                R.id.aboutPermissionBRouterStorageStatus,
+                this::openBRouterStorageAccess
         );
     }
 
@@ -106,56 +92,30 @@ final class AboutPermissionStatusRows {
         locationServicesRow.render(status.locationEnabled);
         notificationsRow.render(status.hasNotificationAccess());
         renderBatteryOptimization(status);
-        renderSurroundingStreetStorage();
-        renderProfileStorage();
+        renderBRouterStorage();
     }
 
     static boolean handlesTreeResult(int requestCode) {
-        return requestCode == REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE || requestCode == REQUEST_PROFILES_STORAGE;
+        return requestCode == REQUEST_BROUTER_STORAGE;
     }
 
     boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE) {
-            return onSurroundingStreetSegmentsTreeActivityResult(resultCode, data);
+        if (!handlesTreeResult(requestCode)) {
+            return false;
         }
-        if (requestCode == REQUEST_PROFILES_STORAGE) {
-            return onProfilesTreeActivityResult(resultCode, data);
-        }
-        return false;
-    }
-
-    private boolean onSurroundingStreetSegmentsTreeActivityResult(int resultCode, @Nullable Intent data) {
-        if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null
-                && AndroidBRouterFolderAccess.persistReadPermission(
-                        activity, data, data.getData(), AndroidBRouterFolderAccess.Kind.SEGMENTS)) {
-            segmentsRepository.saveSegmentsTreeUri(activity, data.getData());
-        } else {
-            showStorageRequiredToast(R.string.msg_compass_surrounding_streets_storage_permission_required);
-        }
-        render();
-        return true;
-    }
-
-    private boolean onProfilesTreeActivityResult(int resultCode, @Nullable Intent data) {
-        if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null
-                && AndroidBRouterFolderAccess.persistReadPermission(
-                        activity, data, data.getData(), AndroidBRouterFolderAccess.Kind.PROFILES)) {
-            profilesRepository.saveProfilesTreeUri(activity, data.getData());
-        } else {
-            showStorageRequiredToast(R.string.msg_brouter_profiles_storage_permission_required);
+        if (resultCode == Activity.RESULT_OK && !AndroidBRouterFolderAccess.saveSelection(activity, data)) {
+            showStorageRequiredToast(R.string.msg_brouter_folder_required);
         }
         render();
         return true;
     }
 
     boolean onRequestPermissionsResult(int requestCode, @NonNull int[] grantResults) {
-        if (requestCode != REQUEST_SURROUNDING_STREETS_STORAGE && requestCode != REQUEST_PROFILES_STORAGE) {
+        if (requestCode != REQUEST_BROUTER_STORAGE) {
             return false;
         }
         if (!AndroidLegacyExternalStorageAccess.isReadPermissionGranted(grantResults)) {
-            showStorageRequiredToast(requestCode == REQUEST_PROFILES_STORAGE
-                    ? R.string.msg_brouter_profiles_storage_permission_required
-                    : R.string.msg_compass_surrounding_streets_storage_permission_required);
+            showStorageRequiredToast(R.string.msg_brouter_profiles_storage_permission_required);
         }
         render();
         return true;
@@ -178,59 +138,21 @@ final class AboutPermissionStatusRows {
         return AndroidNavigationPreflight.newBatteryOptimizationSettingsIntent(activity);
     }
 
-    private void renderSurroundingStreetStorage() {
-        if (!isBRouterInstalled()) {
-            surroundingStreetStorageRow.setVisible(false);
-            return;
-        }
-        boolean hasAccess = hasSurroundingStreetStorageAccess();
-        boolean visible = shouldShowSurroundingStreetStorageStatus();
-        surroundingStreetStorageRow.setVisible(visible);
-        if (visible) {
-            surroundingStreetStorageRow.render(hasAccess);
+    private void renderBRouterStorage() {
+        boolean installed = profilesRepository.isBRouterInstalled(activity);
+        brouterStorageRow.setVisible(installed);
+        if (installed) {
+            brouterStorageRow.render(AndroidBRouterProfilesStorageAccess.hasAccess(activity, profilesRepository)
+                    && (AndroidLegacyExternalStorageAccess.isRuntimeReadPermissionRelevant()
+                            || segmentsRepository.hasPersistedSegmentsTreeAccess(activity)));
         }
     }
 
-    private void renderProfileStorage() {
-        profileStorageRow.setVisible(isBRouterInstalled());
-        profileStorageRow.render(AndroidBRouterProfilesStorageAccess.hasAccess(activity, profilesRepository));
-    }
-
-    private boolean shouldShowSurroundingStreetStorageStatus() {
-        if (AndroidLegacyExternalStorageAccess.isRuntimeReadPermissionRelevant()) {
-            return AppCompassSettings.isSurroundingStreetsEnabled(activity);
-        }
-        return true;
-    }
-
-    private boolean hasSurroundingStreetStorageAccess() {
-        if (AndroidLegacyExternalStorageAccess.isRuntimeReadPermissionRelevant()) {
-            return AndroidLegacyExternalStorageAccess.hasReadPermission(activity);
-        }
-        return segmentsRepository.hasPersistedSegmentsTreeAccess(activity);
-    }
-
-    private void openSurroundingStreetStorageAccess() {
-        if (AndroidLegacyExternalStorageAccess.isRuntimeReadPermissionRelevant()) {
-            AndroidLegacyExternalStorageAccess.requestReadPermission(activity, REQUEST_SURROUNDING_STREETS_STORAGE);
-            return;
-        }
-        AndroidBRouterSegmentsTreeAccessPrompt.show(
-                activity,
-                segmentsRepository,
-                REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE,
-                TAG,
-                () -> { },
-                () -> {
-                }
-        );
-    }
-
-    private void openProfileStorageAccess() {
+    private void openBRouterStorageAccess() {
         AndroidBRouterProfilesStorageAccess.request(
                 activity,
                 profilesRepository,
-                REQUEST_PROFILES_STORAGE,
+                REQUEST_BROUTER_STORAGE,
                 TAG,
                 () -> { },
                 () -> {
@@ -244,10 +166,6 @@ final class AboutPermissionStatusRows {
                 messageId,
                 Toast.LENGTH_SHORT
         ).show();
-    }
-
-    private boolean isBRouterInstalled() {
-        return profilesRepository.isBRouterInstalled(activity);
     }
 
 }

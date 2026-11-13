@@ -27,7 +27,7 @@ public final class BRouterDirectoryCandidates {
 
     @NonNull
     static String legacySharedPrimaryDocumentId(@NonNull String directoryName) {
-        return PRIMARY_ROOT_ID + ":brouter/" + directoryName;
+        return directoryId(PRIMARY_ROOT_ID, "brouter/", directoryName);
     }
 
     @NonNull
@@ -76,9 +76,15 @@ public final class BRouterDirectoryCandidates {
             @NonNull String brouterRelativePath,
             @NonNull String directoryName
     ) {
-        String documentId = rootId + ":" + brouterRelativePath + directoryName;
+        String documentId = directoryId(rootId, brouterRelativePath, directoryName);
         if (!candidates.contains(documentId)) {
             candidates.add(documentId);
         }
+    }
+
+    private static String directoryId(String rootId, String basePath, String directoryName) {
+        String path = directoryName.equals("brouter") ? basePath.substring(0, basePath.length() - 1)
+                : basePath + directoryName;
+        return rootId + ":" + path;
     }
 }

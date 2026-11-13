@@ -25,7 +25,7 @@
     <string name="welcome_setup_title">Första inställningar</string>
     <string name="welcome_brouter_body">• Installera BRouter med de länkar som ges, öppna sedan appen och ladda ner ruttdata för ditt område.</string>
     <string name="welcome_permissions_body">• Efter detta välkomnande och den valfria BRouter-installationsprompten, tillåt plats, mikrofon (för röstinmatning), aviseringar och all begärd lagringstillgång. Aktivera enhetens plats när du uppmanas. Du kan hoppa över en begäran och aktivera åtkomst senare.</string>
-    <string name="welcome_storage_body">• Ge profiles2 åtkomst till mappen när du uppmanas, eller lagringstillstånd på äldre Android-versioner.</string>
+    <string name="welcome_storage_body">• Ge åtkomst till mappen brouter när du blir tillfrågad, eller ge lagringsbehörighet på äldre Android-versioner.</string>
     <string name="welcome_battery_body">• Tillåt den valfria undantagen för batterioptimering för pålitlig vägledning med skärmen av.</string>
     <string name="welcome_optional_access_body">• Mikrofontillgång behövs endast om den efterfrågas för röststyrd sökning.</string>
     <string name="welcome_safety_title">Säkerhet och ansvar</string>
@@ -155,13 +155,12 @@
     <string name="msg_poi_details_map_check_hint">Använd kartan för att dubbelkolla att detta är den avsedda platsen.</string>
     <string name="msg_poi_google_maps_search_info">Öppnar Google Maps med texten från detta POI-sökfält. Efter att ha valt en plats i Google Maps, dela den platsen och välj ViBRo Navigator för att hämta resultatet tillbaka hit.</string>
     <string name="msg_compass_surrounding_streets_storage_permission_required">Lagringsåtkomst behövs för att läsa lokala BRouter-gator.</string>
-    <string name="title_brouter_segments_storage_access">BRouter-gatlager</string>
-    <string name="msg_brouter_segments_storage_access_prompt">Omgivande gator behöver åtkomst till BRouter segments4-mappen. På nästa skärm går du till %1$s och bekräftar mappåtkomst. Om den platsen inte är tillgänglig, välj mappen där BRouter lagrar sina .rd5-filer.</string>
     <string name="msg_brouter_profiles_storage_permission_required">Lagringsåtkomst behövs för att läsa BRouter-profilfiler.</string>
-    <string name="title_brouter_profiles_storage_access">BRouter-profillagring</string>
+    <string name="title_brouter_storage_access">BRouter-lagring</string>
+    <string name="msg_brouter_storage_access_prompt">Välj BRouter-mappen på %1$s så att ViBRo kan läsa profiler och ruttdata.</string>
+    <string name="msg_brouter_folder_required">Välj mappen brouter som innehåller profiles2 och segments4.</string>
     <string name="action_browse">Bläddra</string>
     <string name="msg_brouter_storage_folder_missing">Bläddra till mappen %1$s och välj den. Om den inte finns ännu, slutför lagringsinställningarna i BRouter.</string>
-    <string name="msg_brouter_profiles_storage_access_prompt">BRouter-profiler behöver åtkomst till profiles2-mappen. På nästa skärm, bläddra till %1$s och bekräfta mappåtkomst. Om den platsen inte är tillgänglig, välj mappen där BRouter lagrar sina .brf-profiler.</string>
     <string name="msg_symbol_test_notification_sent">Symboltestmeddelande skickat.</string>
     <string name="msg_map_location_searching">Söker efter aktuell plats…</string>
     <string name="msg_map_location_unavailable">Aktuell plats är inte tillgänglig.</string>
@@ -547,8 +546,6 @@
     <string name="label_permission_location_services">Enhetens plats</string>
     <string name="label_permission_notifications">Aviseringar</string>
     <string name="label_permission_battery">Batterioptimering</string>
-    <string name="label_permission_surrounding_street_storage">BRouter-gatlager</string>
-    <string name="label_permission_brouter_profile_storage">BRouter-profillagring</string>
     <string name="format_about_permission_status_content_description">%1$s: %2$s. Tryck för att åtgärda.</string>
     <string name="label_sensor_fused_provider">Google sammanslagen leverantör</string>
     <string name="label_sensor_gps_provider">GPS-leverantör</string>

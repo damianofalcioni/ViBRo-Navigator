@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.net.Uri;
-import android.os.Build;
 import android.os.CancellationSignal;
 
 import androidx.annotation.NonNull;
@@ -111,9 +110,8 @@ final class AndroidBRouterPickerLocation {
 
     @NonNull
     private static DirectoryPresence selectablePresence(Context context, String id, CancellationSignal signal) {
-        // New tree grants for Android/data are restricted on Android 11 and later.
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && id.contains(":Android/data/")
-                ? DirectoryPresence.MISSING : AndroidDocumentAccess.externalStorageDirectoryPresence(context, id, signal);
+        return AndroidBRouterFolderAccess.isSelectableDocumentId(id)
+                ? AndroidDocumentAccess.externalStorageDirectoryPresence(context, id, signal) : DirectoryPresence.MISSING;
     }
 
     @NonNull

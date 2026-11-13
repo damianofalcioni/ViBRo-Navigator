@@ -131,7 +131,7 @@ final class NavigationStartupSegmentsTreeAccess {
     private void checkFolder() {
         discovering = true;
         int generation = ++discoveryGeneration;
-        AndroidBRouterSegmentsTreeAccessPrompt.findAvailableFolder(activity, segmentsRepository, skippedFolders,
+        AndroidBRouterSegmentsTreeAccessPrompt.findAvailableFolder(activity, skippedFolders,
                 uri -> onFolderFound(generation, uri));
     }
 
@@ -169,10 +169,7 @@ final class NavigationStartupSegmentsTreeAccess {
             return true;
         }
         if (resultCode == Activity.RESULT_OK) {
-            Uri granted = AndroidBRouterFolderAccess.persistSelection(activity, data, AndroidBRouterFolderAccess.Kind.SEGMENTS);
-            if (granted != null) {
-                segmentsRepository.saveSegmentsTreeUri(activity, granted);
-            } else {
+            if (!AndroidBRouterFolderAccess.saveSelection(activity, data)) {
                 explainMissingStorage();
             }
         } else {

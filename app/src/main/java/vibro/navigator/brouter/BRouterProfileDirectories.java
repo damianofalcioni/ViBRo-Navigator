@@ -31,11 +31,11 @@ final class BRouterProfileDirectories {
     Uri getCustomProfilePickerInitialUri(
             @NonNull Context context,
             @Nullable Uri profilesTreeUri,
-            boolean hasProfilesTreeReadPermission,
             @Nullable Uri customProfileUri
     ) {
-        if (hasProfilesTreeReadPermission) {
-            return initialUriForTree(profilesTreeUri);
+        if (profilesTreeUri != null) {
+            Uri directory = documentAccess.profilePickerDirectory(context, profilesTreeUri);
+            return directory != null ? directory : initialUriForTree(profilesTreeUri);
         }
         if (customProfileUri != null) {
             Uri parentUri = toParentDocumentUri(customProfileUri);
@@ -73,11 +73,10 @@ final class BRouterProfileDirectories {
     @NonNull
     List<Uri> resolveProfilesDiscoveryTreeUris(
             @NonNull Context context,
-            @Nullable Uri savedTreeUri,
-            boolean hasSavedTreeReadPermission
+            @Nullable Uri savedTreeUri
     ) {
         List<Uri> out = new ArrayList<>();
-        if (hasSavedTreeReadPermission && savedTreeUri != null) {
+        if (savedTreeUri != null) {
             addDiscoveryTreeUri(out, savedTreeUri);
         }
         // Shared legacy folders supply named profiles only after the user grants access.

@@ -17,8 +17,7 @@ import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 
 /** Sequences first-run folder grants and owns manual and automatic main-screen requests. */
 public final class AndroidBRouterStorageSetup {
-    static final int REQUEST_PROFILES = 1102;
-    static final int REQUEST_SEGMENTS = 1103;
+    static final int REQUEST_FOLDER = 1102;
     private static final String TAG = "BRouterStorageSetup";
     private final Activity activity;
     private final AndroidBRouterFolderRequests requests;
@@ -37,36 +36,27 @@ public final class AndroidBRouterStorageSetup {
         firstRunCompletion = firstRunPicker.restore(state);
     }
 
-    public boolean requestProfiles(Runnable onCancel) {
-        return requestForFirstRun(REQUEST_PROFILES, onCancel);
-    }
-
-    public boolean requestSegments(Runnable onCancel) {
-        return requestForFirstRun(REQUEST_SEGMENTS, onCancel);
-    }
-
     public boolean completedFirstRunStep() {
         return firstRunCompletion == Completion.ADVANCE;
     }
 
-    private boolean requestForFirstRun(int requestCode, Runnable onCancel) {
-        if (firstRunPicker.matches(requestCode)) {
+    public boolean requestForFirstRun(Runnable onCancel) {
+        if (firstRunPicker.matches(REQUEST_FOLDER)) {
             return true;
         }
-        if (!requests.needsFolderAccess() || !requests.needsGrant(requestCode)) {
+        if (!requests.needsFolderAccess() || !requests.needsGrant()) {
             return false;
         }
-        AndroidTaskScheduler.main().postDelayed(() -> discoverFirstRun(requestCode, onCancel),
+        AndroidTaskScheduler.main().postDelayed(() -> discoverFirstRun(onCancel),
                 ViewConfiguration.getPressedStateDuration());
         return true;
     }
 
-    private void discoverFirstRun(int requestCode, Runnable onCancel) {
+    private void discoverFirstRun(Runnable onCancel) {
         if (canShowDialog()) {
-            requests.findLocation(requestCode, Collections.emptySet(), AndroidBRouterPickerLocation.browse(),
+            requests.findLocation(Collections.emptySet(), AndroidBRouterPickerLocation.browse(),
                     location -> {
-                        firstRunOffer = () -> showFolder(requestCode, location,
-                                () -> firstRunPicker.begin(requestCode), onCancel);
+                        firstRunOffer = () -> showFolder(location, () -> firstRunPicker.begin(REQUEST_FOLDER), onCancel);
                         showFirstRunOffer();
                     });
         }
@@ -87,8 +77,8 @@ public final class AndroidBRouterStorageSetup {
         }
     }
 
-    public void bindManualActions(View profilesAction, View segmentsAction) {
-        foreground.bindActions(profilesAction, segmentsAction);
+    public void bindManualAction(View action) {
+        foreground.bindAction(action);
     }
 
     public void setForegroundChecksEnabled(boolean enabled) {
@@ -96,22 +86,19 @@ public final class AndroidBRouterStorageSetup {
     }
 
     public ArrayList<String> skippedSegmentsFolders() {
-        return foreground.offers().copy(REQUEST_SEGMENTS);
+        return foreground.offers().copy();
     }
 
-    void showFolder(int requestCode, AndroidBRouterPickerLocation location, Runnable beforeLaunch, Runnable onCancel) {
-        Runnable launch = rememberOffer(requestCode, location, beforeLaunch);
-        Runnable cancel = rememberOffer(requestCode, location, onCancel);
-        folderDialog = requestCode == REQUEST_PROFILES
-                ? AndroidBRouterProfilesTreeAccessPrompt.showNow(activity, location.initialUri, requestCode, TAG,
-                        launch, cancel, cancel)
-                : AndroidBRouterSegmentsTreeAccessPrompt.showNow(activity, location.initialUri, requestCode, TAG,
-                        launch, cancel, cancel);
+    void showFolder(AndroidBRouterPickerLocation location, Runnable beforeLaunch, Runnable onCancel) {
+        Runnable launch = rememberOffer(location, beforeLaunch);
+        Runnable cancel = rememberOffer(location, onCancel);
+        folderDialog = AndroidBRouterFolderPrompt.show(activity, location.initialUri, REQUEST_FOLDER, TAG,
+                launch, cancel, cancel);
     }
 
-    private Runnable rememberOffer(int requestCode, AndroidBRouterPickerLocation location, Runnable callback) {
+    private Runnable rememberOffer(AndroidBRouterPickerLocation location, Runnable callback) {
         return () -> {
-            foreground.offers().record(requestCode, location.confirmedUri());
+            foreground.offers().record(location.confirmedUri());
             callback.run();
         };
     }
@@ -120,7 +107,7 @@ public final class AndroidBRouterStorageSetup {
             int requestCode, int resultCode, @Nullable Intent data, Runnable onAdvance, Runnable onRetry
     ) {
         if (firstRunPicker.matches(requestCode)) {
-            requests.handleResult(requestCode, resultCode, data, firstRunPicker, onAdvance, onRetry);
+            requests.handleResult(resultCode, data, firstRunPicker, onAdvance, onRetry);
             return true;
         }
         return foreground.handleResult(requestCode, resultCode, data);

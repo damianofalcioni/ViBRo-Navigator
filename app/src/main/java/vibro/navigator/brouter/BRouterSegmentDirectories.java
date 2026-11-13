@@ -30,11 +30,10 @@ final class BRouterSegmentDirectories {
     @NonNull
     List<Uri> resolveSegmentsDiscoveryTreeUris(
             @NonNull Context context,
-            @Nullable Uri savedTreeUri,
-            boolean hasSavedTreeReadPermission
+            @Nullable Uri savedTreeUri
     ) {
         List<Uri> out = new ArrayList<>();
-        if (hasSavedTreeReadPermission && savedTreeUri != null) {
+        if (savedTreeUri != null) {
             addDiscoveryTreeUri(out, savedTreeUri);
         }
         for (String documentId : getSegmentsDocumentIdCandidates(context)) {

@@ -34,6 +34,11 @@ public final class BRouterProfileDependencies {
         @Nullable
         Uri buildTreeDocumentUri(@NonNull Uri treeUri);
 
+        @Nullable
+        default Uri profilePickerDirectory(@NonNull Context context, @NonNull Uri treeUri) {
+            return buildTreeDocumentUri(treeUri);
+        }
+
         boolean isExternalStorageDocument(@NonNull Uri uri);
 
         @Nullable

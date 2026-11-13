@@ -38,8 +38,7 @@ final class MainActivityStartupCoordinator {
     void start(Bundle state, Runnable onReady) {
         this.onReady = onReady;
         permissions = new AndroidFirstRunPermissions(activity, state, this::complete);
-        permissions.bindBRouterActions(activity.findViewById(R.id.brouterProfilesAccessButton),
-                activity.findViewById(R.id.brouterSegmentsAccessButton));
+        permissions.bindBRouterAction(activity.findViewById(R.id.brouterStorageAccessButton));
         if (state != null) {
             installDone = state.getBoolean(STATE_INSTALL_DONE);
             waitingForInstall = state.getBoolean(STATE_INSTALL_WAITING);

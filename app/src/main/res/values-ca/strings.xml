@@ -25,7 +25,7 @@
     <string name="welcome_setup_title">Configuració inicial</string>
     <string name="welcome_brouter_body">• Instala BRouter mitjançant els enllaços proporcionats, després obre l\'aplicació i descarrega les dades de rutes de la teva àrea.</string>
     <string name="welcome_permissions_body">• Després d\'aquest missatge de benvinguda i de la sol·licitud d\'instal·lació opcional de BRouter, permet la ubicació, el micròfon (per a entrada per veu), les notificacions i qualsevol accés d\'emmagatzematge sol·licitat. Activa la ubicació del dispositiu quan se\'t demani. Pots saltar-te una sol·licitud i habilitar l\'accés més tard.</string>
-    <string name="welcome_storage_body">• Concedeix accés a la carpeta profiles2 quan se\'t demani, o permís d\'emmagatzematge a les versions més antigues Android.</string>
+    <string name="welcome_storage_body">• Concedeix accés a la carpeta brouter quan se’t demani, o el permís d’emmagatzematge en versions antigues d’Android.</string>
     <string name="welcome_battery_body">• Permet l\'exempció opcional d\'optimització de bateria per a una guia fiable amb la pantalla apagada.</string>
     <string name="welcome_optional_access_body">• L\'accés al micròfon només és necessari si es demana per a la cerca per veu.</string>
     <string name="welcome_safety_title">Seguretat i responsabilitat</string>
@@ -155,13 +155,12 @@
     <string name="msg_poi_details_map_check_hint">Utilitzeu el mapa per comprovar que aquesta és la ubicació prevista.</string>
     <string name="msg_poi_google_maps_search_info">Obre Google Maps amb el text d\'aquest camp de cerca POI. Després de triar un lloc a Google Maps, comparteix aquest lloc i selecciona ViBRo Navigator per portar el resultat aquí.</string>
     <string name="msg_compass_surrounding_streets_storage_permission_required">Cal accés a l\'emmagatzematge per llegir els carrers locals BRouter.</string>
-    <string name="title_brouter_segments_storage_access">Emmagatzematge de carrers BRouter</string>
-    <string name="msg_brouter_segments_storage_access_prompt">Els carrers de l\'entorn necessiten accés a la carpeta segments4 de BRouter. A la següent pantalla, navegueu fins a %1$s i confirmeu l\'accés a la carpeta. Si aquesta ubicació no està disponible, seleccioneu la carpeta on BRouter desa els seus fitxers .rd5.</string>
     <string name="msg_brouter_profiles_storage_permission_required">Cal accés a l\'emmagatzematge per llegir fitxers de perfil BRouter.</string>
-    <string name="title_brouter_profiles_storage_access">Emmagatzematge de perfils BRouter</string>
+    <string name="title_brouter_storage_access">Emmagatzematge del BRouter</string>
+    <string name="msg_brouter_storage_access_prompt">Selecciona la carpeta del BRouter a %1$s perquè ViBRo pugui llegir els perfils i les dades de rutes.</string>
+    <string name="msg_brouter_folder_required">Selecciona la carpeta brouter que conté profiles2 i segments4.</string>
     <string name="action_browse">Navega</string>
     <string name="msg_brouter_storage_folder_missing">Navega per seleccionar la carpeta %1$s. Si encara no existeix, completa la configuració de l’emmagatzematge a BRouter.</string>
-    <string name="msg_brouter_profiles_storage_access_prompt">BRouter necessiten accés a la carpeta profiles2. A la següent pantalla, navega a %1$s i confirma l\'accés a la carpeta. Si aquesta ubicació no està disponible, selecciona la carpeta on BRouter desa els seus perfils .brf.\n\nNotificació de prova de símbol</string>
     <string name="msg_symbol_test_notification_sent">enviada.</string>
     <string name="msg_map_location_searching">Buscant la ubicació actual…\n\nLa ubicació actual no està disponible</string>
     <string name="msg_map_location_unavailable">.\n\nSelecciona primer un punt al mapa</string>
@@ -547,8 +546,6 @@
     <string name="label_permission_location_services">Localització del dispositiu</string>
     <string name="label_permission_notifications">Notificacions</string>
     <string name="label_permission_battery">Optimització de la bateria</string>
-    <string name="label_permission_surrounding_street_storage">Emmagatzematge de carrers BRouter</string>
-    <string name="label_permission_brouter_profile_storage">Emmagatzematge de perfils BRouter</string>
     <string name="format_about_permission_status_content_description">%1$s: %2$s. Toca per resoldre.</string>
     <string name="label_sensor_fused_provider">Proveïdor fusionat Google</string>
     <string name="label_sensor_gps_provider">Proveïdor GPS</string>

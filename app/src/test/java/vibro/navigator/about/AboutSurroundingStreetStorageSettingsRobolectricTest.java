@@ -13,9 +13,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.os.Build;
-import android.view.View;
 import android.widget.Switch;
-import android.widget.TextView;
 
 import androidx.test.core.app.ApplicationProvider;
 
@@ -28,7 +26,6 @@ import vibro.navigator.settings.AppCompassSettings;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowAlertDialog;
@@ -124,86 +121,6 @@ public class AboutSurroundingStreetStorageSettingsRobolectricTest {
         assertFalse(AppCompassSettings.isSurroundingStreetsEnabled(activity));
     }
 
-    @Test
-    public void diagnosticShowsLegacyStreetStorageStatusWhenSurroundingStreetsNeedIt() {
-        installBRouterPackage();
-        Application context = ApplicationProvider.getApplicationContext();
-        AppCompassSettings.setSurroundingStreetsEnabled(context, true);
-        AboutActivity activity = activity();
-        idleInitialDiagnosticRender();
-        View row = activity.findViewById(R.id.aboutPermissionSurroundingStreetStorageRow);
-        TextView status = activity.findViewById(R.id.aboutPermissionSurroundingStreetStorageStatus);
-
-        assertEquals(View.VISIBLE, row.getVisibility());
-        assertEquals(activity.getString(R.string.permission_status_needs_attention), status.getText().toString());
-    }
-
-    @Test
-    @Config(sdk = Build.VERSION_CODES.R)
-    public void diagnosticShowsSegmentsTreeStatusWhenSurroundingStreetsNeedModernStorageGrant() {
-        installBRouterPackage();
-        Application context = ApplicationProvider.getApplicationContext();
-        AppCompassSettings.setSurroundingStreetsEnabled(context, true);
-        AboutActivity activity = activity();
-        idleInitialDiagnosticRender();
-        View row = activity.findViewById(R.id.aboutPermissionSurroundingStreetStorageRow);
-        TextView status = activity.findViewById(R.id.aboutPermissionSurroundingStreetStorageStatus);
-
-        assertEquals(View.VISIBLE, row.getVisibility());
-        assertEquals(activity.getString(R.string.permission_status_needs_attention), status.getText().toString());
-    }
-
-    @Test
-    @Config(sdk = Build.VERSION_CODES.R)
-    public void diagnosticShowsSegmentsTreeStatusWhenModernStorageGrantIsMissingEvenIfSettingIsOff() {
-        installBRouterPackage();
-        AboutActivity activity = activity();
-        idleInitialDiagnosticRender();
-        View row = activity.findViewById(R.id.aboutPermissionSurroundingStreetStorageRow);
-        TextView status = activity.findViewById(R.id.aboutPermissionSurroundingStreetStorageStatus);
-
-        assertEquals(View.VISIBLE, row.getVisibility());
-        assertEquals(activity.getString(R.string.permission_status_needs_attention), status.getText().toString());
-    }
-
-    @Test
-    @Config(sdk = Build.VERSION_CODES.R)
-    public void diagnosticSegmentsTreeRowRequestsFolderAccessOnAndroid11() {
-        installBRouterPackage();
-        TestBRouterStorage.createPrimaryFolder("segments4");
-        AboutActivity activity = activity();
-        idleInitialDiagnosticRender();
-
-        activity.findViewById(R.id.aboutPermissionSurroundingStreetStorageRow).performClick();
-
-        continueFromBRouterPrompt(activity);
-
-        ShadowActivity.IntentForResult started = shadowOf(activity).getNextStartedActivityForResult();
-        assertNotNull(started);
-        assertEquals(AboutPermissionStatusRows.REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE, started.requestCode);
-        assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, started.intent.getAction());
-    }
-
-    @Test
-    public void diagnosticHidesLegacyStreetStorageStatusWhenSurroundingStreetsAreOff() {
-        installBRouterPackage();
-        AboutActivity activity = activity();
-        idleInitialDiagnosticRender();
-
-        assertEquals(View.GONE, activity.findViewById(R.id.aboutPermissionSurroundingStreetStorageRow).getVisibility());
-    }
-
-    @Test
-    @Config(sdk = Build.VERSION_CODES.R)
-    public void diagnosticHidesStreetStorageStatusWhenBRouterIsMissing() {
-        Application context = ApplicationProvider.getApplicationContext();
-        AppCompassSettings.setSurroundingStreetsEnabled(context, true);
-        AboutActivity activity = activity();
-        idleInitialDiagnosticRender();
-
-        assertEquals(View.GONE, activity.findViewById(R.id.aboutPermissionSurroundingStreetStorageRow).getVisibility());
-    }
-
     private static AboutActivity activity() {
         return AboutActivityTestSupport.setupWithSettings();
     }
@@ -217,7 +134,7 @@ public class AboutSurroundingStreetStorageSettingsRobolectricTest {
                 activity.getString(R.string.action_continue),
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).getText().toString()
         );
-        assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains("segments4"));
+        assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains("brouter"));
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         shadowOf(android.os.Looper.getMainLooper()).idle();
     }
@@ -227,13 +144,6 @@ public class AboutSurroundingStreetStorageSettingsRobolectricTest {
                 AboutSettingsSwitches.REQUEST_SURROUNDING_STREETS_STORAGE,
                 new String[]{LEGACY_STORAGE_PERMISSION},
                 new int[]{grantResult}
-        );
-    }
-
-    private static void idleInitialDiagnosticRender() {
-        shadowOf(android.os.Looper.getMainLooper()).idleFor(
-                AboutDiagnosticRenderScheduler.INITIAL_DIAGNOSTIC_RENDER_DELAY_MS + 50,
-                java.util.concurrent.TimeUnit.MILLISECONDS
         );
     }
 

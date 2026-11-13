@@ -11,6 +11,9 @@ import androidx.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import vibro.navigator.logging.AppLogger;
 
@@ -20,27 +23,63 @@ final class AndroidDocumentTreeFileAccess {
     private AndroidDocumentTreeFileAccess() {
     }
 
+    @NonNull
+    static List<String> childDisplayNames(Context context, Uri treeUri) {
+        String directoryId = AndroidDocumentAccess.directoryDocumentId(treeUri);
+        if (directoryId == null) {
+            return Collections.emptyList();
+        }
+        if (AndroidDocumentAccess.isExternalStorageDocument(treeUri)) {
+            List<String> directNames = AndroidExternalStorageDocumentFiles.childDisplayNames(context, directoryId);
+            if (directNames != null) {
+                return directNames;
+            }
+        }
+        Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, directoryId);
+        try (Cursor cursor = queryChildren(context, childrenUri)) {
+            return cursor == null ? Collections.emptyList() : readDisplayNames(cursor);
+        } catch (Exception e) {
+            AppLogger.w(TAG, "Failed to list document tree children uri=" + treeUri, e);
+            return Collections.emptyList();
+        }
+    }
+
+    private static List<String> readDisplayNames(Cursor cursor) {
+        int nameColumn = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME);
+        if (nameColumn < 0) {
+            return Collections.emptyList();
+        }
+        List<String> names = new ArrayList<>();
+        while (cursor.moveToNext()) {
+            names.add(cursor.getString(nameColumn));
+        }
+        return names;
+    }
+
     @Nullable
     static Uri childDocumentUri(
             @NonNull Context context,
             @NonNull Uri treeUri,
             @NonNull String displayName
     ) {
-        String treeDocumentId = AndroidDocumentAccess.treeDocumentId(treeUri);
-        if (treeDocumentId == null) {
+        String directoryId = AndroidDocumentAccess.directoryDocumentId(treeUri);
+        if (directoryId == null) {
             return null;
         }
-        Uri directUri = AndroidExternalStorageDocumentFiles.childFileUri(context, treeDocumentId, displayName);
-        if (directUri != null) {
-            return directUri;
+        if (AndroidDocumentAccess.isExternalStorageDocument(treeUri)) {
+            Uri directUri = AndroidExternalStorageDocumentFiles.childFileUri(context, directoryId, displayName);
+            if (directUri != null) {
+                return directUri;
+            }
+            String grantId = AndroidDocumentAccess.treeDocumentId(treeUri);
+            if (grantId == null || !AndroidPersistedUriPermissions.hasReadPermission(context,
+                    AndroidDocumentAccess.treeGrantUri(treeUri, grantId))) {
+                AppLogger.d(TAG, "Skipping ungranted external storage tree child lookup treeUri=" + treeUri
+                        + " displayName=" + displayName);
+                return null;
+            }
         }
-        if (AndroidDocumentAccess.isExternalStorageDocument(treeUri)
-                && !AndroidPersistedUriPermissions.hasReadPermission(context, treeUri)) {
-            AppLogger.d(TAG, "Skipping ungranted external storage tree child lookup treeUri=" + treeUri
-                    + " displayName=" + displayName);
-            return null;
-        }
-        return findChildDocumentUri(context, treeUri, treeDocumentId, displayName);
+        return findChildDocumentUri(context, treeUri, directoryId, displayName);
     }
 
     @Nullable

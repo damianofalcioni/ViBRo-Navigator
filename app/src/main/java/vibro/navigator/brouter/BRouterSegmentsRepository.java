@@ -65,8 +65,8 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
 
     @Nullable
     public Uri getGrantedSegmentsTreeUri(@NonNull Context context) {
-        Uri savedTreeUri = getSegmentsTreeUri(context);
-        return hasPersistedReadPermission(context, savedTreeUri) ? savedTreeUri : null;
+        return BRouterFolderGrant.resolve(context, getSegmentsTreeUri(context),
+                dependencies.uriPermissionAccess::hasReadPermission);
     }
 
     @NonNull
@@ -127,12 +127,7 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
     @NonNull
     private List<Uri> discoveryTreeUris(@NonNull Context context) {
         if (discoveryTreeUris == null) {
-            Uri savedTreeUri = getSegmentsTreeUri(context);
-            discoveryTreeUris = segmentDirectories.resolveSegmentsDiscoveryTreeUris(
-                    context,
-                    savedTreeUri,
-                    hasPersistedReadPermission(context, savedTreeUri)
-            );
+            discoveryTreeUris = segmentDirectories.resolveSegmentsDiscoveryTreeUris(context, getGrantedSegmentsTreeUri(context));
         }
         return discoveryTreeUris;
     }
@@ -148,9 +143,5 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
     void recordMissingSegmentFile(@NonNull String fileName) {
         missingSegmentFiles.add(fileName);
         AppLogger.d(TAG, "BRouter segment file not found file=" + fileName);
-    }
-
-    private boolean hasPersistedReadPermission(@NonNull Context context, @Nullable Uri uri) {
-        return dependencies.uriPermissionAccess.hasReadPermission(context, uri);
     }
 }

@@ -26,7 +26,7 @@
     <string name="welcome_setup_title">Configurazione iniziale</string>
     <string name="welcome_brouter_body">• Installa BRouter usando i link forniti, poi aprilo e scarica i dati di navigazione per la tua zona.</string>
     <string name="welcome_permissions_body">• Dopo questa schermata e la richiesta facoltativa di installare BRouter, consenti l’accesso a posizione, microfono (per l’input vocale), notifiche e archiviazione, se richiesto. Attiva la posizione del dispositivo quando richiesto. Puoi saltare una richiesta e concedere l’accesso in seguito.</string>
-    <string name="welcome_storage_body">• Concedi l’accesso alla cartella profiles2 quando richiesto, oppure l’autorizzazione di archiviazione sulle versioni Android meno recenti.</string>
+    <string name="welcome_storage_body">• Quando richiesto, concedi l’accesso alla cartella brouter o l’autorizzazione di archiviazione sulle versioni precedenti di Android.</string>
     <string name="welcome_battery_body">• Consenti l’esenzione facoltativa dalle ottimizzazioni della batteria per una guida affidabile a schermo spento.</string>
     <string name="welcome_optional_access_body">• L’accesso al microfono serve solo se richiesto per la ricerca vocale.</string>
     <string name="welcome_safety_title">Sicurezza e responsabilità</string>
@@ -156,13 +156,12 @@
     <string name="msg_poi_details_map_check_hint">Usa la mappa per verificare che sia la posizione desiderata.</string>
     <string name="msg_poi_google_maps_search_info">Apre Google Maps con il testo di questo campo di ricerca POI. Dopo aver scelto un luogo in Google Maps, condividilo e seleziona ViBRo Navigator per riportare il risultato qui.</string>
     <string name="msg_compass_surrounding_streets_storage_permission_required">L’accesso all’archiviazione è necessario per leggere le strade BRouter locali.</string>
-    <string name="title_brouter_segments_storage_access">Archiviazione delle strade BRouter</string>
-    <string name="msg_brouter_segments_storage_access_prompt">Le strade circostanti richiedono l’accesso alla cartella segments4 di BRouter. Nella schermata successiva vai a %1$s e conferma l’accesso alla cartella. Se la posizione non è disponibile, seleziona la cartella in cui BRouter salva i file .rd5.</string>
     <string name="msg_brouter_profiles_storage_permission_required">L’accesso all’archiviazione è necessario per leggere i profili BRouter.</string>
-    <string name="title_brouter_profiles_storage_access">Archiviazione dei profili BRouter</string>
+    <string name="title_brouter_storage_access">Archiviazione BRouter</string>
+    <string name="msg_brouter_storage_access_prompt">Seleziona la cartella di BRouter in %1$s per consentire a ViBRo di leggere i profili e i dati di percorso.</string>
+    <string name="msg_brouter_folder_required">Seleziona la cartella brouter che contiene profiles2 e segments4.</string>
     <string name="action_browse">Sfoglia</string>
     <string name="msg_brouter_storage_folder_missing">Sfoglia le cartelle per selezionare %1$s. Se non esiste ancora, completa la configurazione dell’archiviazione in BRouter.</string>
-    <string name="msg_brouter_profiles_storage_access_prompt">I profili BRouter richiedono l’accesso alla cartella profiles2. Nella schermata successiva vai a %1$s e conferma l’accesso alla cartella. Se la posizione non è disponibile, seleziona la cartella in cui BRouter salva i profili .brf.</string>
     <string name="msg_symbol_test_notification_sent">Notifica di prova dei simboli inviata.</string>
     <string name="msg_map_location_searching">Ricerca della posizione attuale…</string>
     <string name="msg_map_location_unavailable">Posizione attuale non disponibile.</string>
@@ -549,8 +548,6 @@
     <string name="label_permission_location_services">Posizione del dispositivo</string>
     <string name="label_permission_notifications">Notifiche</string>
     <string name="label_permission_battery">Ottimizzazione della batteria</string>
-    <string name="label_permission_surrounding_street_storage">Archiviazione delle strade BRouter</string>
-    <string name="label_permission_brouter_profile_storage">Archiviazione dei profili BRouter</string>
     <string name="format_about_permission_status_content_description">%1$s: %2$s. Tocca per risolvere.</string>
     <string name="label_sensor_fused_provider">Provider combinato Google</string>
     <string name="label_sensor_gps_provider">Provider GPS</string>

@@ -72,7 +72,7 @@ public class NavigationActivityStartupStorageRobolectricTest {
 
     @Test
     public void unverifiedSegmentsFolderKeepsSurroundingStreetsEnabledAndContinuesStartup() {
-        TestBRouterStorage.requireGrantToQueryPrimaryFolder(ApplicationProvider.getApplicationContext(), SEGMENTS_FOLDER);
+        TestBRouterStorage.requireGrantToQueryPrimaryFolder(ApplicationProvider.getApplicationContext());
         TestNavigationActivity activity = Robolectric.buildActivity(TestNavigationActivity.class, navigationIntent())
                 .setup().get();
 
@@ -155,7 +155,7 @@ public class NavigationActivityStartupStorageRobolectricTest {
             assertNull(shadowOf(activity).getNextStartedActivityForResult());
 
             Intent grant = new Intent().setData(DocumentsContract.buildTreeDocumentUri(
-                    "com.android.externalstorage.documents", "primary:Android/media/btools.routingapp/brouter/segments4"))
+                    "com.android.externalstorage.documents", "primary:Android/media/btools.routingapp/brouter"))
                     .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             activity.onActivityResult(requestCode, Activity.RESULT_OK, grant);
 
@@ -168,7 +168,7 @@ public class NavigationActivityStartupStorageRobolectricTest {
     @Test
     public void mainScreenDismissalSkipsPromptAndKeepsSurroundingStreetsEnabled() {
         TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
-        Intent intent = navigationIntentSkipping("primary:Android/media/btools.routingapp/brouter/segments4");
+        Intent intent = navigationIntentSkipping("primary:Android/media/btools.routingapp/brouter");
         try (var controller = Robolectric.buildActivity(TestNavigationActivity.class, intent).create().start()) {
             TestNavigationActivity activity = controller.get();
             assertNull(shadowOf(activity).getLastRequestedPermission());
@@ -192,7 +192,7 @@ public class NavigationActivityStartupStorageRobolectricTest {
     @Test
     public void dismissalOfDifferentFolderDoesNotSuppressNavigationPrompt() {
         TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
-        Intent intent = navigationIntentSkipping("primary:brouter/segments4");
+        Intent intent = navigationIntentSkipping("primary:brouter");
 
         try (var controller = Robolectric.buildActivity(TestNavigationActivity.class, intent).setup()) {
             assertTrue(ShadowAlertDialog.getLatestAlertDialog().isShowing());
@@ -220,7 +220,7 @@ public class NavigationActivityStartupStorageRobolectricTest {
                 activity.getString(R.string.action_continue),
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).getText().toString()
         );
-        assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains(SEGMENTS_FOLDER));
+        assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains("brouter"));
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         shadowOf(Looper.getMainLooper()).idle();
     }

@@ -45,7 +45,8 @@ public final class AndroidBRouterSegmentsRepositoryFactory {
         @Nullable
         @Override
         public Uri childDocumentUri(@NonNull Context context, @NonNull Uri treeUri, @NonNull String displayName) {
-            return AndroidDocumentAccess.childDocumentUri(context, treeUri, displayName);
+            Uri directory = AndroidBRouterFolderAccess.dataDirectory(context, treeUri, "segments4");
+            return directory == null ? null : AndroidDocumentAccess.childDocumentUri(context, directory, displayName);
         }
 
         @Nullable

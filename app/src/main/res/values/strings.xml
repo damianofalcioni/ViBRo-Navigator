@@ -28,7 +28,7 @@
     <string name="welcome_setup_title">Initial setup</string>
     <string name="welcome_brouter_body">• Install BRouter using the links provided, then open it and download routing data for your area.</string>
     <string name="welcome_permissions_body">• After this welcome and the optional BRouter installation prompt, allow location, microphone (for voice input), notifications, and any requested storage access. Enable device location when prompted. You can skip a request and enable access later.</string>
-    <string name="welcome_storage_body">• Grant profiles2 folder access when prompted, or storage permission on older Android versions.</string>
+    <string name="welcome_storage_body">• Grant access to the brouter folder when prompted, or storage permission on older Android versions.</string>
     <string name="welcome_battery_body">• Allow the optional battery optimization exemption for reliable guidance with the screen off.</string>
     <string name="welcome_optional_access_body">• Microphone access is only needed if requested for voice search.</string>
     <string name="welcome_safety_title">Safety and responsibility</string>
@@ -171,13 +171,12 @@
     <string name="msg_poi_details_map_check_hint">Use the map to double-check that this is the intended location.</string>
     <string name="msg_poi_google_maps_search_info">Opens Google Maps with the text from this POI search field. After choosing a place in Google Maps, share that place and select ViBRo Navigator to bring the result back here.</string>
     <string name="msg_compass_surrounding_streets_storage_permission_required">Storage access is needed to read local BRouter streets.</string>
-    <string name="title_brouter_segments_storage_access">BRouter street storage</string>
-    <string name="msg_brouter_segments_storage_access_prompt">Surrounding streets need access to the BRouter segments4 folder. On the next screen, browse to %1$s and confirm folder access. If that location is unavailable, select the folder where BRouter stores its .rd5 files.</string>
     <string name="msg_brouter_profiles_storage_permission_required">Storage access is needed to read BRouter profile files.</string>
-    <string name="title_brouter_profiles_storage_access">BRouter profile storage</string>
+    <string name="title_brouter_storage_access">BRouter storage</string>
+    <string name="msg_brouter_storage_access_prompt">Select the BRouter folder at %1$s to give ViBRo read access to profiles and routing data.</string>
+    <string name="msg_brouter_folder_required">Select the brouter folder that contains profiles2 and segments4.</string>
     <string name="action_browse">Browse</string>
     <string name="msg_brouter_storage_folder_missing">Browse to select your %1$s folder. If it does not exist yet, finish storage setup in BRouter.</string>
-    <string name="msg_brouter_profiles_storage_access_prompt">BRouter profiles need access to the profiles2 folder. On the next screen, browse to %1$s and confirm folder access. If that location is unavailable, select the folder where BRouter stores its .brf profiles.</string>
     <string name="msg_symbol_test_notification_sent">Symbol test notification sent.</string>
     <string name="msg_map_location_searching">Looking up current location…</string>
     <string name="msg_map_location_unavailable">Current location is unavailable.</string>
@@ -613,8 +612,6 @@
     <string name="label_permission_location_services">Device location</string>
     <string name="label_permission_notifications">Notifications</string>
     <string name="label_permission_battery">Battery optimization</string>
-    <string name="label_permission_surrounding_street_storage">BRouter street storage</string>
-    <string name="label_permission_brouter_profile_storage">BRouter profile storage</string>
     <string name="permission_status_ok" translatable="false">OK</string>
     <string name="permission_status_needs_attention" translatable="false">KO</string>
     <string name="format_about_permission_status_content_description">%1$s: %2$s. Tap to resolve.</string>

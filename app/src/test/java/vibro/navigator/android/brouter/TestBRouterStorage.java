@@ -37,9 +37,9 @@ public final class TestBRouterStorage {
         assertTrue(AndroidDocumentAccess.externalStorageDocumentExists(context, documentId));
     }
 
-    public static void requireGrantToQueryPrimaryFolder(Context context, String folderName) {
+    public static void requireGrantToQueryPrimaryFolder(Context context) {
         Uri tree = AndroidDocumentAccess.buildExternalStorageTreeUri(
-                "primary:Android/media/btools.routingapp/brouter/" + folderName);
+                "primary:Android/media/btools.routingapp/brouter");
         registerDirectoryProvider(tree, () -> AndroidPersistedUriPermissions.hasReadPermission(context, tree));
     }
 

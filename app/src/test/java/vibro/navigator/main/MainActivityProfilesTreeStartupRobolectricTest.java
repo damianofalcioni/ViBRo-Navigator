@@ -58,7 +58,7 @@ public class MainActivityProfilesTreeStartupRobolectricTest {
                 activity.getString(R.string.action_continue),
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).getText().toString()
         );
-        assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains("profiles2"));
+        assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains("brouter"));
 
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         shadowOf(Looper.getMainLooper()).idle();

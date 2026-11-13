@@ -42,27 +42,12 @@ public class AndroidBRouterSegmentsTreeAccessPromptTest {
     private static final String AUTHORITY = "com.android.externalstorage.documents";
 
     @Test
-    public void reopensGrantedSegmentsAsDocumentUriOnAndroid10() {
-        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
-        BRouterSegmentsRepository repository = AndroidBRouterSegmentsRepositoryFactory.create();
-        String id = "primary:Android/media/btools.routingapp/brouter/segments4";
-        Uri tree = DocumentsContract.buildTreeDocumentUri(AUTHORITY, id);
-        repository.saveSegmentsTreeUri(activity, tree);
-        activity.getContentResolver().takePersistableUriPermission(tree, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-        Intent picker = openPicker(activity, repository);
-        Uri initial = IntentCompat.getParcelableExtra(picker, DocumentsContract.EXTRA_INITIAL_URI, Uri.class);
-        assertEquals(DocumentsContract.buildDocumentUriUsingTree(tree, id), initial);
-    }
-
-    @Test
     public void opensPickerAtFixedLegacySharedSegmentsFolder() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
-        String folder = "brouter/segments4";
+        String folder = "brouter";
         assertTrue(new File(AndroidStorageVolumes.storageRoot(activity, "primary"), folder).mkdirs());
-        BRouterSegmentsRepository repository = AndroidBRouterSegmentsRepositoryFactory.create();
 
-        Intent picker = openPicker(activity, repository);
+        Intent picker = openPicker(activity);
         Uri initial = IntentCompat.getParcelableExtra(picker, DocumentsContract.EXTRA_INITIAL_URI, Uri.class);
         assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, picker.getAction());
         assertEquals(DocumentsContract.buildDocumentUri(AUTHORITY, "primary:" + folder), initial);
@@ -72,7 +57,7 @@ public class AndroidBRouterSegmentsTreeAccessPromptTest {
     public void opensManualPickerWhenNoKnownSegmentsFolderExists() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
 
-        Intent picker = openPicker(activity, AndroidBRouterSegmentsRepositoryFactory.create());
+        Intent picker = openPicker(activity);
 
         assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, picker.getAction());
         assertFalse(picker.hasExtra(DocumentsContract.EXTRA_INITIAL_URI));
@@ -81,11 +66,10 @@ public class AndroidBRouterSegmentsTreeAccessPromptTest {
     @Test
     public void offersSegmentsFolderVisibleOnlyThroughDocumentProvider() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
-        String id = "primary:Android/media/btools.routingapp/brouter/segments4";
+        String id = "primary:Android/media/btools.routingapp/brouter";
         TestBRouterStorage.exposeDirectoryThroughProvider(activity, id);
 
-        BRouterSegmentsRepository repository = AndroidBRouterSegmentsRepositoryFactory.create();
-        Uri available = findAvailableFolder(activity, repository);
+        Uri available = findAvailableFolder(activity);
         assertNotNull(available);
         AndroidBRouterSegmentsTreeAccessPrompt.showNow(activity, available, 42, "StorageTest",
                 () -> { }, () -> { }, () -> { });
@@ -100,35 +84,33 @@ public class AndroidBRouterSegmentsTreeAccessPromptTest {
     @Test
     public void keepsManualSegmentsBrowsingAvailableWhenProviderRequiresGrant() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
-        String folder = "Android/media/btools.routingapp/brouter/segments4";
+        String folder = "Android/media/btools.routingapp/brouter";
         assertFalse(new File(AndroidStorageVolumes.storageRoot(activity, "primary"), folder).exists());
-        TestBRouterStorage.requireGrantToQueryPrimaryFolder(activity, "segments4");
+        TestBRouterStorage.requireGrantToQueryPrimaryFolder(activity);
 
-        BRouterSegmentsRepository repository = AndroidBRouterSegmentsRepositoryFactory.create();
-        assertNull(findAvailableFolder(activity, repository));
+        assertNull(findAvailableFolder(activity));
 
-        Intent picker = openPicker(activity, repository);
+        Intent picker = openPicker(activity);
         assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, picker.getAction());
         assertEquals(DocumentsContract.buildDocumentUri(AUTHORITY, "primary:" + folder),
                 IntentCompat.getParcelableExtra(picker, DocumentsContract.EXTRA_INITIAL_URI, Uri.class));
     }
 
     @Test
-    public void rejectsProfilesFolderAndKeepsCustomSegmentDirectoriesUsable() {
+    public void rejectsChildFoldersAndAcceptsCustomBRouterParent() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         Uri profiles = DocumentsContract.buildTreeDocumentUri(AUTHORITY, "primary:custom/brouter/profiles2");
         Intent data = new Intent().setData(profiles).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        assertNull(AndroidBRouterFolderAccess.persistSelection(activity, data, AndroidBRouterFolderAccess.Kind.SEGMENTS));
+        assertFalse(AndroidBRouterFolderAccess.saveSelection(activity, data));
 
         BRouterSegmentsRepository repository = AndroidBRouterSegmentsRepositoryFactory.create();
         repository.saveSegmentsTreeUri(activity, profiles);
         activity.getContentResolver().takePersistableUriPermission(profiles, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         assertFalse(repository.hasPersistedSegmentsTreeAccess(activity));
 
-        Uri alternate = DocumentsContract.buildTreeDocumentUri(AUTHORITY, "primary:offline-routing");
+        Uri alternate = DocumentsContract.buildTreeDocumentUri(AUTHORITY, "primary:offline-routing/brouter");
         data.setData(alternate);
-        assertEquals(alternate, AndroidBRouterFolderAccess.persistSelection(
-                activity, data, AndroidBRouterFolderAccess.Kind.SEGMENTS));
+        assertTrue(AndroidBRouterFolderAccess.saveSelection(activity, data));
     }
 
     @Test
@@ -137,8 +119,7 @@ public class AndroidBRouterSegmentsTreeAccessPromptTest {
         BRouterSegmentsRepository repository = AndroidBRouterSegmentsRepositoryFactory.create();
         Uri downloads = DocumentsContract.buildTreeDocumentUri(AUTHORITY, "primary:Download");
         Intent data = new Intent().setData(downloads).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        assertFalse(AndroidBRouterFolderAccess.persistReadPermission(activity, data, downloads,
-                AndroidBRouterFolderAccess.Kind.SEGMENTS));
+        assertFalse(AndroidBRouterFolderAccess.saveSelection(activity, data));
 
         repository.saveSegmentsTreeUri(activity, downloads);
         activity.getContentResolver().takePersistableUriPermission(downloads, Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -153,7 +134,7 @@ public class AndroidBRouterSegmentsTreeAccessPromptTest {
             TestBRouterStorage.exposeNamedFolder(tree, "profiles2");
             Intent data = new Intent().setData(tree).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-            assertNull(AndroidBRouterFolderAccess.persistSelection(activity, data, AndroidBRouterFolderAccess.Kind.SEGMENTS));
+            assertFalse(AndroidBRouterFolderAccess.saveSelection(activity, data));
             assertTrue(activity.getContentResolver().getPersistedUriPermissions().isEmpty());
         }
     }
@@ -164,9 +145,8 @@ public class AndroidBRouterSegmentsTreeAccessPromptTest {
         try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
             Activity activity = controller.get();
             TestBRouterStorage.createPrimaryFolder("segments4");
-            var repository = AndroidBRouterSegmentsRepositoryFactory.create();
             Runnable request = () -> AndroidBRouterSegmentsTreeAccessPrompt.show(
-                    activity, repository, 42, "StorageTest", () -> { }, () -> { });
+                    activity, 42, "StorageTest", () -> { }, () -> { });
             request.run();
             request.run();
             controller.pause().stop();
@@ -192,15 +172,15 @@ public class AndroidBRouterSegmentsTreeAccessPromptTest {
         }
     }
 
-    private static Uri findAvailableFolder(Activity activity, BRouterSegmentsRepository repository) {
+    private static Uri findAvailableFolder(Activity activity) {
         java.util.concurrent.atomic.AtomicReference<Uri> uri = new java.util.concurrent.atomic.AtomicReference<>();
-        AndroidBRouterSegmentsTreeAccessPrompt.findAvailableFolder(activity, repository, uri::set);
+        AndroidBRouterSegmentsTreeAccessPrompt.findAvailableFolder(activity, java.util.Collections.emptyList(), uri::set);
         shadowOf(Looper.getMainLooper()).idle();
         return uri.get();
     }
 
-    private static Intent openPicker(Activity activity, BRouterSegmentsRepository repository) {
-        AndroidBRouterSegmentsTreeAccessPrompt.show(activity, repository, 42, "StorageTest", () -> { }, () -> { });
+    private static Intent openPicker(Activity activity) {
+        AndroidBRouterSegmentsTreeAccessPrompt.show(activity, 42, "StorageTest", () -> { }, () -> { });
         shadowOf(Looper.getMainLooper()).idleFor(ViewConfiguration.getPressedStateDuration(), TimeUnit.MILLISECONDS);
         ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         shadowOf(Looper.getMainLooper()).idle();

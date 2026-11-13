@@ -7,13 +7,11 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collections;
 
 import vibro.navigator.android.brouter.AndroidBRouterPickerRequest.Completion;
 
-import static vibro.navigator.android.brouter.AndroidBRouterStorageSetup.REQUEST_PROFILES;
-import static vibro.navigator.android.brouter.AndroidBRouterStorageSetup.REQUEST_SEGMENTS;
+import static vibro.navigator.android.brouter.AndroidBRouterStorageSetup.REQUEST_FOLDER;
 
 final class AndroidBRouterForegroundChecks {
     private static final String STATE_REQUEST = "brouter_foreground_request";
@@ -25,8 +23,7 @@ final class AndroidBRouterForegroundChecks {
     private int discoveryGeneration;
     private boolean discovering;
     private boolean manualDiscovery;
-    private View profilesAction;
-    private View segmentsAction;
+    private View action;
 
     AndroidBRouterForegroundChecks(Activity activity, AndroidBRouterStorageSetup setup,
                                    AndroidBRouterFolderRequests requests, @Nullable Bundle state) {
@@ -35,15 +32,13 @@ final class AndroidBRouterForegroundChecks {
         picker = new AndroidBRouterPickerRequest(activity, STATE_REQUEST);
         offers = new AndroidBRouterFolderOffers(state);
         if (picker.restore(state) == Completion.RETRY) {
-            offers.forgetCurrent(state.getInt(STATE_REQUEST));
+            offers.forgetCurrent();
         }
     }
 
-    void bindActions(View profilesAction, View segmentsAction) {
-        this.profilesAction = profilesAction;
-        this.segmentsAction = segmentsAction;
-        profilesAction.setOnClickListener(view -> discover(REQUEST_PROFILES));
-        segmentsAction.setOnClickListener(view -> discover(REQUEST_SEGMENTS));
+    void bindAction(View action) {
+        this.action = action;
+        action.setOnClickListener(view -> discover(true));
     }
 
     void setEnabled(boolean enabled) {
@@ -57,89 +52,65 @@ final class AndroidBRouterForegroundChecks {
     }
 
     void refresh() {
-        discover(0);
+        discover(false);
     }
 
-    private void discover(int manualRequest) {
+    private void discover(boolean manual) {
         if (!enabled) {
             return;
         }
-        boolean supported = requests.needsFolderAccess();
-        boolean checkProfiles = supported && requests.needsGrant(REQUEST_PROFILES);
-        boolean checkSegments = supported && requests.needsGrant(REQUEST_SEGMENTS);
-        updateAction(profilesAction, checkProfiles);
-        updateAction(segmentsAction, checkSegments);
-        if (hasActivePicker() || (!checkProfiles && !checkSegments)) {
-            return;
-        }
+        boolean needsGrant = needsFolderGrant();
+        updateAction(needsGrant);
         // An explicit tap can supersede an automatic probe already in flight.
-        if (isAlreadyDiscovering(manualRequest)) {
-            return;
+        if (needsGrant && !hasActivePicker() && !lookupAlreadyPending(manual)) {
+            queueDiscovery(manual);
         }
-        queueDiscovery(manualRequest, checkProfiles, checkSegments);
     }
 
-    private boolean isAlreadyDiscovering(int manualRequest) {
-        return discovering && (manualRequest == 0 || manualDiscovery);
+    private boolean needsFolderGrant() {
+        return requests.needsFolderAccess() && requests.needsGrant();
     }
 
-    private void queueDiscovery(int manualRequest, boolean checkProfiles, boolean checkSegments) {
+    private void updateAction(boolean needsGrant) {
+        if (action != null) {
+            action.setVisibility(needsGrant ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    private boolean lookupAlreadyPending(boolean manual) {
+        return discovering && (!manual || manualDiscovery);
+    }
+
+    private void queueDiscovery(boolean manual) {
         int generation = ++discoveryGeneration;
         discovering = true;
-        manualDiscovery = manualRequest != 0;
-        if (manualDiscovery) {
-            requests.findLocation(manualRequest, Collections.emptySet(), AndroidBRouterPickerLocation.browse(),
-                    location -> applyOffer(generation, new FolderOffer(manualRequest, location)));
-        } else if (checkProfiles) {
-            findAutomaticOffer(generation, REQUEST_PROFILES, checkSegments);
-        } else {
-            findAutomaticOffer(generation, REQUEST_SEGMENTS, false);
-        }
+        manualDiscovery = manual;
+        requests.findLocation(manual ? Collections.emptyList() : offers.copy(),
+                manual ? AndroidBRouterPickerLocation.browse() : null,
+                location -> applyOffer(generation, location, manual));
     }
 
-    private void findAutomaticOffer(int generation, int requestCode, boolean checkSegmentsNext) {
-        ArrayList<String> excluded = offers.copy(requestCode);
-        requests.findLocation(requestCode, excluded, null,
-                location -> onAutomaticOffer(generation, requestCode, location, checkSegmentsNext));
-    }
-
-    private void onAutomaticOffer(int generation, int requestCode, @Nullable AndroidBRouterPickerLocation location,
-                                  boolean checkSegmentsNext) {
-        if (generation != discoveryGeneration) {
-            return;
-        }
-        if (location != null && location.confirmedUri() != null) {
-            applyOffer(generation, new FolderOffer(requestCode, location));
-        } else if (checkSegmentsNext) {
-            findAutomaticOffer(generation, REQUEST_SEGMENTS, false);
-        } else {
-            applyOffer(generation, null);
-        }
-    }
-
-    private void applyOffer(int generation, @Nullable FolderOffer offer) {
+    private void applyOffer(int generation, @Nullable AndroidBRouterPickerLocation location, boolean manual) {
         if (generation != discoveryGeneration) {
             return;
         }
         discovering = false;
-        if (offer == null || !setup.canShowDialog() || hasActivePicker()) {
+        if (location == null || (!manual && location.confirmedUri() == null) || !canShowOffer()) {
             return;
         }
-        if (!requests.needsFolderAccess() || !requests.needsGrant(offer.requestCode)) {
+        if (!needsFolderGrant()) {
             refresh();
             return;
         }
-        setup.showFolder(offer.requestCode, offer.location, () -> {
-            offers.begin(offer.location.confirmedUri());
-            picker.begin(offer.requestCode);
+        setup.showFolder(location, () -> {
+            offers.begin(location.confirmedUri());
+            picker.begin(REQUEST_FOLDER);
         }, () -> { });
         setup.refreshAfterDismiss(this::refresh);
     }
 
-    private void updateAction(@Nullable View action, boolean visible) {
-        if (action != null) {
-            action.setVisibility(visible ? View.VISIBLE : View.GONE);
-        }
+    private boolean canShowOffer() {
+        return setup.canShowDialog() && !hasActivePicker();
     }
 
     private boolean hasActivePicker() {
@@ -150,8 +121,8 @@ final class AndroidBRouterForegroundChecks {
         if (!picker.matches(requestCode)) {
             return false;
         }
-        requests.handleResult(requestCode, resultCode, data, picker, this::refresh, () -> {
-            offers.forgetCurrent(requestCode);
+        requests.handleResult(resultCode, data, picker, this::refresh, () -> {
+            offers.forgetCurrent();
             refresh();
         });
         return true;
@@ -164,15 +135,5 @@ final class AndroidBRouterForegroundChecks {
     void saveState(Bundle state) {
         offers.save(state);
         picker.save(state);
-    }
-
-    private static final class FolderOffer {
-        final int requestCode;
-        final AndroidBRouterPickerLocation location;
-
-        FolderOffer(int requestCode, AndroidBRouterPickerLocation location) {
-            this.requestCode = requestCode;
-            this.location = location;
-        }
     }
 }

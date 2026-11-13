@@ -2,7 +2,6 @@ package vibro.navigator.about;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.net.Uri;
 import android.widget.Switch;
 import android.widget.Toast;
 
@@ -239,8 +238,7 @@ final class AboutSettingsSwitches {
             return true;
         }
         waitingForSurroundingStreetSegmentsTree = false;
-        Uri uri = persistSegmentsTreeResultUri(resultCode, data);
-        if (uri == null) {
+        if (resultCode != Activity.RESULT_OK || !AndroidBRouterFolderAccess.saveSelection(activity, data)) {
             denySurroundingStreetsStorage();
             return true;
         }
@@ -248,20 +246,10 @@ final class AboutSettingsSwitches {
             denySurroundingStreetsBRouterMissing();
             return true;
         }
-        segmentsRepository.saveSegmentsTreeUri(activity, uri);
         surroundingStreetsSetting.set(true);
         surroundingStreetsSetting.flush();
         render();
         return true;
-    }
-
-    @Nullable
-    private Uri persistSegmentsTreeResultUri(int resultCode, @Nullable Intent data) {
-        if (resultCode != Activity.RESULT_OK || data == null || data.getData() == null) {
-            return null;
-        }
-        Uri uri = data.getData();
-        return AndroidBRouterFolderAccess.persistReadPermission(activity, data, uri, AndroidBRouterFolderAccess.Kind.SEGMENTS) ? uri : null;
     }
 
     private void configureLogEnabledSwitch() {
@@ -382,7 +370,6 @@ final class AboutSettingsSwitches {
     private void startSurroundingStreetSegmentsTreePicker() {
         AndroidBRouterSegmentsTreeAccessPrompt.show(
                 activity,
-                segmentsRepository,
                 REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE,
                 TAG,
                 () -> waitingForSurroundingStreetSegmentsTree = true,

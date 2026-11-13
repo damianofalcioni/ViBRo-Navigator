@@ -29,8 +29,12 @@ public final class BRouterSegmentSourceSettings {
     }
 
     static void save(Context context, Uri uri) {
+        saveSource(context, TREE_URI, uri);
+    }
+
+    static void saveSource(Context context, String key, Uri uri) {
         prefs(context).edit()
-                .putString(TREE_URI, uri.toString())
+                .putString(key, uri.toString())
                 .putString(REVISION, UUID.randomUUID().toString())
                 .apply();
     }
@@ -47,7 +51,7 @@ public final class BRouterSegmentSourceSettings {
         return () -> prefs.unregisterOnSharedPreferenceChangeListener(listener);
     }
 
-    private static SharedPreferences prefs(Context context) {
+    static SharedPreferences prefs(Context context) {
         return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     }
 }

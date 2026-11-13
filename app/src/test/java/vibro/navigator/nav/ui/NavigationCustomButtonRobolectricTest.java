@@ -179,7 +179,7 @@ public class NavigationCustomButtonRobolectricTest {
                 activity.getString(R.string.action_continue),
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).getText().toString()
         );
-        assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains("segments4"));
+        assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains("brouter"));
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         shadowOf(android.os.Looper.getMainLooper()).idle();
     }

@@ -66,16 +66,7 @@ public class BRouterProfilesRepository {
     @Nullable
     public Uri getCustomProfileUri(@NonNull Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        String raw = prefs.getString(KEY_CUSTOM_PROFILE_URI, null);
-        if (raw == null || raw.trim().isEmpty()) {
-            return null;
-        }
-        try {
-            return Uri.parse(raw);
-        } catch (Exception e) {
-            AppLogger.w(TAG, "Failed to parse saved custom profile URI raw=" + raw, e);
-            return null;
-        }
+        return storedUri(prefs, KEY_CUSTOM_PROFILE_URI);
     }
 
     @Nullable
@@ -100,16 +91,13 @@ public class BRouterProfilesRepository {
     @Nullable
     public Uri getProfilesTreeUri(@NonNull Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        String raw = prefs.getString(KEY_PROFILES_TREE_URI, null);
-        if (raw == null || raw.trim().isEmpty()) {
-            return null;
-        }
-        try {
-            return Uri.parse(raw);
-        } catch (Exception e) {
-            AppLogger.w(TAG, "Failed to parse saved profiles tree URI raw=" + raw, e);
-            return null;
-        }
+        return storedUri(prefs, KEY_PROFILES_TREE_URI);
+    }
+
+    @Nullable
+    private static Uri storedUri(SharedPreferences prefs, String key) {
+        String value = prefs.getString(key, null);
+        return value == null || value.trim().isEmpty() ? null : Uri.parse(value);
     }
 
     public void saveProfilesTreeUri(@NonNull Context context, @NonNull Uri treeUri) {
@@ -210,27 +198,26 @@ public class BRouterProfilesRepository {
 
     @Nullable
     public Uri getCustomProfilePickerInitialUri(@NonNull Context context) {
-        Uri profilesTreeUri = getProfilesTreeUri(context);
+        Uri profilesTreeUri = getGrantedProfilesTreeUri(context);
         return profileDirectories.getCustomProfilePickerInitialUri(
                 context,
                 profilesTreeUri,
-                hasPersistedReadPermission(context, profilesTreeUri),
                 getCustomProfileUri(context)
         );
     }
 
     @Nullable
     public Uri getProfilesTreePickerHint(@NonNull Context context, @Nullable Uri savedProfileHint) {
-        Uri treeUri = getProfilesTreeUri(context);
+        Uri treeUri = getGrantedProfilesTreeUri(context);
         return profileDirectories.getProfilesTreePickerHint(
                 context,
-                hasPersistedReadPermission(context, treeUri) ? treeUri : null,
+                treeUri,
                 savedProfileHint
         );
     }
 
     public boolean hasPersistedProfilesTreeAccess(@NonNull Context context) {
-        return hasPersistedReadPermission(context, getProfilesTreeUri(context));
+        return getGrantedProfilesTreeUri(context) != null;
     }
 
     public boolean isBRouterInstalled(@NonNull Context context) {
@@ -249,12 +236,8 @@ public class BRouterProfilesRepository {
 
     @NonNull
     private List<Uri> resolveProfilesDiscoveryTreeUris(@NonNull Context context) {
-        Uri savedTreeUri = getProfilesTreeUri(context);
-        return profileDirectories.resolveProfilesDiscoveryTreeUris(
-                context,
-                savedTreeUri,
-                hasPersistedReadPermission(context, savedTreeUri)
-        );
+        Uri savedTreeUri = getGrantedProfilesTreeUri(context);
+        return profileDirectories.resolveProfilesDiscoveryTreeUris(context, savedTreeUri);
     }
 
     @Nullable
@@ -262,7 +245,9 @@ public class BRouterProfilesRepository {
         return BRouterProfileLister.normalizeProfileName(rawName);
     }
 
-    private boolean hasPersistedReadPermission(@NonNull Context context, @Nullable Uri uri) {
-        return dependencies.uriPermissionAccess.hasReadPermission(context, uri);
+    @Nullable
+    private Uri getGrantedProfilesTreeUri(Context context) {
+        return BRouterFolderGrant.resolve(context, getProfilesTreeUri(context),
+                dependencies.uriPermissionAccess::hasReadPermission);
     }
 }

@@ -25,7 +25,7 @@
     <string name="welcome_setup_title">Αρχική ρύθμιση</string>
     <string name="welcome_brouter_body">• Εγκαταστήστε το BRouter χρησιμοποιώντας τους συνδέσμους που παρέχονται, ανοίξτε το και κατεβάστε τα δεδομένα δρομολόγησης για την περιοχή σας.</string>
     <string name="welcome_permissions_body">• Μετά από αυτό το καλωσόρισμα και την προαιρετική προτροπή εγκατάστασης BRouter, επιτρέψτε την τοποθεσία, το μικρόφωνο (για φωνητική εισαγωγή), τις ειδοποιήσεις και οποιαδήποτε ζητούμενη πρόσβαση σε αποθηκευτικό χώρο. Ενεργοποιήστε την τοποθεσία της συσκευής όταν σας ζητηθεί. Μπορείτε να παραλείψετε ένα αίτημα και να ενεργοποιήσετε την πρόσβαση αργότερα.</string>
-    <string name="welcome_storage_body">• Παρέχετε πρόσβαση στον φάκελο profiles2 όταν σας ζητηθεί, ή άδεια αποθήκευσης σε παλαιότερες εκδόσεις Android.</string>
+    <string name="welcome_storage_body">• Επιτρέψτε την πρόσβαση στον φάκελο brouter όταν σας ζητηθεί ή παραχωρήστε άδεια αποθήκευσης σε παλαιότερες εκδόσεις Android.</string>
     <string name="welcome_battery_body">• Επιτρέψτε την προαιρετική εξαίρεση βελτιστοποίησης μπαταρίας για αξιόπιστες οδηγίες με σβηστή οθόνη.</string>
     <string name="welcome_optional_access_body">• Η πρόσβαση στο μικρόφωνο χρειάζεται μόνο αν ζητηθεί για φωνητική αναζήτηση.</string>
     <string name="welcome_safety_title">Ασφάλεια και ευθύνη</string>
@@ -155,13 +155,12 @@
     <string name="msg_poi_details_map_check_hint">Χρησιμοποιήστε τον χάρτη για να επαληθεύσετε ότι αυτή είναι η επιθυμητή τοποθεσία.</string>
     <string name="msg_poi_google_maps_search_info">Ανοίγει το Google Maps με το κείμενο από το πεδίο αναζήτησης POI. Αφού επιλέξετε ένα μέρος στο Google Maps, μοιραστείτε αυτό το μέρος και επιλέξτε ViBRo Navigator για να φέρετε το αποτέλεσμα εδώ.</string>
     <string name="msg_compass_surrounding_streets_storage_permission_required">Απαιτείται πρόσβαση αποθήκευσης για ανάγνωση των τοπικών δρόμων BRouter.</string>
-    <string name="title_brouter_segments_storage_access">Αποθήκευση δρόμων BRouter</string>
-    <string name="msg_brouter_segments_storage_access_prompt">Οι γύρω δρόμοι χρειάζονται πρόσβαση στον φάκελο BRouter segments4. Στην επόμενη οθόνη, πλοηγηθείτε στο %1$s και επιβεβαιώστε την πρόσβαση στον φάκελο. Εάν αυτή η τοποθεσία δεν είναι διαθέσιμη, επιλέξτε τον φάκελο όπου το BRouter αποθηκεύει τα αρχεία .rd5.</string>
     <string name="msg_brouter_profiles_storage_permission_required">Απαιτείται πρόσβαση αποθήκευσης για ανάγνωση των αρχείων προφίλ BRouter.</string>
-    <string name="title_brouter_profiles_storage_access">Αποθήκευση προφίλ BRouter</string>
+    <string name="title_brouter_storage_access">Χώρος αποθήκευσης BRouter</string>
+    <string name="msg_brouter_storage_access_prompt">Επιλέξτε τον φάκελο του BRouter στη θέση %1$s για να μπορεί το ViBRo να διαβάζει τα προφίλ και τα δεδομένα δρομολόγησης.</string>
+    <string name="msg_brouter_folder_required">Επιλέξτε τον φάκελο brouter που περιέχει τους φακέλους profiles2 και segments4.</string>
     <string name="action_browse">Περιήγηση</string>
     <string name="msg_brouter_storage_folder_missing">Περιηγηθείτε για να επιλέξετε τον φάκελο %1$s. Αν δεν υπάρχει ακόμη, ολοκληρώστε τη ρύθμιση του χώρου αποθήκευσης στο BRouter.</string>
-    <string name="msg_brouter_profiles_storage_access_prompt">BRouter προφίλ χρειάζονται πρόσβαση στον φάκελο profiles2. Στην επόμενη οθόνη, μεταβείτε στο %1$s και επιβεβαιώστε την πρόσβαση στο φάκελο. Εάν αυτή η τοποθεσία δεν είναι διαθέσιμη, επιλέξτε το φάκελο στον οποίο αποθηκεύει BRouter τα .brf προφίλ του.</string>
     <string name="msg_symbol_test_notification_sent">Στάλθηκε ειδοποίηση δοκιμής συμβόλου.</string>
     <string name="msg_map_location_searching">Αναζητώντας την τρέχουσα τοποθεσία…</string>
     <string name="msg_map_location_unavailable">Η τρέχουσα τοποθεσία δεν είναι διαθέσιμη.</string>
@@ -547,8 +546,6 @@
     <string name="label_permission_location_services">Τοποθεσία συσκευής</string>
     <string name="label_permission_notifications">Ειδοποιήσεις</string>
     <string name="label_permission_battery">Βελτιστοποίηση μπαταρίας</string>
-    <string name="label_permission_surrounding_street_storage">Αποθήκευση δρόμων BRouter</string>
-    <string name="label_permission_brouter_profile_storage">Αποθήκευση προφίλ BRouter</string>
     <string name="format_about_permission_status_content_description">%1$s: %2$s. Πατήστε για επίλυση.</string>
     <string name="label_sensor_fused_provider">Πάροχος Google fused</string>
     <string name="label_sensor_gps_provider">Πάροχος GPS</string>
