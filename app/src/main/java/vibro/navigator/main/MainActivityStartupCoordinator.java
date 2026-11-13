@@ -4,6 +4,8 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 
+import java.util.ArrayList;
+
 import vibro.navigator.R;
 import vibro.navigator.android.startup.AndroidFirstRunPermissions;
 import vibro.navigator.settings.AppMainUiSettings;
@@ -87,8 +89,8 @@ final class MainActivityStartupCoordinator {
         return !ready;
     }
 
-    String skippedSegmentsFolder() {
-        return permissions.skippedSegmentsFolder();
+    ArrayList<String> skippedSegmentsFolders() {
+        return permissions.skippedSegmentsFolders();
     }
 
     boolean onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -106,6 +108,7 @@ final class MainActivityStartupCoordinator {
 
     void onPause() {
         resumed = false;
+        permissions.setResumed(false);
         permissions.setBRouterForegroundChecksEnabled(false);
         if (waitingForInstall) {
             leftForInstall = true;
@@ -114,6 +117,7 @@ final class MainActivityStartupCoordinator {
 
     void onResume() {
         resumed = true;
+        permissions.setResumed(true);
         if (waitingForInstall && leftForInstall) {
             afterInstall();
         } else if (ready) {

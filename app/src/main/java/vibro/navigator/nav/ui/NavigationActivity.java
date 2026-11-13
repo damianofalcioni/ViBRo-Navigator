@@ -20,7 +20,6 @@ import vibro.navigator.android.language.AndroidLocalizedActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MotionEvent;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -29,7 +28,7 @@ import vibro.navigator.logging.AppLogger;
 public class NavigationActivity extends AndroidLocalizedActivity {
 
     public static final String EXTRA_RESUME_EXISTING = "resume_existing";
-    public static final String EXTRA_SKIPPED_SEGMENTS_FOLDER = "vibro.navigator.extra.SKIPPED_SEGMENTS_FOLDER";
+    public static final String EXTRA_SKIPPED_SEGMENTS_FOLDERS = "vibro.navigator.extra.SKIPPED_SEGMENTS_FOLDERS";
 
     private static final String TAG = "NavigationActivity";
 
@@ -273,7 +272,7 @@ public class NavigationActivity extends AndroidLocalizedActivity {
             AppLogger.i(TAG, "NavigationActivity attached in resume mode, waiting for existing service state");
         }
         if (startupSegmentsTreeAccess.deferStartup(
-                autoStart, getIntent().getStringExtra(EXTRA_SKIPPED_SEGMENTS_FOLDER))) {
+                autoStart, getIntent().getStringArrayListExtra(EXTRA_SKIPPED_SEGMENTS_FOLDERS))) {
             return;
         }
         startupCoordinator.ensureReadyThenStart();

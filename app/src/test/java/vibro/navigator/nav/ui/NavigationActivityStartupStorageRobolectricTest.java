@@ -19,6 +19,9 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.provider.DocumentsContract;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
 import androidx.test.core.app.ApplicationProvider;
 
 import org.junit.Before;
@@ -165,9 +168,7 @@ public class NavigationActivityStartupStorageRobolectricTest {
     @Test
     public void mainScreenDismissalSkipsPromptAndKeepsSurroundingStreetsEnabled() {
         TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
-        Intent intent = navigationIntent().putExtra(NavigationActivity.EXTRA_SKIPPED_SEGMENTS_FOLDER,
-                DocumentsContract.buildDocumentUri("com.android.externalstorage.documents",
-                        "primary:Android/media/btools.routingapp/brouter/segments4").toString());
+        Intent intent = navigationIntentSkipping("primary:Android/media/btools.routingapp/brouter/segments4");
         try (var controller = Robolectric.buildActivity(TestNavigationActivity.class, intent).create().start()) {
             TestNavigationActivity activity = controller.get();
             assertNull(shadowOf(activity).getLastRequestedPermission());
@@ -191,9 +192,7 @@ public class NavigationActivityStartupStorageRobolectricTest {
     @Test
     public void dismissalOfDifferentFolderDoesNotSuppressNavigationPrompt() {
         TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
-        Intent intent = navigationIntent().putExtra(NavigationActivity.EXTRA_SKIPPED_SEGMENTS_FOLDER,
-                DocumentsContract.buildDocumentUri("com.android.externalstorage.documents",
-                        "primary:brouter/segments4").toString());
+        Intent intent = navigationIntentSkipping("primary:brouter/segments4");
 
         try (var controller = Robolectric.buildActivity(TestNavigationActivity.class, intent).setup()) {
             assertTrue(ShadowAlertDialog.getLatestAlertDialog().isShowing());
@@ -232,6 +231,12 @@ public class NavigationActivityStartupStorageRobolectricTest {
         intent.putExtra(AndroidNavigationRequestIntentContract.EXTRA_DEST_LAT, 48.18418593077528d);
         intent.putExtra(AndroidNavigationRequestIntentContract.EXTRA_DEST_LON, 16.374241434964404d);
         return intent;
+    }
+
+    private static Intent navigationIntentSkipping(String documentId) {
+        String folder = DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", documentId).toString();
+        return navigationIntent().putStringArrayListExtra(NavigationActivity.EXTRA_SKIPPED_SEGMENTS_FOLDERS,
+                new ArrayList<>(Collections.singletonList(folder)));
     }
 
     private static void installBRouterPackage(Context context) {

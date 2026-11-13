@@ -3,7 +3,10 @@ package vibro.navigator.android.brouter;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.net.Uri;
-import android.view.ViewConfiguration;
+import android.os.CancellationSignal;
+
+import java.util.Collection;
+import java.util.Collections;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -12,7 +15,6 @@ import androidx.core.provider.DocumentsContractCompat;
 import androidx.core.util.Consumer;
 
 import vibro.navigator.R;
-import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.brouter.BRouterSegmentsRepository;
 
@@ -30,15 +32,9 @@ public final class AndroidBRouterSegmentsTreeAccessPrompt {
             @NonNull Runnable beforeLaunch,
             @NonNull Runnable onCancel
     ) {
-        AndroidTaskScheduler.main().postDelayed(() -> {
-            if (!activity.isFinishing() && !activity.isDestroyed()) {
-                AndroidBRouterFolderDiscovery.find(() -> findLocation(activity, segmentsRepository).initialUri, null, uri -> {
-                    if (!activity.isFinishing() && !activity.isDestroyed()) {
-                        showNow(activity, uri, requestCode, logTag, beforeLaunch, onCancel, onCancel);
-                    }
-                });
-            }
-        }, ViewConfiguration.getPressedStateDuration());
+        AndroidBRouterDeferredPrompt.request(activity,
+                signal -> findLocation(activity, segmentsRepository, Collections.emptySet(), signal),
+                location -> showNow(activity, location.initialUri, requestCode, logTag, beforeLaunch, onCancel, onCancel));
     }
 
     public static void findAvailableFolder(
@@ -46,16 +42,25 @@ public final class AndroidBRouterSegmentsTreeAccessPrompt {
             @NonNull BRouterSegmentsRepository repository,
             @NonNull Consumer<Uri> onResult
     ) {
-        AndroidBRouterFolderDiscovery.find(() -> findLocation(activity, repository).confirmedUri(), null, onResult);
+        findAvailableFolder(activity, repository, Collections.emptySet(), onResult);
+    }
+
+    public static void findAvailableFolder(Activity activity, BRouterSegmentsRepository repository,
+                                           Collection<String> excluded, Consumer<Uri> onResult) {
+        AndroidBRouterFolderDiscovery.find(
+                signal -> findLocation(activity, repository, excluded, signal).confirmedUri(), null, onResult);
     }
 
     @NonNull
     static AndroidBRouterPickerLocation findLocation(
             @NonNull Activity activity,
-            @NonNull BRouterSegmentsRepository segmentsRepository
+            @NonNull BRouterSegmentsRepository segmentsRepository,
+            Collection<String> excluded,
+            CancellationSignal signal
     ) {
         return AndroidBRouterPickerLocation.resolve(
-                activity, initialDocumentUri(segmentsRepository.getGrantedSegmentsTreeUri(activity)), FOLDER_NAME);
+                activity, initialDocumentUri(segmentsRepository.getGrantedSegmentsTreeUri(activity)),
+                FOLDER_NAME, excluded, signal);
     }
 
     public static AlertDialog showNow(

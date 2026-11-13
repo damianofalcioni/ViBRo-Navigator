@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
+import android.os.CancellationSignal;
 import android.provider.DocumentsContract;
 import android.provider.OpenableColumns;
 
@@ -209,9 +210,10 @@ public final class AndroidDocumentAccess {
     @NonNull
     public static DirectoryPresence externalStorageDirectoryPresence(
             @NonNull Context context,
-            @NonNull String documentId
+            @NonNull String documentId,
+            @NonNull CancellationSignal signal
     ) {
-        return AndroidExternalDirectoryPresence.check(context, documentId);
+        return AndroidExternalDirectoryPresence.check(context, documentId, signal);
     }
 
     private static void addInitialUriIfSupported(@NonNull Intent intent, @Nullable Uri initialUri) {

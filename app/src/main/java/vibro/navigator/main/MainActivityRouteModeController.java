@@ -12,6 +12,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
+
 import vibro.navigator.R;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavigationRoutingMode;
@@ -194,12 +196,12 @@ final class MainActivityRouteModeController {
         }
     }
 
-    void startRoundTripNavigation(@NonNull ProfileSelection profileSelection, String skippedSegmentsFolder) {
+    void startRoundTripNavigation(@NonNull ProfileSelection profileSelection, ArrayList<String> skippedSegmentsFolders) {
         NavigationRequest request = roundTripRequestFactory.resolveRequest(profileSelection);
         if (request == null) {
             return;
         }
-        MainActivityNavigationLauncher.launch(activity, request, skippedSegmentsFolder);
+        MainActivityNavigationLauncher.launch(activity, request, skippedSegmentsFolders);
     }
 
     private void render(@NonNull NavigationRoutingMode mode) {

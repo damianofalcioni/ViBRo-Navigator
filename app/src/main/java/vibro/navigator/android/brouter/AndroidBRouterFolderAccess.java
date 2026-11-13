@@ -11,6 +11,7 @@ import androidx.core.provider.DocumentsContractCompat;
 
 import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.android.storage.AndroidPersistedUriPermissions;
+import vibro.navigator.android.storage.AndroidStorageVolumes;
 import vibro.navigator.logging.AppLogger;
 
 public final class AndroidBRouterFolderAccess {
@@ -37,7 +38,7 @@ public final class AndroidBRouterFolderAccess {
 
     public static boolean persistReadPermission(@NonNull Activity activity, @NonNull Intent data, @NonNull Uri uri,
                                                 @NonNull Kind kind) {
-        if (!isBRouterFolderSelection(uri, kind)) {
+        if (!isVolumeAvailable(activity, uri) || !isBRouterFolderSelection(activity, uri, kind)) {
             AppLogger.w("BRouterFolderAccess", "Rejected BRouter folder selection uri=" + uri);
             return false;
         }
@@ -45,25 +46,45 @@ public final class AndroidBRouterFolderAccess {
     }
 
     static boolean hasPersistedReadPermission(@NonNull Context context, @Nullable Uri uri, @NonNull Kind kind) {
-        return uri != null && isBRouterFolderSelection(uri, kind)
-                && AndroidPersistedUriPermissions.hasReadPermission(context, uri);
+        return uri != null && AndroidPersistedUriPermissions.hasReadPermission(context, uri)
+                && isVolumeAvailable(context, uri)
+                && isBRouterFolderSelection(context, uri, kind);
     }
 
-    private static boolean isBRouterFolderSelection(@NonNull Uri uri, @NonNull Kind kind) {
+    private static boolean isVolumeAvailable(Context context, Uri uri) {
+        if (!AndroidDocumentAccess.isExternalStorageDocument(uri)) {
+            return true;
+        }
+        String id = AndroidDocumentAccess.treeDocumentId(uri);
+        int separator = id == null ? -1 : id.indexOf(':');
+        if (separator <= 0) {
+            return false;
+        }
+        String root = id.substring(0, separator);
+        return "primary".equalsIgnoreCase(root) || AndroidStorageVolumes.secondaryStorageRootIds(context).contains(root);
+    }
+
+    private static boolean isBRouterFolderSelection(Context context, Uri uri, Kind kind) {
         if (!DocumentsContractCompat.isTreeUri(uri)) {
             return false;
         }
         String id = AndroidDocumentAccess.treeDocumentId(uri);
-        if (id == null || kind.otherFolder.equalsIgnoreCase(folderName(id))) {
+        if (id == null) {
             return false;
         }
         if (AndroidDocumentAccess.isExternalStorageDocument(uri)) {
-            return !"Download".equalsIgnoreCase(id.substring(id.indexOf(':') + 1));
+            return !kind.otherFolder.equalsIgnoreCase(folderName(id))
+                    && !"Download".equalsIgnoreCase(id.substring(id.indexOf(':') + 1));
         }
-        if (DOWNLOADS_AUTHORITY.equals(uri.getAuthority())) {
-            return !"downloads".equals(id) && !id.matches("raw:/(sdcard|storage/(emulated/\\d+|[^/]+))/Download");
+        if (DOWNLOADS_AUTHORITY.equals(uri.getAuthority()) && isDownloadsRoot(id)) {
+            return false;
         }
-        return true;
+        Uri document = AndroidDocumentAccess.buildTreeDocumentUri(uri);
+        return document != null && !kind.otherFolder.equalsIgnoreCase(AndroidDocumentAccess.displayName(context, document));
+    }
+
+    private static boolean isDownloadsRoot(String id) {
+        return "downloads".equals(id) || id.matches("raw:/(sdcard|storage/(emulated/\\d+|[^/]+))/Download");
     }
 
     private static String folderName(String documentId) {

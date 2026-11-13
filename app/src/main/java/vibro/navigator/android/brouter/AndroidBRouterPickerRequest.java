@@ -1,39 +1,57 @@
 package vibro.navigator.android.brouter;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
 
+import java.util.UUID;
+
 /** Reconciles a restored pending picker with results handled after the saved snapshot. */
 public final class AndroidBRouterPickerRequest {
+    private static final int COMPLETION_HISTORY_LENGTH = 64;
+
+    public enum Completion {
+        ADVANCE, RETRY
+    }
+
     private final Context context;
     private final String key;
     private int requestCode;
-    private long sequence;
+    private String token;
 
     public AndroidBRouterPickerRequest(Context context, String key) {
         this.context = context;
         this.key = key;
     }
 
-    public boolean restore(@Nullable Bundle state) {
+    @Nullable
+    public Completion restore(@Nullable Bundle state) {
         if (state == null) {
-            return false;
+            return null;
         }
         requestCode = state.getInt(key);
-        sequence = state.getLong(key + "_sequence");
-        if (isPending() && sequence > 0 && sequence <= completed().getLong(key, 0)) {
-            requestCode = 0;
-            return true;
+        token = state.getString(key + "_token");
+        if (isPending() && token != null) {
+            return restoreCompletion();
         }
-        return false;
+        return null;
+    }
+
+    @Nullable
+    private Completion restoreCompletion() {
+        for (String entry : completionHistory()) {
+            if (entry.startsWith(token + ":")) {
+                requestCode = 0;
+                return Completion.valueOf(entry.substring(token.length() + 1));
+            }
+        }
+        return null;
     }
 
     public void begin(int requestCode) {
         this.requestCode = requestCode;
-        sequence = completed().getLong(key, 0) + 1;
+        token = UUID.randomUUID().toString();
     }
 
     public boolean isPending() {
@@ -44,20 +62,31 @@ public final class AndroidBRouterPickerRequest {
         return isPending() && requestCode == code;
     }
 
-    public void complete() {
-        SharedPreferences completed = completed();
-        if (sequence > completed.getLong(key, 0)) {
-            completed.edit().putLong(key, sequence).apply();
+    public void complete(Completion completion) {
+        if (token != null) {
+            saveCompletion(completion);
         }
         requestCode = 0;
+        token = null;
+    }
+
+    private void saveCompletion(Completion completion) {
+        StringBuilder history = new StringBuilder(token).append(':').append(completion);
+        String[] previous = completionHistory();
+        for (int i = 0; i < Math.min(previous.length, COMPLETION_HISTORY_LENGTH - 1); i++) {
+            history.append(',').append(previous[i]);
+        }
+        context.getSharedPreferences("brouter_folder_requests", Context.MODE_PRIVATE)
+                .edit().putString(key + "_completed", history.toString()).apply();
     }
 
     public void save(Bundle state) {
         state.putInt(key, requestCode);
-        state.putLong(key + "_sequence", sequence);
+        state.putString(key + "_token", token);
     }
 
-    private SharedPreferences completed() {
-        return context.getSharedPreferences("brouter_folder_requests", Context.MODE_PRIVATE);
+    private String[] completionHistory() {
+        return context.getSharedPreferences("brouter_folder_requests", Context.MODE_PRIVATE)
+                .getString(key + "_completed", "").split(",");
     }
 }

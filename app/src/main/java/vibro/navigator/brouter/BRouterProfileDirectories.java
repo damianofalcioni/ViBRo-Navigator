@@ -77,11 +77,10 @@ final class BRouterProfileDirectories {
             boolean hasSavedTreeReadPermission
     ) {
         List<Uri> out = new ArrayList<>();
-        Uri sharedLegacyTree = buildExternalStorageTreeUri(BRouterProfileDirectoryCandidates.legacySharedProfilesDocumentId());
-        if (hasSavedTreeReadPermission && savedTreeUri != null && !sharedLegacyTree.equals(savedTreeUri)) {
+        if (hasSavedTreeReadPermission && savedTreeUri != null) {
             addDiscoveryTreeUri(out, savedTreeUri);
         }
-        // A leftover shared folder does not identify the base BRouter uses for named requests.
+        // Shared legacy folders supply named profiles only after the user grants access.
         for (String documentId : directoryCandidates.getNamedProfileDocumentIdCandidates(context)) {
             if (documentExists(context, documentId)) {
                 addDiscoveryTreeUri(out, buildExternalStorageTreeUri(documentId));

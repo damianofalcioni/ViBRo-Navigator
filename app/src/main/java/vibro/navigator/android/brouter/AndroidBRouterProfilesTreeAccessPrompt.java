@@ -3,13 +3,15 @@ package vibro.navigator.android.brouter;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.net.Uri;
-import android.view.ViewConfiguration;
+import android.os.CancellationSignal;
+
+import java.util.Collection;
+import java.util.Collections;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
-import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 
 public final class AndroidBRouterProfilesTreeAccessPrompt {
@@ -26,25 +28,22 @@ public final class AndroidBRouterProfilesTreeAccessPrompt {
             @NonNull Runnable beforeLaunch,
             @NonNull Runnable onCancel
     ) {
-        AndroidTaskScheduler.main().postDelayed(() -> {
-            if (!activity.isFinishing() && !activity.isDestroyed()) {
-                AndroidBRouterFolderDiscovery.find(() -> findLocation(activity, profilesRepository).initialUri, null, uri -> {
-                    if (!activity.isFinishing() && !activity.isDestroyed()) {
-                        showNow(activity, uri, requestCode, logTag, beforeLaunch, onCancel, onCancel);
-                    }
-                });
-            }
-        }, ViewConfiguration.getPressedStateDuration());
+        AndroidBRouterDeferredPrompt.request(activity,
+                signal -> findLocation(activity, profilesRepository, Collections.emptySet(), signal),
+                location -> showNow(activity, location.initialUri, requestCode, logTag, beforeLaunch, onCancel, onCancel));
     }
 
     @NonNull
     static AndroidBRouterPickerLocation findLocation(
             @NonNull Activity activity,
-            @NonNull BRouterProfilesRepository profilesRepository
+            @NonNull BRouterProfilesRepository profilesRepository,
+            Collection<String> excluded,
+            CancellationSignal signal
     ) {
         Uri savedProfileHint = profilesRepository.getCustomProfileUri(activity);
         return AndroidBRouterPickerLocation.resolve(
-                activity, profilesRepository.getProfilesTreePickerHint(activity, savedProfileHint), FOLDER_NAME);
+                activity, profilesRepository.getProfilesTreePickerHint(activity, savedProfileHint),
+                FOLDER_NAME, excluded, signal);
     }
 
     static AlertDialog showNow(

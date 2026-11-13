@@ -10,6 +10,8 @@ import android.view.View;
 
 import androidx.core.app.ActivityCompat;
 
+import java.util.ArrayList;
+
 import vibro.navigator.R;
 import vibro.navigator.android.brouter.AndroidBRouterStorageSetup;
 import vibro.navigator.logging.AppLogger;
@@ -37,7 +39,7 @@ public final class AndroidFirstRunPermissions {
         steps = new Step[]{this::profiles, this::segments, this::runtime, this::location,
                 this::notifications, this::battery};
         if (state != null) {
-            step = state.getInt(STATE_STEP);
+            step = state.getInt(STATE_STEP) + (storage.completedFirstRunStep() ? 1 : 0);
             waitingForResult = state.getBoolean(STATE_WAITING);
         }
     }
@@ -66,11 +68,11 @@ public final class AndroidFirstRunPermissions {
     }
 
     private boolean profiles() {
-        return storage.requestProfiles(() -> waitingForResult = true, this::next);
+        return storage.requestProfiles(this::next);
     }
 
     private boolean segments() {
-        return storage.requestSegments(() -> waitingForResult = true, this::next);
+        return storage.requestSegments(this::next);
     }
 
     private boolean runtime() {
@@ -132,17 +134,11 @@ public final class AndroidFirstRunPermissions {
     }
 
     public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (storage.handleForegroundResult(requestCode, resultCode, data)) {
-            return true;
-        }
-        if (!waitingForResult) {
-            return false;
-        }
-        if (requestCode == REQUEST_SETTINGS) {
+        if (waitingForResult && requestCode == REQUEST_SETTINGS) {
             next();
             return true;
         }
-        return storage.handleResult(requestCode, resultCode, data, this::next, this::resumeSetup);
+        return storage.handleActivityResult(requestCode, resultCode, data, this::next, this::resumeSetup);
     }
 
     public boolean onRequestPermissionsResult(int requestCode) {
@@ -163,12 +159,16 @@ public final class AndroidFirstRunPermissions {
         storage.setForegroundChecksEnabled(enabled);
     }
 
+    public void setResumed(boolean resumed) {
+        storage.setResumed(resumed);
+    }
+
     public void bindBRouterActions(View profilesAction, View segmentsAction) {
         storage.bindManualActions(profilesAction, segmentsAction);
     }
 
-    public String skippedSegmentsFolder() {
-        return storage.skippedSegmentsFolder();
+    public ArrayList<String> skippedSegmentsFolders() {
+        return storage.skippedSegmentsFolders();
     }
 
     public void dispose() {

@@ -43,6 +43,12 @@ public final class TestBRouterStorage {
         registerDirectoryProvider(tree, () -> AndroidPersistedUriPermissions.hasReadPermission(context, tree));
     }
 
+    static void exposeNamedFolder(Uri tree, String displayName) {
+        Uri document = DocumentsContract.buildDocumentUriUsingTree(tree, DocumentsContract.getTreeDocumentId(tree));
+        ShadowContentResolver.registerProviderInternal(tree.getAuthority(),
+                new DirectoryProvider(document, () -> true, displayName));
+    }
+
     private static void registerDirectoryProvider(Uri tree, BooleanSupplier canQuery) {
         Uri document = DocumentsContract.buildDocumentUriUsingTree(tree, DocumentsContract.getTreeDocumentId(tree));
         ShadowContentResolver.registerProviderInternal(document.getAuthority(),
@@ -52,10 +58,16 @@ public final class TestBRouterStorage {
     private static final class DirectoryProvider extends ContentProvider {
         private final Uri directory;
         private final BooleanSupplier canQuery;
+        private final String displayName;
 
         DirectoryProvider(Uri directory, BooleanSupplier canQuery) {
+            this(directory, canQuery, null);
+        }
+
+        DirectoryProvider(Uri directory, BooleanSupplier canQuery, String displayName) {
             this.directory = directory;
             this.canQuery = canQuery;
+            this.displayName = displayName;
         }
 
         @Override
@@ -69,9 +81,10 @@ public final class TestBRouterStorage {
                 throw new SecurityException("Directory queries require a URI grant");
             }
             MatrixCursor cursor = new MatrixCursor(new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID,
-                    DocumentsContract.Document.COLUMN_MIME_TYPE});
+                    DocumentsContract.Document.COLUMN_MIME_TYPE, DocumentsContract.Document.COLUMN_DISPLAY_NAME});
             if (directory.equals(uri)) {
-                cursor.addRow(new Object[]{DocumentsContract.getDocumentId(uri), DocumentsContract.Document.MIME_TYPE_DIR});
+                cursor.addRow(new Object[]{DocumentsContract.getDocumentId(uri),
+                        DocumentsContract.Document.MIME_TYPE_DIR, displayName});
             }
             return cursor;
         }

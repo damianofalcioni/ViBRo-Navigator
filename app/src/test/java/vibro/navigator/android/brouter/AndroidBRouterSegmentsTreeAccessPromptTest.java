@@ -12,6 +12,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
 import android.os.Looper;
 import android.provider.DocumentsContract;
 import android.view.ViewConfiguration;
@@ -23,10 +24,13 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.Implementation;
+import org.robolectric.annotation.Implements;
 import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowAlertDialog;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import vibro.navigator.android.storage.AndroidStorageVolumes;
@@ -41,7 +45,7 @@ public class AndroidBRouterSegmentsTreeAccessPromptTest {
     public void reopensGrantedSegmentsAsDocumentUriOnAndroid10() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         BRouterSegmentsRepository repository = AndroidBRouterSegmentsRepositoryFactory.create();
-        String id = "ABCD-1234:Android/media/btools.routingapp/brouter/segments4";
+        String id = "primary:Android/media/btools.routingapp/brouter/segments4";
         Uri tree = DocumentsContract.buildTreeDocumentUri(AUTHORITY, id);
         repository.saveSegmentsTreeUri(activity, tree);
         activity.getContentResolver().takePersistableUriPermission(tree, Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -139,6 +143,53 @@ public class AndroidBRouterSegmentsTreeAccessPromptTest {
         repository.saveSegmentsTreeUri(activity, downloads);
         activity.getContentResolver().takePersistableUriPermission(downloads, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         assertFalse(repository.hasPersistedSegmentsTreeAccess(activity));
+    }
+
+    @Test
+    public void rejectsOppositeFolderFromProviderWithOpaqueIds() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Uri tree = DocumentsContract.buildTreeDocumentUri("test.documents", "42");
+            TestBRouterStorage.exposeNamedFolder(tree, "profiles2");
+            Intent data = new Intent().setData(tree).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            assertNull(AndroidBRouterFolderAccess.persistSelection(activity, data, AndroidBRouterFolderAccess.Kind.SEGMENTS));
+            assertTrue(activity.getContentResolver().getPersistedUriPermissions().isEmpty());
+        }
+    }
+
+    @Test
+    @Config(shadows = DelayedDiscovery.class)
+    public void pendingLookupCoalescesTapsAndWaitsForResume() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            TestBRouterStorage.createPrimaryFolder("segments4");
+            var repository = AndroidBRouterSegmentsRepositoryFactory.create();
+            Runnable request = () -> AndroidBRouterSegmentsTreeAccessPrompt.show(
+                    activity, repository, 42, "StorageTest", () -> { }, () -> { });
+            request.run();
+            request.run();
+            controller.pause().stop();
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(800));
+            assertNull(ShadowAlertDialog.getLatestAlertDialog());
+
+            controller.start().resume();
+            var dialog = ShadowAlertDialog.getLatestAlertDialog();
+            assertTrue(dialog.isShowing());
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            shadowOf(Looper.getMainLooper()).idle();
+            assertNotNull(shadowOf(activity).getNextStartedActivityForResult());
+            assertFalse(dialog.isShowing());
+            assertNull(shadowOf(activity).getNextStartedActivityForResult());
+        }
+    }
+
+    @Implements(value = AndroidBRouterFolderDiscovery.class, isInAndroidSdk = false)
+    public static class DelayedDiscovery {
+        @Implementation
+        protected static void execute(Runnable work) {
+            new Handler(Looper.getMainLooper()).postDelayed(work, 600);
+        }
     }
 
     private static Uri findAvailableFolder(Activity activity, BRouterSegmentsRepository repository) {

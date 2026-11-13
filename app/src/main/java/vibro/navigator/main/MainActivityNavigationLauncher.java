@@ -3,6 +3,8 @@ package vibro.navigator.main;
 import android.app.Activity;
 import android.content.Intent;
 
+import java.util.ArrayList;
+
 import androidx.annotation.NonNull;
 
 import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
@@ -16,11 +18,11 @@ final class MainActivityNavigationLauncher {
     private MainActivityNavigationLauncher() {
     }
 
-    static void launch(@NonNull Activity activity, @NonNull NavigationRequest request, String skippedSegmentsFolder) {
+    static void launch(@NonNull Activity activity, @NonNull NavigationRequest request, ArrayList<String> skippedSegmentsFolders) {
         AppLogger.i(TAG, "Starting NavigationActivity " + request.describe());
         Intent intent = new Intent(activity, NavigationActivity.class);
         AndroidNavigationRequestIntentContract.putInto(intent, request);
-        intent.putExtra(NavigationActivity.EXTRA_SKIPPED_SEGMENTS_FOLDER, skippedSegmentsFolder);
+        intent.putStringArrayListExtra(NavigationActivity.EXTRA_SKIPPED_SEGMENTS_FOLDERS, skippedSegmentsFolders);
         activity.startActivity(intent);
     }
 }

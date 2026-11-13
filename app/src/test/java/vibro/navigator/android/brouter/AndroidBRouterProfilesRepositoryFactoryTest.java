@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.Intent;
 import android.os.Build;
 import android.provider.DocumentsContract;
 import static org.robolectric.Shadows.shadowOf;
@@ -54,6 +55,24 @@ public class AndroidBRouterProfilesRepositoryFactoryTest {
         BRouterProfilesRepository repository = AndroidBRouterProfilesRepositoryFactory.create();
 
         assertTrue(repository.listProfiles(activity).contains(PROFILE_NAME));
+    }
+
+    @Test
+    public void persistedSharedLegacyFolderKeepsNamedProfileAndParameters() throws Exception {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            String id = "primary:brouter/profiles2";
+            writeProfileFile(activity, id);
+            var repository = AndroidBRouterProfilesRepositoryFactory.create();
+            assertFalse(repository.listProfiles(activity).contains(PROFILE_NAME));
+
+            var tree = DocumentsContract.buildTreeDocumentUri("com.android.externalstorage.documents", id);
+            activity.getContentResolver().takePersistableUriPermission(tree, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            repository.saveProfilesTreeUri(activity, tree);
+
+            assertTrue(repository.listProfiles(activity).contains(PROFILE_NAME));
+            assertEquals(PARAMETER_NAME, repository.getProfileParameters(activity, PROFILE_NAME).get(0).name);
+        }
     }
 
     @Test

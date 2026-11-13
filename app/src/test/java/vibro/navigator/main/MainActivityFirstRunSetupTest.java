@@ -11,6 +11,7 @@ import android.content.IntentFilter;
 import android.content.ComponentName;
 import android.content.pm.PackageInfo;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Looper;
 import android.provider.DocumentsContract;
 import android.widget.EditText;
@@ -30,6 +31,7 @@ import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowDialog;
 import org.robolectric.shadows.ShadowToast;
 
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import vibro.navigator.R;
@@ -87,6 +89,7 @@ public class MainActivityFirstRunSetupTest {
             controller.pause().stop();
             installBRouter(app);
             controller.recreate();
+            controller.start().resume();
             idle();
             MainActivity activity = controller.get();
             assertMissingFolderCanBeSkipped(activity, PROFILES_FOLDER);
@@ -210,9 +213,10 @@ public class MainActivityFirstRunSetupTest {
             Intent trip = shadowOf(activity).getNextStartedActivity();
             assertNotNull(trip);
             assertEquals(NavigationActivity.class.getName(), trip.getComponent().getClassName());
-            assertEquals(DocumentsContract.buildDocumentUri("com.android.externalstorage.documents",
-                            "primary:Android/media/btools.routingapp/brouter/segments4").toString(),
-                    trip.getStringExtra(NavigationActivity.EXTRA_SKIPPED_SEGMENTS_FOLDER));
+            assertEquals(Collections.singletonList(DocumentsContract.buildDocumentUri(
+                            "com.android.externalstorage.documents", "primary:Android/media/btools.routingapp/brouter/segments4")
+                            .toString()),
+                    trip.getStringArrayListExtra(NavigationActivity.EXTRA_SKIPPED_SEGMENTS_FOLDERS));
             assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(activity));
         }
         try (var reopened = Robolectric.buildActivity(MainActivity.class).setup()) {
@@ -303,6 +307,28 @@ public class MainActivityFirstRunSetupTest {
             assertEquals(request.requestCode, chooseFolder(activity, segments));
             assertEquals(segments.getData(), activity.getContentResolver().getPersistedUriPermissions().get(0).getUri());
             assertFalse(ShadowAlertDialog.getLatestAlertDialog().isShowing());
+        }
+    }
+
+    @Test
+    @Config(sdk = Build.VERSION_CODES.Q)
+    public void restoresRetryAfterRejectedFirstRunResultWasAlreadyDelivered() {
+        installBRouterWithStorage();
+        Bundle state = new Bundle();
+        try (var controller = Robolectric.buildActivity(MainActivity.class).setup()) {
+            continueWelcome();
+            idle();
+            int request = openFolderPicker(controller.get()).requestCode;
+            controller.pause().stop().saveInstanceState(state).start();
+            controller.get().onActivityResult(request, Activity.RESULT_OK, folderSelection("primary:Download"));
+        }
+
+        try (var restored = Robolectric.buildActivity(MainActivity.class).setup(state)) {
+            idle();
+            assertTrue(AppMainUiSettings.isFirstRunSetupPending(restored.get()));
+            AlertDialog retry = ShadowAlertDialog.getLatestAlertDialog();
+            assertTrue(retry.isShowing());
+            assertTrue(String.valueOf(shadowOf(retry).getMessage()).contains(PROFILES_FOLDER));
         }
     }
 

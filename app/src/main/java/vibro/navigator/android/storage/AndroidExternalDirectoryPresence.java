@@ -4,6 +4,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
+import android.os.CancellationSignal;
+import android.os.OperationCanceledException;
 import android.provider.DocumentsContract;
 
 import androidx.annotation.NonNull;
@@ -24,25 +26,36 @@ final class AndroidExternalDirectoryPresence {
     }
 
     @NonNull
-    static DirectoryPresence check(@NonNull Context context, @NonNull String documentId) {
+    static DirectoryPresence check(@NonNull Context context, @NonNull String documentId,
+                                   @NonNull CancellationSignal signal) {
+        signal.throwIfCanceled();
         DirectoryPresence directPresence = directDirectoryPresence(context, documentId);
         if (directPresence == DirectoryPresence.PRESENT) {
             return directPresence;
         }
         // A denied provider query leaves open the possibility that the picker can see the folder.
-        DirectoryPresence providerPresence = documentProviderDirectoryPresence(context, documentId);
+        DirectoryPresence providerPresence = documentProviderDirectoryPresence(context, documentId, signal);
         return providerPresence == DirectoryPresence.MISSING ? directPresence : providerPresence;
     }
 
     @NonNull
     static DirectoryPresence documentProviderDirectoryPresence(@NonNull Context context, @NonNull String documentId) {
+        return documentProviderDirectoryPresence(context, documentId, null);
+    }
+
+    @NonNull
+    private static DirectoryPresence documentProviderDirectoryPresence(Context context, String documentId,
+                                                                       CancellationSignal signal) {
         Uri treeUri = AndroidDocumentAccess.buildExternalStorageTreeUri(documentId);
         Uri documentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId);
         String mimeType = DocumentsContract.Document.COLUMN_MIME_TYPE;
-        try (Cursor cursor = context.getContentResolver().query(documentUri, new String[]{mimeType}, null, null, null)) {
+        try (Cursor cursor = context.getContentResolver().query(documentUri, new String[]{mimeType},
+                null, null, null, signal)) {
             return cursor != null && cursor.moveToFirst() && DocumentsContract.Document.MIME_TYPE_DIR.equals(
                     cursor.getString(cursor.getColumnIndexOrThrow(mimeType)))
                     ? DirectoryPresence.PRESENT : DirectoryPresence.MISSING;
+        } catch (OperationCanceledException e) {
+            throw e;
         } catch (Exception e) {
             AppLogger.d("AndroidDocumentAccess", "Document not accessible documentId=" + documentId
                     + " error=" + e.getClass().getSimpleName());

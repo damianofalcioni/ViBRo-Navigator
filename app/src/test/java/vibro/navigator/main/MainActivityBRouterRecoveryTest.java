@@ -33,6 +33,7 @@ import java.io.File;
 
 import vibro.navigator.R;
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
+import vibro.navigator.android.brouter.AndroidBRouterSegmentsRepositoryFactory;
 import vibro.navigator.android.brouter.TestBRouterStorage;
 import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.android.storage.AndroidStorageVolumes;
@@ -103,7 +104,6 @@ public class MainActivityBRouterRecoveryTest {
             controller.pause().stop();
 
             File root = AndroidStorageVolumes.storageRoot(app, "primary");
-            assertTrue(new File(root, MEDIA_BASE + SEGMENTS_FOLDER).delete());
             assertTrue(new File(root, "brouter/segments4").mkdirs());
             controller.start().resume();
 
@@ -111,6 +111,24 @@ public class MainActivityBRouterRecoveryTest {
             assertTrue(replacement.isShowing());
             assertTrue(String.valueOf(shadowOf(replacement).getMessage()).contains("brouter/segments4"));
             assertFalse(String.valueOf(shadowOf(replacement).getMessage()).contains(MEDIA_BASE));
+            replacement.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+            idle();
+            controller.pause().stop().start().resume();
+            assertFalse(ShadowAlertDialog.getLatestAlertDialog().isShowing());
+        }
+    }
+
+    @Test
+    public void unmountedGrantAllowsSelectingAnAvailableReplacement() {
+        saveProfileGrant();
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
+        Uri stale = AndroidDocumentAccess.buildExternalStorageTreeUri("ABCD-1234:" + MEDIA_BASE + SEGMENTS_FOLDER);
+        app.getContentResolver().takePersistableUriPermission(stale, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        AndroidBRouterSegmentsRepositoryFactory.create().saveSegmentsTreeUri(app, stale);
+
+        try (var controller = Robolectric.buildActivity(MainActivity.class).setup()) {
+            assertPromptContains(MEDIA_BASE + SEGMENTS_FOLDER);
+            assertEquals(View.VISIBLE, controller.get().findViewById(R.id.brouterSegmentsAccessButton).getVisibility());
         }
     }
 

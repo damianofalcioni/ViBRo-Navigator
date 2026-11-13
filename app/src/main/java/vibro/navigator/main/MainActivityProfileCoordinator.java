@@ -7,6 +7,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
+
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
 import vibro.navigator.android.storage.AndroidLegacyExternalStorageAccess;
 import vibro.navigator.brouter.BRouterProfilesRepository;
@@ -80,8 +82,8 @@ final class MainActivityProfileCoordinator {
         return profilesRepository.isBRouterInstalled(activity);
     }
 
-    String skippedSegmentsFolder() {
-        return startup.skippedSegmentsFolder();
+    ArrayList<String> skippedSegmentsFolders() {
+        return startup.skippedSegmentsFolders();
     }
 
     void refresh() {

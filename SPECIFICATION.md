@@ -60,7 +60,7 @@ The main UI must include a navigation-mode selector at the top, with the BRouter
 - Profile handling must remain compatible with both bundled BRouter profiles and autodiscovered external `profiles2` folders
 - If BRouter is not installed, the app must not immediately open a profile-file picker during main-screen startup
 - If no autodiscovered external `profiles2` folder is accessible, the app must still list and use bundled BRouter internal profiles for normal routing
-- The routing-profile selector and custom-profile picker share the standard external `profiles2` candidates. The primary shared `brouter/profiles2` layout can seed the custom picker, but its files are only selectable through Custom so an inactive base cannot supply a named route.
+- The routing-profile selector and custom-profile picker share the standard external `profiles2` candidates. The primary shared `brouter/profiles2` layout can seed the custom picker. Include its named profiles when the user has explicitly granted that folder, including grants saved before an app upgrade.
 - When one or more external `profiles2` folders are discoverable, the selector should list those external `.brf` profiles alongside bundled BRouter profiles
 - When no external `profiles2` folder is discoverable, the selector must fall back to bundled BRouter profiles if bundled profiles are available
 - When neither discoverable external `profiles2` folders nor bundled BRouter profiles are available, the selector must still show a single custom-profile entry so the user can pick a `.brf` file manually
