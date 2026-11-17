@@ -69,6 +69,8 @@ public class MainActivityBRouterRecoveryTest {
             action.performClick();
             assertTrue(ShadowAlertDialog.getLatestAlertDialog().isShowing());
             int request = openPicker(activity);
+            TestBRouterStorage.createPrimaryFolder("profiles2");
+            TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
             activity.onActivityResult(request, Activity.RESULT_OK, folderGrant());
             idle();
 

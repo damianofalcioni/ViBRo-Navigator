@@ -25,7 +25,7 @@ public final class AndroidBRouterProfilesTreeAccessPrompt {
             @NonNull Runnable beforeLaunch,
             @NonNull Runnable onCancel
     ) {
-        AndroidBRouterDeferredPrompt.request(activity,
+        AndroidBRouterDeferredPrompt.request(activity, requestCode, false,
                 signal -> findLocation(activity, profilesRepository, Collections.emptySet(), signal),
                 location -> AndroidBRouterFolderPrompt.show(activity, location.initialUri, requestCode, logTag,
                         beforeLaunch, onCancel, onCancel));

@@ -21,23 +21,38 @@ final class AndroidBRouterDeferredPrompt implements Application.ActivityLifecycl
 
     private final Activity activity;
     private final DialogFactory show;
+    private final int requestCode;
     private boolean paused;
+    private boolean showing;
     private AndroidBRouterPickerLocation location;
 
-    private AndroidBRouterDeferredPrompt(Activity activity, DialogFactory show) {
+    private AndroidBRouterDeferredPrompt(Activity activity, int requestCode, DialogFactory show) {
         this.activity = activity;
+        this.requestCode = requestCode;
         this.show = show;
     }
 
-    static void request(Activity activity, AndroidBRouterFolderDiscovery.Query<AndroidBRouterPickerLocation> query,
-                        DialogFactory show) {
-        if (PENDING.containsKey(activity) || activity.isFinishing() || activity.isDestroyed()) {
+    static void request(Activity activity, int requestCode, boolean replacePending,
+                        AndroidBRouterFolderDiscovery.Query<AndroidBRouterPickerLocation> query, DialogFactory show) {
+        if (activity.isFinishing() || activity.isDestroyed()) {
             return;
         }
-        AndroidBRouterDeferredPrompt prompt = new AndroidBRouterDeferredPrompt(activity, show);
+        AndroidBRouterDeferredPrompt previous = PENDING.get(activity);
+        if (previous != null && !previous.replace(requestCode, replacePending)) {
+            return;
+        }
+        AndroidBRouterDeferredPrompt prompt = new AndroidBRouterDeferredPrompt(activity, requestCode, show);
         PENDING.put(activity, prompt);
         activity.getApplication().registerActivityLifecycleCallbacks(prompt);
         AndroidTaskScheduler.main().postDelayed(() -> prompt.discover(query), ViewConfiguration.getPressedStateDuration());
+    }
+
+    private boolean replace(int nextRequestCode, boolean replacePending) {
+        if (!replacePending || showing || requestCode == nextRequestCode) {
+            return false;
+        }
+        dispose();
+        return true;
     }
 
     private void discover(AndroidBRouterFolderDiscovery.Query<AndroidBRouterPickerLocation> query) {
@@ -57,6 +72,7 @@ final class AndroidBRouterDeferredPrompt implements Application.ActivityLifecycl
             dispose();
             return;
         }
+        showing = true;
         AlertDialog dialog = show.show(location);
         location = null;
         dialog.setOnDismissListener(ignored -> dispose());

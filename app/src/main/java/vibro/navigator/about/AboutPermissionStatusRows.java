@@ -103,8 +103,13 @@ final class AboutPermissionStatusRows {
         if (!handlesTreeResult(requestCode)) {
             return false;
         }
-        if (resultCode == Activity.RESULT_OK && !AndroidBRouterFolderAccess.saveSelection(activity, data)) {
-            showStorageRequiredToast(R.string.msg_brouter_folder_required);
+        if (resultCode == Activity.RESULT_OK) {
+            AndroidBRouterFolderAccess.saveSelection(activity, data, saved -> {
+                if (!saved) {
+                    showStorageRequiredToast(R.string.msg_brouter_folder_required);
+                }
+                render();
+            });
         }
         render();
         return true;

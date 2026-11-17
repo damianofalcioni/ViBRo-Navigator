@@ -15,6 +15,7 @@ import static vibro.navigator.android.brouter.AndroidBRouterStorageSetup.REQUEST
 
 final class AndroidBRouterForegroundChecks {
     private static final String STATE_REQUEST = "brouter_foreground_request";
+    private static final String STATE_MANUAL = "brouter_manual_pending";
     private final AndroidBRouterStorageSetup setup;
     private final AndroidBRouterFolderRequests requests;
     private final AndroidBRouterPickerRequest picker;
@@ -23,7 +24,9 @@ final class AndroidBRouterForegroundChecks {
     private int discoveryGeneration;
     private boolean discovering;
     private boolean manualDiscovery;
+    private boolean manualPending;
     private View action;
+    private Runnable onPickerFinished = () -> { };
 
     AndroidBRouterForegroundChecks(Activity activity, AndroidBRouterStorageSetup setup,
                                    AndroidBRouterFolderRequests requests, @Nullable Bundle state) {
@@ -31,14 +34,25 @@ final class AndroidBRouterForegroundChecks {
         this.requests = requests;
         picker = new AndroidBRouterPickerRequest(activity, STATE_REQUEST);
         offers = new AndroidBRouterFolderOffers(state);
+        manualPending = state != null && state.getBoolean(STATE_MANUAL);
         if (picker.restore(state) == Completion.RETRY) {
             offers.forgetCurrent();
         }
+        picker.watch(completion -> {
+            if (completion == Completion.RETRY) {
+                offers.forgetCurrent();
+            }
+            pickerFinished();
+        });
     }
 
-    void bindAction(View action) {
+    void bindAction(View action, Runnable onPickerFinished) {
         this.action = action;
-        action.setOnClickListener(view -> discover(true));
+        this.onPickerFinished = onPickerFinished;
+        action.setOnClickListener(view -> {
+            manualPending = true;
+            refresh();
+        });
     }
 
     void setEnabled(boolean enabled) {
@@ -52,7 +66,7 @@ final class AndroidBRouterForegroundChecks {
     }
 
     void refresh() {
-        discover(false);
+        discover(manualPending);
     }
 
     private void discover(boolean manual) {
@@ -61,6 +75,9 @@ final class AndroidBRouterForegroundChecks {
         }
         boolean needsGrant = needsFolderGrant();
         updateAction(needsGrant);
+        if (!needsGrant) {
+            manualPending = false;
+        }
         // An explicit tap can supersede an automatic probe already in flight.
         if (needsGrant && !hasActivePicker() && !lookupAlreadyPending(manual)) {
             queueDiscovery(manual);
@@ -102,6 +119,7 @@ final class AndroidBRouterForegroundChecks {
             refresh();
             return;
         }
+        manualPending = false;
         setup.showFolder(location, () -> {
             offers.begin(location.confirmedUri());
             picker.begin(REQUEST_FOLDER);
@@ -121,11 +139,16 @@ final class AndroidBRouterForegroundChecks {
         if (!picker.matches(requestCode)) {
             return false;
         }
-        requests.handleResult(resultCode, data, picker, this::refresh, () -> {
+        requests.handleResult(resultCode, data, picker, this::pickerFinished, () -> {
             offers.forgetCurrent();
             refresh();
         });
         return true;
+    }
+
+    private void pickerFinished() {
+        onPickerFinished.run();
+        refresh();
     }
 
     AndroidBRouterFolderOffers offers() {
@@ -135,5 +158,11 @@ final class AndroidBRouterForegroundChecks {
     void saveState(Bundle state) {
         offers.save(state);
         picker.save(state);
+        state.putBoolean(STATE_MANUAL, manualPending);
+    }
+
+    void dispose() {
+        setEnabled(false);
+        picker.stopWatching();
     }
 }

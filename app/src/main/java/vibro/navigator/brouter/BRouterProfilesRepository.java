@@ -236,8 +236,8 @@ public class BRouterProfilesRepository {
 
     @NonNull
     private List<Uri> resolveProfilesDiscoveryTreeUris(@NonNull Context context) {
-        Uri savedTreeUri = getGrantedProfilesTreeUri(context);
-        return profileDirectories.resolveProfilesDiscoveryTreeUris(context, savedTreeUri);
+        return profileDirectories.resolveProfilesDiscoveryTreeUris(context, BRouterFolderGrant.discoveryTrees(
+                context, getProfilesTreeUri(context), dependencies.uriPermissionAccess::hasReadPermission));
     }
 
     @Nullable

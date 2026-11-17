@@ -86,7 +86,7 @@ public class AndroidBRouterProfilesStorageAccessTest {
     }
 
     @Test
-    public void missingFoldersStillAllowManualBrowsing() {
+    public void legacyDownloadsGrantDoesNotPreventManualBrowsing() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         new TestOutputStorageCard(activity);
         BRouterProfilesRepository repository = AndroidBRouterProfilesRepositoryFactory.create();
@@ -94,7 +94,7 @@ public class AndroidBRouterProfilesStorageAccessTest {
                 "raw:/storage/emulated/0/Download");
         repository.saveProfilesTreeUri(activity, downloads);
         activity.getContentResolver().takePersistableUriPermission(downloads, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        assertFalse(AndroidBRouterProfilesStorageAccess.hasAccess(activity, repository));
+        assertTrue(AndroidBRouterProfilesStorageAccess.hasAccess(activity, repository));
 
         Uri custom = DocumentsContract.buildDocumentUri(AUTHORITY, "primary:Documents/custom.brf");
         repository.saveCustomProfile(activity, custom, "custom");

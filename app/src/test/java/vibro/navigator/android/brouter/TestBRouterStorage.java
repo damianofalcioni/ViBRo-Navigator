@@ -1,13 +1,17 @@
 package vibro.navigator.android.brouter;
 
 import static org.junit.Assert.assertTrue;
+import static org.robolectric.Shadows.shadowOf;
 
+import android.app.Activity;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
+import android.os.Looper;
 import android.provider.DocumentsContract;
 
 import androidx.test.core.app.ApplicationProvider;
@@ -15,6 +19,7 @@ import androidx.test.core.app.ApplicationProvider;
 import org.robolectric.shadows.ShadowContentResolver;
 
 import java.io.File;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 
 import vibro.navigator.android.storage.AndroidDocumentAccess;
@@ -26,9 +31,21 @@ public final class TestBRouterStorage {
     }
 
     public static void createPrimaryFolder(String name) {
+        createPrimaryDirectory("Android/media/btools.routingapp/brouter/" + name);
+    }
+
+    public static File createPrimaryDirectory(String path) {
         File root = AndroidStorageVolumes.storageRoot(ApplicationProvider.getApplicationContext(), "primary");
-        File folder = new File(root, "Android/media/btools.routingapp/brouter/" + name);
+        File folder = new File(root, path);
         assertTrue(folder.isDirectory() || folder.mkdirs());
+        return folder;
+    }
+
+    static boolean saveSelection(Activity activity, Intent result) {
+        AtomicReference<Boolean> saved = new AtomicReference<>();
+        AndroidBRouterFolderAccess.saveSelection(activity, result, saved::set);
+        shadowOf(Looper.getMainLooper()).idle();
+        return saved.get();
     }
 
     static void exposeDirectoryThroughProvider(Context context, String documentId) {
@@ -49,7 +66,7 @@ public final class TestBRouterStorage {
                 new DirectoryProvider(document, () -> true, displayName));
     }
 
-    private static void registerDirectoryProvider(Uri tree, BooleanSupplier canQuery) {
+    static void registerDirectoryProvider(Uri tree, BooleanSupplier canQuery) {
         Uri document = DocumentsContract.buildDocumentUriUsingTree(tree, DocumentsContract.getTreeDocumentId(tree));
         ShadowContentResolver.registerProviderInternal(document.getAuthority(),
                 new DirectoryProvider(document, canQuery));

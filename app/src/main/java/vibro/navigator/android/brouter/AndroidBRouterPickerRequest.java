@@ -1,15 +1,19 @@
 package vibro.navigator.android.brouter;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
+import androidx.core.util.Consumer;
 
 import java.util.UUID;
 
 /** Reconciles a restored pending picker with results handled after the saved snapshot. */
 public final class AndroidBRouterPickerRequest {
     private static final int COMPLETION_HISTORY_LENGTH = 64;
+    private static final String VALIDATING = "VALIDATING:";
+    private static final String PROCESS_VALIDATION = VALIDATING + UUID.randomUUID();
 
     public enum Completion {
         ADVANCE, RETRY
@@ -19,6 +23,7 @@ public final class AndroidBRouterPickerRequest {
     private final String key;
     private int requestCode;
     private String token;
+    private SharedPreferences.OnSharedPreferenceChangeListener listener;
 
     public AndroidBRouterPickerRequest(Context context, String key) {
         this.context = context;
@@ -42,14 +47,24 @@ public final class AndroidBRouterPickerRequest {
     private Completion restoreCompletion() {
         for (String entry : completionHistory()) {
             if (entry.startsWith(token + ":")) {
-                requestCode = 0;
-                return Completion.valueOf(entry.substring(token.length() + 1));
+                return restoreOutcome(entry.substring(token.length() + 1));
             }
         }
         return null;
     }
 
+    @Nullable
+    private Completion restoreOutcome(String outcome) {
+        if (PROCESS_VALIDATION.equals(outcome)) {
+            return null;
+        }
+        requestCode = 0;
+        token = null;
+        return outcome.startsWith(VALIDATING) ? Completion.RETRY : Completion.valueOf(outcome);
+    }
+
     public void begin(int requestCode) {
+        stopWatching();
         this.requestCode = requestCode;
         token = UUID.randomUUID().toString();
     }
@@ -62,22 +77,53 @@ public final class AndroidBRouterPickerRequest {
         return isPending() && requestCode == code;
     }
 
-    public void complete(Completion completion) {
+    public void beginValidation() {
         if (token != null) {
-            saveCompletion(completion);
+            saveOutcome(token, PROCESS_VALIDATION);
         }
-        requestCode = 0;
-        token = null;
     }
 
-    private void saveCompletion(Completion completion) {
-        StringBuilder history = new StringBuilder(token).append(':').append(completion);
-        String[] previous = completionHistory();
-        for (int i = 0; i < Math.min(previous.length, COMPLETION_HISTORY_LENGTH - 1); i++) {
-            history.append(',').append(previous[i]);
+    public void complete(Completion completion) {
+        String completedToken = token;
+        requestCode = 0;
+        token = null;
+        stopWatching();
+        if (completedToken != null) {
+            saveOutcome(completedToken, completion.name());
         }
-        context.getSharedPreferences("brouter_folder_requests", Context.MODE_PRIVATE)
-                .edit().putString(key + "_completed", history.toString()).apply();
+    }
+
+    public void watch(Consumer<Completion> onCompletion) {
+        if (isPending() && token != null) {
+            listener = (preferences, changedKey) -> {
+                Completion completion = keyWithCompletion().equals(changedKey) ? restoreCompletion() : null;
+                if (completion != null) {
+                    stopWatching();
+                    onCompletion.accept(completion);
+                }
+            };
+            preferences().registerOnSharedPreferenceChangeListener(listener);
+        }
+    }
+
+    public void stopWatching() {
+        if (listener != null) {
+            preferences().unregisterOnSharedPreferenceChangeListener(listener);
+            listener = null;
+        }
+    }
+
+    private void saveOutcome(String requestToken, String outcome) {
+        StringBuilder history = new StringBuilder(requestToken).append(':').append(outcome);
+        String[] previous = completionHistory();
+        int added = 1;
+        for (String entry : previous) {
+            if (added < COMPLETION_HISTORY_LENGTH && !entry.startsWith(requestToken + ":")) {
+                history.append(',').append(entry);
+                added++;
+            }
+        }
+        preferences().edit().putString(keyWithCompletion(), history.toString()).apply();
     }
 
     public void save(Bundle state) {
@@ -86,7 +132,14 @@ public final class AndroidBRouterPickerRequest {
     }
 
     private String[] completionHistory() {
-        return context.getSharedPreferences("brouter_folder_requests", Context.MODE_PRIVATE)
-                .getString(key + "_completed", "").split(",");
+        return preferences().getString(keyWithCompletion(), "").split(",");
+    }
+
+    private String keyWithCompletion() {
+        return key + "_completed";
+    }
+
+    private SharedPreferences preferences() {
+        return context.getSharedPreferences("brouter_folder_requests", Context.MODE_PRIVATE);
     }
 }

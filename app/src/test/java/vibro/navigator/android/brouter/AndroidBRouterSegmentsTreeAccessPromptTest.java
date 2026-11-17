@@ -101,7 +101,7 @@ public class AndroidBRouterSegmentsTreeAccessPromptTest {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         Uri profiles = DocumentsContract.buildTreeDocumentUri(AUTHORITY, "primary:custom/brouter/profiles2");
         Intent data = new Intent().setData(profiles).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        assertFalse(AndroidBRouterFolderAccess.saveSelection(activity, data));
+        assertFalse(TestBRouterStorage.saveSelection(activity, data));
 
         BRouterSegmentsRepository repository = AndroidBRouterSegmentsRepositoryFactory.create();
         repository.saveSegmentsTreeUri(activity, profiles);
@@ -109,21 +109,22 @@ public class AndroidBRouterSegmentsTreeAccessPromptTest {
         assertFalse(repository.hasPersistedSegmentsTreeAccess(activity));
 
         Uri alternate = DocumentsContract.buildTreeDocumentUri(AUTHORITY, "primary:offline-routing/brouter");
+        TestBRouterStorage.createPrimaryDirectory("offline-routing/brouter/segments4");
         data.setData(alternate);
-        assertTrue(AndroidBRouterFolderAccess.saveSelection(activity, data));
+        assertTrue(TestBRouterStorage.saveSelection(activity, data));
     }
 
     @Test
-    public void rejectsDownloadsAsSegmentsAccess() {
+    public void rejectsNewDownloadsSelectionAndKeepsExistingGrant() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         BRouterSegmentsRepository repository = AndroidBRouterSegmentsRepositoryFactory.create();
         Uri downloads = DocumentsContract.buildTreeDocumentUri(AUTHORITY, "primary:Download");
         Intent data = new Intent().setData(downloads).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        assertFalse(AndroidBRouterFolderAccess.saveSelection(activity, data));
+        assertFalse(TestBRouterStorage.saveSelection(activity, data));
 
         repository.saveSegmentsTreeUri(activity, downloads);
         activity.getContentResolver().takePersistableUriPermission(downloads, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        assertFalse(repository.hasPersistedSegmentsTreeAccess(activity));
+        assertTrue(repository.hasPersistedSegmentsTreeAccess(activity));
     }
 
     @Test
@@ -134,7 +135,7 @@ public class AndroidBRouterSegmentsTreeAccessPromptTest {
             TestBRouterStorage.exposeNamedFolder(tree, "profiles2");
             Intent data = new Intent().setData(tree).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-            assertFalse(AndroidBRouterFolderAccess.saveSelection(activity, data));
+            assertFalse(TestBRouterStorage.saveSelection(activity, data));
             assertTrue(activity.getContentResolver().getPersistedUriPermissions().isEmpty());
         }
     }

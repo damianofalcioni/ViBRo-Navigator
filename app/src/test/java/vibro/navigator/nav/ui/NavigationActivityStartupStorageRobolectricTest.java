@@ -213,6 +213,31 @@ public class NavigationActivityStartupStorageRobolectricTest {
                 shadowOf(activity).getLastRequestedPermission().requestCode);
     }
 
+    @Test
+    public void invalidFolderOffersRetryOrSkipBeforeNavigationPreflight() {
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
+        try (var controller = Robolectric.buildActivity(TestNavigationActivity.class, navigationIntent()).setup()) {
+            var activity = controller.get();
+            continueFromBRouterPrompt(activity);
+            int request = shadowOf(activity).getNextStartedActivityForResult().requestCode;
+            Intent invalid = new Intent().setData(DocumentsContract.buildTreeDocumentUri(
+                    "com.android.externalstorage.documents", "primary:Download"))
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            controller.pause();
+            activity.onActivityResult(request, Activity.RESULT_OK, invalid);
+            assertNull(shadowOf(activity).getLastRequestedPermission());
+            controller.resume();
+
+            var retry = ShadowAlertDialog.getLatestAlertDialog();
+            assertTrue(retry.isShowing());
+            retry.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+            shadowOf(Looper.getMainLooper()).idle();
+            assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(activity));
+            assertEquals(NavigationStartupCoordinator.REQUEST_PERMISSIONS,
+                    shadowOf(activity).getLastRequestedPermission().requestCode);
+        }
+    }
+
     private static void continueFromBRouterPrompt(TestNavigationActivity activity) {
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         assertNotNull(dialog);

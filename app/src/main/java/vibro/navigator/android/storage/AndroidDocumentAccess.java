@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
 import vibro.navigator.logging.AppLogger;
 
@@ -74,12 +75,18 @@ public final class AndroidDocumentAccess {
 
     @Nullable
     public static String displayName(@NonNull Context context, @NonNull Uri uri) {
+        return displayName(context, uri, null);
+    }
+
+    @Nullable
+    public static String displayName(Context context, Uri uri, @Nullable CancellationSignal signal) {
         try (Cursor cursor = context.getContentResolver().query(
                 uri,
                 new String[]{OpenableColumns.DISPLAY_NAME},
                 null,
                 null,
-                null
+                null,
+                signal
         )) {
             if (cursor != null && cursor.moveToFirst()) {
                 int nameCol = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
@@ -159,6 +166,14 @@ public final class AndroidDocumentAccess {
     @NonNull
     public static List<String> childDisplayNames(@NonNull Context context, @NonNull Uri treeUri) {
         return AndroidDocumentTreeFileAccess.childDisplayNames(context, treeUri);
+    }
+
+    public static Map<String, Uri> childDirectories(Context context, Uri tree, CancellationSignal signal) {
+        return AndroidDocumentTreeFileAccess.childDirectories(context, tree, signal);
+    }
+
+    public static boolean canReadExternalDirectory(Context context, String documentId) {
+        return AndroidExternalStorageDocumentFiles.directoryExists(context, documentId);
     }
 
     @Nullable

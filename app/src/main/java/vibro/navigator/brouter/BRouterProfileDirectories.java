@@ -73,12 +73,9 @@ final class BRouterProfileDirectories {
     @NonNull
     List<Uri> resolveProfilesDiscoveryTreeUris(
             @NonNull Context context,
-            @Nullable Uri savedTreeUri
+            List<Uri> savedTrees
     ) {
-        List<Uri> out = new ArrayList<>();
-        if (savedTreeUri != null) {
-            addDiscoveryTreeUri(out, savedTreeUri);
-        }
+        List<Uri> out = new ArrayList<>(savedTrees);
         // Shared legacy folders supply named profiles only after the user grants access.
         for (String documentId : directoryCandidates.getNamedProfileDocumentIdCandidates(context)) {
             if (documentExists(context, documentId)) {

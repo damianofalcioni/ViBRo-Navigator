@@ -115,16 +115,22 @@ final class NavigationCustomButtonController {
             return true;
         }
         waitingForSurroundingStreetSegmentsTree = false;
-        if (resultCode != Activity.RESULT_OK || !AndroidBRouterFolderAccess.saveSelection(activity, data)) {
+        if (resultCode != Activity.RESULT_OK) {
             denySurroundingStreetStorage();
-            return true;
+        } else {
+            AndroidBRouterFolderAccess.saveSelection(activity, data, this::onStreetFolderSaved);
         }
+        return true;
+    }
+
+    private void onStreetFolderSaved(boolean saved) {
         if (!isBRouterInstalled()) {
             denySurroundingStreetsBRouterMissing();
-            return true;
+        } else if (!saved || !segmentsRepository.hasPersistedSegmentsTreeAccess(activity)) {
+            denySurroundingStreetStorage();
+        } else {
+            applySelectedSetting(Target.SURROUNDING_STREETS, true);
         }
-        applySelectedSetting(Target.SURROUNDING_STREETS, true);
-        return true;
     }
 
     private boolean shouldRequestSurroundingStreetPermission(@NonNull Target target, boolean enabled) {

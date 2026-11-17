@@ -5,10 +5,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.CancellationSignal;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.provider.DocumentsContractCompat;
+import androidx.core.util.Consumer;
+import androidx.core.util.Supplier;
+
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.android.storage.AndroidPersistedUriPermissions;
@@ -17,14 +25,16 @@ import vibro.navigator.brouter.BRouterFolderGrant;
 
 public final class AndroidBRouterFolderAccess {
     static final String FOLDER = "brouter";
-    private static final String DOWNLOADS_AUTHORITY = "com.android.providers.downloads.documents";
+    private static final AtomicBoolean MIGRATING = new AtomicBoolean();
 
     enum Kind {
-        PROFILES("segments4"), SEGMENTS("profiles2");
+        PROFILES("profiles2", "segments4"), SEGMENTS("segments4", "profiles2");
 
-        private final String otherFolder;
+        final String folder;
+        final String otherFolder;
 
-        Kind(String otherFolder) {
+        Kind(String folder, String otherFolder) {
+            this.folder = folder;
             this.otherFolder = otherFolder;
         }
     }
@@ -32,29 +42,65 @@ public final class AndroidBRouterFolderAccess {
     private AndroidBRouterFolderAccess() {
     }
 
-    public static boolean saveSelection(@NonNull Activity activity, @Nullable Intent data) {
+    public static void saveSelection(Activity activity, @Nullable Intent data, Consumer<Boolean> onResult) {
         Uri uri = data == null ? null : data.getData();
-        if (uri == null || !isVolumeAvailable(activity, uri) || !isParentFolder(activity, uri)
-                || !AndroidDocumentAccess.persistReadPermission(activity, data, uri)) {
-            return false;
+        if (uri == null || (data.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) == 0) {
+            onResult.accept(false);
+            return;
         }
-        BRouterFolderGrant.save(activity, uri);
-        return true;
+        AndroidBRouterFolderDiscovery.find(
+                signal -> verifySelection(activity, uri, signal),
+                null, grant -> {
+                    boolean saved = grant != null && AndroidDocumentAccess.persistReadPermission(activity, data, uri);
+                    if (saved) {
+                        BRouterFolderGrant.save(activity, uri, grant.profiles, grant.segments);
+                    }
+                    onResult.accept(saved);
+                });
     }
 
-    private static boolean isParentFolder(Context context, Uri uri) {
-        if (!DocumentsContractCompat.isTreeUri(uri)) {
-            return false;
+    @Nullable
+    private static Directories verifySelection(Context context, Uri tree, CancellationSignal signal) {
+        String id = treeId(tree);
+        if (id == null || !isVolumeAvailable(context, tree, id) || !isParentFolder(context, tree, id, signal)) {
+            return null;
         }
-        String id = AndroidDocumentAccess.treeDocumentId(uri);
-        if (id == null) {
-            return false;
+        Directories directories = inspectDirectories(context, tree, id, signal);
+        return directories.isEmpty() ? null : directories;
+    }
+
+    private static Directories inspectDirectories(Context context, Uri tree, String id, CancellationSignal signal) {
+        Uri profiles = directChild(context, tree, id, Kind.PROFILES.folder);
+        Uri segments = directChild(context, tree, id, Kind.SEGMENTS.folder);
+        if (profiles != null && segments != null) {
+            return new Directories(profiles, segments);
         }
+        Map<String, Uri> directories = ProviderLookups.run(
+                tree, () -> AndroidDocumentAccess.childDirectories(context, tree, signal), Collections.emptyMap());
+        return new Directories(preferDirect(profiles, directories.get(Kind.PROFILES.folder)),
+                preferDirect(segments, directories.get(Kind.SEGMENTS.folder)));
+    }
+
+    @Nullable
+    private static Uri preferDirect(@Nullable Uri direct, @Nullable Uri listed) {
+        return direct == null ? listed : direct;
+    }
+
+    @Nullable
+    private static Uri directChild(Context context, Uri tree, String id, String folder) {
+        String childId = id + "/" + folder;
+        return AndroidDocumentAccess.isExternalStorageDocument(tree)
+                && AndroidDocumentAccess.canReadExternalDirectory(context, childId)
+                ? AndroidDocumentAccess.descendantDocumentUri(tree, childId) : null;
+    }
+
+    private static boolean isParentFolder(Context context, Uri uri, String id, CancellationSignal signal) {
         if (AndroidDocumentAccess.isExternalStorageDocument(uri)) {
             return isSelectableDocumentId(id) && FOLDER.equalsIgnoreCase(folderName(id));
         }
         Uri document = AndroidDocumentAccess.buildTreeDocumentUri(uri);
-        return document != null && FOLDER.equalsIgnoreCase(AndroidDocumentAccess.displayName(context, document));
+        return document != null && FOLDER.equalsIgnoreCase(ProviderLookups.run(
+                uri, () -> AndroidDocumentAccess.displayName(context, document, signal), null));
     }
 
     static boolean isSelectableDocumentId(String id) {
@@ -65,63 +111,86 @@ public final class AndroidBRouterFolderAccess {
     }
 
     @Nullable
-    static Uri dataDirectory(Context context, Uri parentTree, String folder) {
-        if (!parentTree.equals(BRouterFolderGrant.get(context))) {
-            return parentTree;
-        }
-        if (AndroidDocumentAccess.isExternalStorageDocument(parentTree)) {
-            String parentId = AndroidDocumentAccess.treeDocumentId(parentTree);
-            return parentId == null ? null
-                    : AndroidDocumentAccess.descendantDocumentUri(parentTree, parentId + "/" + folder);
-        }
-        return AndroidDocumentAccess.childDocumentUri(context, parentTree, folder);
+    static Uri dataDirectory(Context context, Uri tree, Kind kind) {
+        return tree.equals(BRouterFolderGrant.get(context))
+                ? BRouterFolderGrant.directory(context, kind == Kind.PROFILES) : tree;
     }
 
-    static boolean hasPersistedReadPermission(@NonNull Context context, @Nullable Uri uri, @NonNull Kind kind) {
-        return uri != null && AndroidPersistedUriPermissions.hasReadPermission(context, uri)
-                && isVolumeAvailable(context, uri)
-                && (uri.equals(BRouterFolderGrant.get(context))
-                        ? isParentFolder(context, uri) : isBRouterFolderSelection(context, uri, kind));
+    static boolean hasPersistedReadPermission(Context context, @Nullable Uri uri, Kind kind) {
+        if (uri == null || !AndroidPersistedUriPermissions.hasReadPermission(context, uri)) {
+            return false;
+        }
+        String id = treeId(uri);
+        if (id == null || !isVolumeAvailable(context, uri, id)) {
+            return false;
+        }
+        if (uri.equals(BRouterFolderGrant.get(context))) {
+            verifyPreviousParent(context, uri, id);
+            return BRouterFolderGrant.directory(context, kind == Kind.PROFILES) != null;
+        }
+        // Old grants remain readable wherever Android continues to honor them.
+        return !AndroidDocumentAccess.isExternalStorageDocument(uri) || !kind.otherFolder.equalsIgnoreCase(folderName(id));
     }
 
-    private static boolean isVolumeAvailable(Context context, Uri uri) {
+    private static void verifyPreviousParent(Context context, Uri tree, String id) {
+        if (BRouterFolderGrant.directoriesVerified(context) || !MIGRATING.compareAndSet(false, true)) {
+            return;
+        }
+        Context app = context.getApplicationContext();
+        AndroidBRouterFolderDiscovery.find(
+                signal -> inspectDirectories(app, tree, id, signal),
+                null, directories -> {
+                    MIGRATING.set(false);
+                    if (directories != null && tree.equals(BRouterFolderGrant.get(app))
+                            && !BRouterFolderGrant.directoriesVerified(app)) {
+                        BRouterFolderGrant.save(app, tree, directories.profiles, directories.segments);
+                    }
+                });
+    }
+
+    private static boolean isVolumeAvailable(Context context, Uri uri, String id) {
         if (!AndroidDocumentAccess.isExternalStorageDocument(uri)) {
             return true;
         }
-        String id = AndroidDocumentAccess.treeDocumentId(uri);
-        int separator = id == null ? -1 : id.indexOf(':');
+        int separator = id.indexOf(':');
         if (separator <= 0) {
             return false;
         }
         String root = id.substring(0, separator);
-        return "primary".equalsIgnoreCase(root) || AndroidStorageVolumes.secondaryStorageRootIds(context).contains(root);
+        return "primary".equalsIgnoreCase(root) || "home".equalsIgnoreCase(root)
+                || AndroidStorageVolumes.secondaryStorageRootIds(context).contains(root);
     }
 
-    private static boolean isBRouterFolderSelection(Context context, Uri uri, Kind kind) {
-        if (!DocumentsContractCompat.isTreeUri(uri)) {
-            return false;
-        }
-        String id = AndroidDocumentAccess.treeDocumentId(uri);
-        if (id == null) {
-            return false;
-        }
-        if (AndroidDocumentAccess.isExternalStorageDocument(uri)) {
-            return isSelectableDocumentId(id) && !kind.otherFolder.equalsIgnoreCase(folderName(id))
-                    && !"Download".equalsIgnoreCase(id.substring(id.indexOf(':') + 1));
-        }
-        if (DOWNLOADS_AUTHORITY.equals(uri.getAuthority()) && isDownloadsRoot(id)) {
-            return false;
-        }
-        Uri document = AndroidDocumentAccess.buildTreeDocumentUri(uri);
-        return document != null && !kind.otherFolder.equalsIgnoreCase(AndroidDocumentAccess.displayName(context, document));
-    }
-
-    private static boolean isDownloadsRoot(String id) {
-        return "downloads".equals(id) || id.matches("raw:/(sdcard|storage/(emulated/\\d+|[^/]+))/Download");
+    @Nullable
+    private static String treeId(Uri tree) {
+        return DocumentsContractCompat.isTreeUri(tree) ? AndroidDocumentAccess.treeDocumentId(tree) : null;
     }
 
     private static String folderName(String documentId) {
         String path = documentId.replaceAll("/+$", "");
         return path.substring(Math.max(path.lastIndexOf('/'), path.lastIndexOf(':')) + 1);
+    }
+
+    private record Directories(@Nullable Uri profiles, @Nullable Uri segments) {
+        boolean isEmpty() {
+            return profiles == null && segments == null;
+        }
+    }
+
+    private static final class ProviderLookups {
+        private static final Set<String> ACTIVE = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+        @Nullable
+        static <T> T run(Uri tree, Supplier<T> work, @Nullable T fallback) {
+            String authority = tree.getAuthority();
+            if (authority == null || !ACTIVE.add(authority)) {
+                return fallback;
+            }
+            try {
+                return work.get();
+            } finally {
+                ACTIVE.remove(authority);
+            }
+        }
     }
 }

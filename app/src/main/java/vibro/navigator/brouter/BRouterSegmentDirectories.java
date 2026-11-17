@@ -30,12 +30,9 @@ final class BRouterSegmentDirectories {
     @NonNull
     List<Uri> resolveSegmentsDiscoveryTreeUris(
             @NonNull Context context,
-            @Nullable Uri savedTreeUri
+            List<Uri> savedTrees
     ) {
-        List<Uri> out = new ArrayList<>();
-        if (savedTreeUri != null) {
-            addDiscoveryTreeUri(out, savedTreeUri);
-        }
+        List<Uri> out = new ArrayList<>(savedTrees);
         for (String documentId : getSegmentsDocumentIdCandidates(context)) {
             if (documentAccess.externalStorageDocumentExists(context, documentId)) {
                 addDiscoveryTreeUri(out, documentAccess.buildExternalStorageTreeUri(documentId));

@@ -33,6 +33,7 @@ public class AboutActivity extends AndroidLocalizedActivity {
     private AboutSettingsControllers settingsControllers;
     private AboutDiagnosticSection diagnosticSection;
     private AboutSettingsSwitches settingsSwitches;
+    private Bundle initialSettingsState;
     private final AboutDatabaseBackupActions databaseBackupActions = new AboutDatabaseBackupActions(
             this, this::flushDeferredSettings, this::renderAfterDatabaseImport);
     private boolean settingsInitializationScheduled;
@@ -50,6 +51,7 @@ public class AboutActivity extends AndroidLocalizedActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about);
         outputSaving.restoreState(savedInstanceState);
+        initialSettingsState = savedInstanceState;
 
         TextView version = findViewById(R.id.aboutVersion);
         AboutProjectLinks.configure(this);
@@ -113,6 +115,8 @@ public class AboutActivity extends AndroidLocalizedActivity {
                 navigationCustomButtonSwitch,
                 this::scheduleDiagnosticSectionRender
         );
+        settingsSwitches.streetPicker.restore(initialSettingsState);
+        initialSettingsState = null;
         settingsSwitches.configure();
         settingsControllers = new AboutSettingsControllers(this);
         settingsControllers.configure();
@@ -156,6 +160,7 @@ public class AboutActivity extends AndroidLocalizedActivity {
             diagnosticSection.shutdown();
         }
         if (settingsControllers != null) {
+            settingsSwitches.streetPicker.dispose();
             settingsControllers.shutdown();
         }
         super.onDestroy();
@@ -225,6 +230,7 @@ public class AboutActivity extends AndroidLocalizedActivity {
     protected void onSaveInstanceState(@NonNull Bundle state) {
         flushDeferredSettings();
         outputSaving.saveState(state);
+        AboutSettingsSwitches.savePicker(settingsSwitches, state);
         super.onSaveInstanceState(state);
     }
 

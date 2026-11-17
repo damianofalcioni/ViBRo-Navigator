@@ -18,6 +18,7 @@ import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 /** Sequences first-run folder grants and owns manual and automatic main-screen requests. */
 public final class AndroidBRouterStorageSetup {
     static final int REQUEST_FOLDER = 1102;
+    private static final String STATE_FIRST_RUN = "brouter_first_run_request";
     private static final String TAG = "BRouterStorageSetup";
     private final Activity activity;
     private final AndroidBRouterFolderRequests requests;
@@ -32,12 +33,26 @@ public final class AndroidBRouterStorageSetup {
         this.activity = activity;
         requests = new AndroidBRouterFolderRequests(activity);
         foreground = new AndroidBRouterForegroundChecks(activity, this, requests, state);
-        firstRunPicker = new AndroidBRouterPickerRequest(activity, "brouter_first_run_request");
+        firstRunPicker = new AndroidBRouterPickerRequest(activity, STATE_FIRST_RUN);
         firstRunCompletion = firstRunPicker.restore(state);
     }
 
     public boolean completedFirstRunStep() {
         return firstRunCompletion == Completion.ADVANCE;
+    }
+
+    public static boolean hasSharedPickerState(Bundle state) {
+        return state.containsKey(STATE_FIRST_RUN);
+    }
+
+    public void watchFirstRun(Runnable onAdvance, Runnable onRetry) {
+        firstRunPicker.watch(completion -> {
+            if (completion == Completion.ADVANCE) {
+                onAdvance.run();
+            } else {
+                onRetry.run();
+            }
+        });
     }
 
     public boolean requestForFirstRun(Runnable onCancel) {
@@ -77,8 +92,8 @@ public final class AndroidBRouterStorageSetup {
         }
     }
 
-    public void bindManualAction(View action) {
-        foreground.bindAction(action);
+    public void bindManualAction(View action, Runnable onPickerFinished) {
+        foreground.bindAction(action, onPickerFinished);
     }
 
     public void setForegroundChecksEnabled(boolean enabled) {
@@ -123,7 +138,8 @@ public final class AndroidBRouterStorageSetup {
     }
 
     public void dispose() {
-        foreground.setEnabled(false);
+        foreground.dispose();
+        firstRunPicker.stopWatching();
         if (isDialogShowing()) {
             folderDialog.dismiss();
         }

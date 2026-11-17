@@ -3,6 +3,7 @@ package vibro.navigator.android.storage;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.CancellationSignal;
 import android.provider.DocumentsContract;
 
 import androidx.annotation.NonNull;
@@ -13,7 +14,9 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import vibro.navigator.logging.AppLogger;
 
@@ -21,6 +24,36 @@ final class AndroidDocumentTreeFileAccess {
     private static final String TAG = "AndroidDocumentAccess";
 
     private AndroidDocumentTreeFileAccess() {
+    }
+
+    static Map<String, Uri> childDirectories(Context context, Uri tree, CancellationSignal signal) {
+        String id = AndroidDocumentAccess.treeDocumentId(tree);
+        Uri children = DocumentsContract.buildChildDocumentsUriUsingTree(tree, id);
+        try (Cursor cursor = context.getContentResolver().query(children, new String[]{
+                DocumentsContract.Document.COLUMN_DISPLAY_NAME, DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+                DocumentsContract.Document.COLUMN_MIME_TYPE
+        }, null, null, null, signal)) {
+            return cursor == null ? Collections.emptyMap() : readDirectories(tree, cursor);
+        } catch (RuntimeException e) {
+            AppLogger.d(TAG, "Unable to list BRouter directories: " + e.getClass().getSimpleName());
+            return Collections.emptyMap();
+        }
+    }
+
+    private static Map<String, Uri> readDirectories(Uri tree, Cursor cursor) {
+        int name = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME);
+        int id = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DOCUMENT_ID);
+        int type = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_MIME_TYPE);
+        Map<String, Uri> directories = new HashMap<>();
+        while (cursor.moveToNext()) {
+            String displayName = cursor.getString(name);
+            if (DocumentsContract.Document.MIME_TYPE_DIR.equals(cursor.getString(type))
+                    && !directories.containsKey(displayName)) {
+                directories.put(displayName, DocumentsContract.buildDocumentUriUsingTree(tree,
+                        cursor.getString(id)));
+            }
+        }
+        return directories;
     }
 
     @NonNull

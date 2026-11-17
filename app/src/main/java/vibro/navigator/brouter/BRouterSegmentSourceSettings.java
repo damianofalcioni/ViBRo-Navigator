@@ -29,14 +29,11 @@ public final class BRouterSegmentSourceSettings {
     }
 
     static void save(Context context, Uri uri) {
-        saveSource(context, TREE_URI, uri);
+        applySourceChange(prefs(context).edit().putString(TREE_URI, uri.toString()));
     }
 
-    static void saveSource(Context context, String key, Uri uri) {
-        prefs(context).edit()
-                .putString(key, uri.toString())
-                .putString(REVISION, UUID.randomUUID().toString())
-                .apply();
+    static void applySourceChange(SharedPreferences.Editor editor) {
+        editor.putString(REVISION, UUID.randomUUID().toString()).apply();
     }
 
     @NonNull

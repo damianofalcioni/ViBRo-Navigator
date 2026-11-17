@@ -45,13 +45,23 @@ final class AndroidBRouterFolderRequests {
 
     void handleResult(int resultCode, @Nullable Intent data, AndroidBRouterPickerRequest picker,
                       Runnable onAdvance, Runnable onRetry) {
-        if (resultCode == Activity.RESULT_OK && !AndroidBRouterFolderAccess.saveSelection(activity, data)) {
-            Toast.makeText(activity, R.string.msg_brouter_folder_required, Toast.LENGTH_SHORT).show();
-            picker.complete(Completion.RETRY);
-            onRetry.run();
-        } else {
+        if (resultCode != Activity.RESULT_OK) {
             picker.complete(Completion.ADVANCE);
             onAdvance.run();
+            return;
         }
+        picker.beginValidation();
+        AndroidBRouterFolderAccess.saveSelection(activity, data, saved -> {
+            picker.complete(saved ? Completion.ADVANCE : Completion.RETRY);
+            if (activity.isDestroyed() || activity.isFinishing()) {
+                return;
+            }
+            if (saved) {
+                onAdvance.run();
+            } else {
+                Toast.makeText(activity, R.string.msg_brouter_folder_required, Toast.LENGTH_SHORT).show();
+                onRetry.run();
+            }
+        });
     }
 }

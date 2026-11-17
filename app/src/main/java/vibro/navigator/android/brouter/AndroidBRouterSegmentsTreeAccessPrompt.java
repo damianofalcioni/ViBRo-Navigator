@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 
 import androidx.core.util.Consumer;
 
+import vibro.navigator.R;
 
 public final class AndroidBRouterSegmentsTreeAccessPrompt {
     private AndroidBRouterSegmentsTreeAccessPrompt() {
@@ -25,7 +26,7 @@ public final class AndroidBRouterSegmentsTreeAccessPrompt {
             @NonNull Runnable beforeLaunch,
             @NonNull Runnable onCancel
     ) {
-        AndroidBRouterDeferredPrompt.request(activity,
+        AndroidBRouterDeferredPrompt.request(activity, requestCode, true,
                 signal -> findLocation(activity, Collections.emptySet(), signal),
                 location -> showNow(activity, location.initialUri, requestCode, logTag, beforeLaunch, onCancel, onCancel));
     }
@@ -57,5 +58,17 @@ public final class AndroidBRouterSegmentsTreeAccessPrompt {
     ) {
         return AndroidBRouterFolderPrompt.show(activity, initialUri, requestCode, logTag,
                 beforeLaunch, onCancel, onLaunchFailure);
+    }
+
+    public static AlertDialog showRetry(Activity activity, @Nullable Uri initialUri, int requestCode,
+                                        String logTag, Runnable beforeLaunch, Runnable onSkip) {
+        return new AlertDialog.Builder(activity)
+                .setTitle(R.string.title_brouter_storage_access)
+                .setMessage(R.string.msg_brouter_folder_required)
+                .setPositiveButton(R.string.action_browse, (dialog, which) ->
+                        AndroidBRouterTreePicker.launch(activity, initialUri, requestCode, logTag, beforeLaunch, onSkip))
+                .setNegativeButton(R.string.action_cancel, (dialog, which) -> onSkip.run())
+                .setOnCancelListener(dialog -> onSkip.run())
+                .show();
     }
 }

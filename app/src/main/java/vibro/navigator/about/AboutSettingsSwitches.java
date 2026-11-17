@@ -2,6 +2,7 @@ package vibro.navigator.about;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Bundle;
 import android.widget.Switch;
 import android.widget.Toast;
 
@@ -9,10 +10,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
-import vibro.navigator.android.brouter.AndroidBRouterFolderAccess;
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
 import vibro.navigator.android.brouter.AndroidBRouterSegmentsRepositoryFactory;
-import vibro.navigator.android.brouter.AndroidBRouterSegmentsTreeAccessPrompt;
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.android.storage.AndroidLegacyExternalStorageAccess;
 import vibro.navigator.brouter.BRouterProfilesRepository;
@@ -89,7 +88,7 @@ final class AboutSettingsSwitches {
     private AboutDeferredBooleanSetting navigationNotificationsSetting;
     private AboutDeferredBooleanSetting singleInstructionModeSetting;
     private AboutDeferredBooleanSetting navigationCustomButtonSetting;
-    private boolean waitingForSurroundingStreetSegmentsTree;
+    final AboutStreetPicker streetPicker;
 
     AboutSettingsSwitches(
             @NonNull Activity activity,
@@ -124,6 +123,7 @@ final class AboutSettingsSwitches {
         this.navigationNotificationsSwitch = navigationNotificationsSwitch;
         this.singleInstructionModeSwitch = singleInstructionModeSwitch;
         this.navigationCustomButtonSwitch = navigationCustomButtonSwitch;
+        streetPicker = new AboutStreetPicker(activity);
         this.afterSettingApplied = afterSettingApplied;
     }
 
@@ -141,6 +141,7 @@ final class AboutSettingsSwitches {
         configureNavigationNotificationsSwitch();
         configureSingleInstructionModeSwitch();
         configureNavigationCustomButtonSwitch();
+        streetPicker.bind(this::onStreetFolderSaved);
     }
 
     void render() {
@@ -231,25 +232,25 @@ final class AboutSettingsSwitches {
     }
 
     boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode != REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE) {
-            return false;
-        }
-        if (!waitingForSurroundingStreetSegmentsTree) {
-            return true;
-        }
-        waitingForSurroundingStreetSegmentsTree = false;
-        if (resultCode != Activity.RESULT_OK || !AndroidBRouterFolderAccess.saveSelection(activity, data)) {
-            denySurroundingStreetsStorage();
-            return true;
-        }
+        return streetPicker.handleResult(requestCode, resultCode, data);
+    }
+
+    private void onStreetFolderSaved(boolean saved) {
         if (!isBRouterInstalled()) {
             denySurroundingStreetsBRouterMissing();
-            return true;
+        } else if (!saved || !segmentsRepository.hasPersistedSegmentsTreeAccess(activity)) {
+            denySurroundingStreetsStorage();
+        } else {
+            surroundingStreetsSetting.set(true);
+            surroundingStreetsSetting.flush();
+            render();
         }
-        surroundingStreetsSetting.set(true);
-        surroundingStreetsSetting.flush();
-        render();
-        return true;
+    }
+
+    static void savePicker(@Nullable AboutSettingsSwitches switches, Bundle state) {
+        if (switches != null) {
+            switches.streetPicker.save(state);
+        }
     }
 
     private void configureLogEnabledSwitch() {
@@ -351,7 +352,7 @@ final class AboutSettingsSwitches {
                 return;
             }
             if (isChecked && shouldRequestSurroundingStreetSegmentsTree()) {
-                startSurroundingStreetSegmentsTreePicker();
+                streetPicker.request(TAG, this::denySurroundingStreetsStorage);
                 return;
             }
             surroundingStreetsSetting.set(isChecked);
@@ -365,16 +366,6 @@ final class AboutSettingsSwitches {
     private boolean shouldRequestSurroundingStreetSegmentsTree() {
         return !AndroidLegacyExternalStorageAccess.isRuntimeReadPermissionRelevant()
                 && !segmentsRepository.hasPersistedSegmentsTreeAccess(activity);
-    }
-
-    private void startSurroundingStreetSegmentsTreePicker() {
-        AndroidBRouterSegmentsTreeAccessPrompt.show(
-                activity,
-                REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE,
-                TAG,
-                () -> waitingForSurroundingStreetSegmentsTree = true,
-                this::denySurroundingStreetsStorage
-        );
     }
 
     private void denySurroundingStreetsBRouterMissing() {

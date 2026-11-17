@@ -17,11 +17,14 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.NotDirectoryException;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.concurrent.Semaphore;
 
 import vibro.navigator.android.storage.AndroidDocumentAccess.DirectoryPresence;
 import vibro.navigator.logging.AppLogger;
 
 final class AndroidExternalDirectoryPresence {
+    // A provider can ignore cancellation. Limit outstanding probes to that provider.
+    private static final Semaphore DISCOVERY_QUERY = new Semaphore(1);
     private AndroidExternalDirectoryPresence() {
     }
 
@@ -34,8 +37,20 @@ final class AndroidExternalDirectoryPresence {
             return directPresence;
         }
         // A denied provider query leaves open the possibility that the picker can see the folder.
-        DirectoryPresence providerPresence = documentProviderDirectoryPresence(context, documentId, signal);
+        DirectoryPresence providerPresence = discoveryProviderPresence(context, documentId, signal);
         return providerPresence == DirectoryPresence.MISSING ? directPresence : providerPresence;
+    }
+
+    private static DirectoryPresence discoveryProviderPresence(Context context, String documentId,
+                                                               CancellationSignal signal) {
+        if (!DISCOVERY_QUERY.tryAcquire()) {
+            return DirectoryPresence.UNKNOWN;
+        }
+        try {
+            return documentProviderDirectoryPresence(context, documentId, signal);
+        } finally {
+            DISCOVERY_QUERY.release();
+        }
     }
 
     @NonNull
@@ -55,7 +70,10 @@ final class AndroidExternalDirectoryPresence {
                     cursor.getString(cursor.getColumnIndexOrThrow(mimeType)))
                     ? DirectoryPresence.PRESENT : DirectoryPresence.MISSING;
         } catch (OperationCanceledException e) {
-            throw e;
+            if (signal != null) {
+                signal.throwIfCanceled();
+            }
+            return DirectoryPresence.UNKNOWN;
         } catch (Exception e) {
             AppLogger.d("AndroidDocumentAccess", "Document not accessible documentId=" + documentId
                     + " error=" + e.getClass().getSimpleName());

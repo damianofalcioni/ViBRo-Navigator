@@ -144,6 +144,7 @@ public class MainActivityFirstRunSetupTest {
             AlertDialog profiles = ShadowAlertDialog.getLatestAlertDialog();
             assertTrue(profiles.isShowing());
             assertTrue(String.valueOf(shadowOf(profiles).getMessage()).contains(BROUTER_FOLDER));
+            TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
             Intent grant = folderSelection(BROUTER_FOLDER_ID);
             chooseFolder(activity, grant);
             assertEquals(grant.getData(), activity.getContentResolver().getPersistedUriPermissions().get(0).getUri());
@@ -288,6 +289,7 @@ public class MainActivityFirstRunSetupTest {
             assertTrue(ShadowAlertDialog.getLatestAlertDialog().isShowing());
 
             Intent segments = folderSelection(BROUTER_FOLDER_ID);
+            TestBRouterStorage.createPrimaryFolder(PROFILES_FOLDER);
             assertEquals(request.requestCode, chooseFolder(activity, segments));
             assertEquals(segments.getData(), activity.getContentResolver().getPersistedUriPermissions().get(0).getUri());
             assertFalse(ShadowAlertDialog.getLatestAlertDialog().isShowing());

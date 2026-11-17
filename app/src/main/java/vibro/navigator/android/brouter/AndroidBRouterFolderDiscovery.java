@@ -76,7 +76,7 @@ final class AndroidBRouterFolderDiscovery {
                 execute(task);
             } catch (RejectedExecutionException e) {
                 AppLogger.d("BRouterFolderDiscovery", "Folder discovery workers are busy");
-                deliver(fallback);
+                postResult(() -> deliver(fallback));
             }
         }
 

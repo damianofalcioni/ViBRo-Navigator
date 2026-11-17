@@ -121,6 +121,51 @@ public class AboutSurroundingStreetStorageSettingsRobolectricTest {
         assertFalse(AppCompassSettings.isSurroundingStreetsEnabled(activity));
     }
 
+    @Test
+    @Config(sdk = Build.VERSION_CODES.R)
+    public void enableActionTakesPriorityOverPendingDiagnosticsLookup() {
+        installBRouterPackage();
+        TestBRouterStorage.createPrimaryFolder("segments4");
+        AboutActivity activity = activity();
+        shadowOf(android.os.Looper.getMainLooper()).idleFor(
+                AboutDiagnosticRenderScheduler.INITIAL_DIAGNOSTIC_RENDER_DELAY_MS + 50,
+                java.util.concurrent.TimeUnit.MILLISECONDS);
+        activity.findViewById(R.id.aboutPermissionBRouterStorageRow).performClick();
+        enableStreets(activity);
+        assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(activity));
+    }
+
+    @Test
+    @Config(sdk = Build.VERSION_CODES.R)
+    public void streetSwitchConsumesPickerResultAfterRecreation() {
+        installBRouterPackage();
+        TestBRouterStorage.createPrimaryFolder("segments4");
+        try (var controller = AboutActivityTestSupport.setupControllerWithSettings()) {
+            var activity = controller.get();
+            activity.findViewById(R.id.aboutCompassSurroundingStreetsSwitch).performClick();
+            continueFromBRouterPrompt(activity);
+            var picker = shadowOf(activity).getNextStartedActivityForResult();
+            controller.recreate();
+            grantFolder(controller.get(), picker.requestCode);
+            assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(controller.get()));
+        }
+    }
+
+    private static void enableStreets(AboutActivity activity) {
+        activity.findViewById(R.id.aboutCompassSurroundingStreetsSwitch).performClick();
+        continueFromBRouterPrompt(activity);
+        var picker = shadowOf(activity).getNextStartedActivityForResult();
+        assertEquals(AboutSettingsSwitches.REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE, picker.requestCode);
+        grantFolder(activity, picker.requestCode);
+    }
+
+    private static void grantFolder(AboutActivity activity, int requestCode) {
+        var tree = vibro.navigator.android.storage.AndroidDocumentAccess
+                .buildExternalStorageTreeUri("primary:Android/media/btools.routingapp/brouter");
+        activity.onActivityResult(requestCode, android.app.Activity.RESULT_OK,
+                new Intent().setData(tree).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));
+    }
+
     private static AboutActivity activity() {
         return AboutActivityTestSupport.setupWithSettings();
     }

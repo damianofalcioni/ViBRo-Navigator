@@ -37,7 +37,7 @@ public final class AndroidBRouterProfilesRepositoryFactory {
     }
 
     private static final class AndroidDocuments implements BRouterProfileDependencies.DocumentAccess {
-        private static final String FOLDER = "profiles2";
+        private static final AndroidBRouterFolderAccess.Kind KIND = AndroidBRouterFolderAccess.Kind.PROFILES;
 
         @Nullable
         @Override
@@ -48,7 +48,7 @@ public final class AndroidBRouterProfilesRepositoryFactory {
         @Nullable
         @Override
         public Uri profilePickerDirectory(@NonNull Context context, @NonNull Uri treeUri) {
-            Uri directory = AndroidBRouterFolderAccess.dataDirectory(context, treeUri, FOLDER);
+            Uri directory = AndroidBRouterFolderAccess.dataDirectory(context, treeUri, KIND);
             if (directory == null || !directory.equals(treeUri)) {
                 return directory;
             }
@@ -86,14 +86,14 @@ public final class AndroidBRouterProfilesRepositoryFactory {
         @NonNull
         @Override
         public List<String> childDisplayNames(@NonNull Context context, @NonNull Uri treeUri) {
-            Uri directory = AndroidBRouterFolderAccess.dataDirectory(context, treeUri, FOLDER);
+            Uri directory = AndroidBRouterFolderAccess.dataDirectory(context, treeUri, KIND);
             return directory == null ? Collections.emptyList() : AndroidDocumentAccess.childDisplayNames(context, directory);
         }
 
         @Nullable
         @Override
         public Uri childDocumentUri(@NonNull Context context, @NonNull Uri treeUri, @NonNull String displayName) {
-            Uri directory = AndroidBRouterFolderAccess.dataDirectory(context, treeUri, FOLDER);
+            Uri directory = AndroidBRouterFolderAccess.dataDirectory(context, treeUri, KIND);
             return directory == null ? null : AndroidDocumentAccess.childDocumentUri(context, directory, displayName);
         }
 

@@ -38,10 +38,10 @@ public final class AndroidFirstRunPermissions {
         storage = new AndroidBRouterStorageSetup(activity, state);
         steps = new Step[]{this::brouterStorage, this::runtime, this::location,
                 this::notifications, this::battery};
-        if (state != null) {
-            step = state.getInt(STATE_STEP) + (storage.completedFirstRunStep() ? 1 : 0);
-            waitingForResult = state.getBoolean(STATE_WAITING);
-        }
+        SavedStep saved = SavedStep.restore(state, storage.completedFirstRunStep());
+        step = saved.index;
+        waitingForResult = saved.waiting;
+        storage.watchFirstRun(this::next, this::resumeSetup);
     }
 
     public void start() {
@@ -159,8 +159,8 @@ public final class AndroidFirstRunPermissions {
         storage.setResumed(resumed);
     }
 
-    public void bindBRouterAction(View action) {
-        storage.bindManualAction(action);
+    public void bindBRouterAction(View action, Runnable onPickerFinished) {
+        storage.bindManualAction(action, onPickerFinished);
     }
 
     public ArrayList<String> skippedSegmentsFolders() {
@@ -176,5 +176,20 @@ public final class AndroidFirstRunPermissions {
 
     private interface Step {
         boolean request();
+    }
+
+    private record SavedStep(int index, boolean waiting) {
+        static SavedStep restore(Bundle state, boolean completedFolderStep) {
+            if (state == null) {
+                return new SavedStep(0, false);
+            }
+            int index = state.getInt(STATE_STEP);
+            boolean waiting = state.getBoolean(STATE_WAITING);
+            if (AndroidBRouterStorageSetup.hasSharedPickerState(state)) {
+                return new SavedStep(index + (completedFolderStep ? 1 : 0), waiting);
+            }
+            // Old snapshots used two folder pickers. Recheck grants in the shared step.
+            return new SavedStep(Math.max(0, index - 1), waiting && index >= 2);
+        }
     }
 }

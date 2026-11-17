@@ -209,6 +209,7 @@ public class AboutPermissionStatusRowsRobolectricTest {
     public void restoredAboutScreenConsumesSharedGrantBeforeDiagnosticsRender() {
         installBRouterPackage();
         TestBRouterStorage.createPrimaryFolder("profiles2");
+        TestBRouterStorage.createPrimaryFolder("segments4");
         try (var controller = Robolectric.buildActivity(AboutActivity.class).setup()) {
             AboutActivity activity = controller.get();
             idleInitialDiagnosticRender();

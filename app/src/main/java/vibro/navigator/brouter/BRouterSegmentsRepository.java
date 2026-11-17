@@ -127,7 +127,8 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
     @NonNull
     private List<Uri> discoveryTreeUris(@NonNull Context context) {
         if (discoveryTreeUris == null) {
-            discoveryTreeUris = segmentDirectories.resolveSegmentsDiscoveryTreeUris(context, getGrantedSegmentsTreeUri(context));
+            discoveryTreeUris = segmentDirectories.resolveSegmentsDiscoveryTreeUris(context, BRouterFolderGrant.discoveryTrees(
+                    context, getSegmentsTreeUri(context), dependencies.uriPermissionAccess::hasReadPermission));
         }
         return discoveryTreeUris;
     }
