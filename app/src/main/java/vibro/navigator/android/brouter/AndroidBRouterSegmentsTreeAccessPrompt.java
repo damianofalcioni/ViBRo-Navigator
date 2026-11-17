@@ -7,6 +7,7 @@ import android.os.CancellationSignal;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicReference;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -27,24 +28,28 @@ public final class AndroidBRouterSegmentsTreeAccessPrompt {
             @NonNull Runnable onCancel
     ) {
         AndroidBRouterDeferredPrompt.request(activity, requestCode, true,
-                signal -> findLocation(activity, Collections.emptySet(), signal),
+                (signal, progress) -> findLocation(activity, Collections.emptySet(), signal, progress),
                 location -> showNow(activity, location.initialUri, requestCode, logTag, beforeLaunch, onCancel, onCancel));
     }
 
     public static void findAvailableFolder(Activity activity,
                                            Collection<String> excluded, Consumer<Uri> onResult) {
-        AndroidBRouterFolderDiscovery.find(
-                signal -> findLocation(activity, excluded, signal).confirmedUri(), null, onResult);
+        AtomicReference<Uri> fallback = new AtomicReference<>();
+        AndroidBRouterFolderDiscovery.findWithFallback(
+                signal -> findLocation(activity, excluded, signal, location -> fallback.set(location.confirmedUri()))
+                        .confirmedUri(), fallback::get, onResult);
     }
 
     @NonNull
     private static AndroidBRouterPickerLocation findLocation(
             @NonNull Activity activity,
             Collection<String> excluded,
-            CancellationSignal signal
+            CancellationSignal signal,
+            Consumer<AndroidBRouterPickerLocation> progress
     ) {
         return AndroidBRouterPickerLocation.resolve(
-                activity, null, AndroidBRouterFolderAccess.FOLDER, excluded, signal);
+                activity, null, AndroidBRouterFolderAccess.FOLDER, AndroidBRouterFolderAccess.Kind.SEGMENTS.folder,
+                excluded, signal, progress);
     }
 
     public static AlertDialog showNow(

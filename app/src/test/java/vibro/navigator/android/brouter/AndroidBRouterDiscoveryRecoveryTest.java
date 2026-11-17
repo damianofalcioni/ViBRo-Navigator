@@ -7,6 +7,8 @@ import static org.robolectric.Shadows.shadowOf;
 import android.os.Looper;
 import android.app.Activity;
 import android.content.pm.PackageInfo;
+import android.content.Intent;
+import android.net.Uri;
 import android.view.View;
 
 import org.junit.Test;
@@ -17,9 +19,11 @@ import org.robolectric.annotation.Config;
 import org.robolectric.annotation.Implements;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.android.storage.AndroidDocumentAccess.DirectoryPresence;
@@ -83,6 +87,53 @@ public class AndroidBRouterDiscoveryRecoveryTest {
                 release.countDown();
             }
         }
+    }
+
+    @Test
+    public void slowCandidateCannotHideALocalFallback() throws InterruptedException {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            var activity = controller.get();
+            TestBRouterStorage.createPrimaryDirectory("brouter/segments4");
+            var started = new CountDownLatch(1);
+            var release = new CountDownLatch(1);
+            TestBRouterStorage.registerDirectoryProvider(defaultParent(), () -> waitForRelease(started, release));
+            AtomicReference<Uri> result = new AtomicReference<>();
+            try {
+                AndroidBRouterSegmentsTreeAccessPrompt.findAvailableFolder(activity, Collections.emptyList(), result::set);
+                assertTrue(started.await(5, TimeUnit.SECONDS));
+                shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1100));
+                assertEquals(AndroidDocumentAccess.buildExternalStorageDocumentUri("primary:brouter"), result.get());
+            } finally {
+                release.countDown();
+            }
+        }
+    }
+
+    @Test
+    public void validationTimeoutPreservesTheAlreadyVerifiedChild() throws InterruptedException {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            var activity = controller.get();
+            TestBRouterStorage.createPrimaryFolder("profiles2");
+            var started = new CountDownLatch(1);
+            var release = new CountDownLatch(1);
+            TestBRouterStorage.registerDirectoryProvider(defaultParent(), () -> waitForRelease(started, release));
+            AtomicReference<Boolean> accepted = new AtomicReference<>();
+            try {
+                Intent grant = new Intent().setData(defaultParent()).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                AndroidBRouterFolderAccess.saveSelection(activity, grant, accepted::set);
+                assertTrue(started.await(5, TimeUnit.SECONDS));
+                shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1100));
+
+                assertEquals(true, accepted.get());
+                assertTrue(AndroidBRouterProfilesRepositoryFactory.create().hasPersistedProfilesTreeAccess(activity));
+            } finally {
+                release.countDown();
+            }
+        }
+    }
+
+    private static Uri defaultParent() {
+        return AndroidDocumentAccess.buildExternalStorageTreeUri("primary:Android/media/btools.routingapp/brouter");
     }
 
     @Test

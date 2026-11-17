@@ -15,6 +15,7 @@ import android.os.Looper;
 import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
+import androidx.core.util.Consumer;
 
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
 import vibro.navigator.brouter.BRouterProfileParameter;
@@ -371,7 +372,7 @@ public class ProfileSpinnerControllerTest {
         }
 
         @Override
-        public List<String> listProfiles(Context context) {
+        public List<String> listProfiles(Context context, Consumer<List<String>> onBundledProfiles) {
             return Collections.emptyList();
         }
     }
@@ -393,7 +394,7 @@ public class ProfileSpinnerControllerTest {
         }
 
         @Override
-        public List<String> listProfiles(Context context) {
+        public List<String> listProfiles(Context context, Consumer<List<String>> onBundledProfiles) {
             return profiles;
         }
     }

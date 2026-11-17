@@ -5,14 +5,22 @@ import android.app.AlertDialog;
 import android.app.Application;
 import android.os.Bundle;
 import android.view.ViewConfiguration;
+import android.os.CancellationSignal;
+
+import androidx.core.util.Consumer;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 
 /** Owns an instruction dialog from the initial tap through dismissal. */
 final class AndroidBRouterDeferredPrompt implements Application.ActivityLifecycleCallbacks {
+    interface LocationQuery {
+        AndroidBRouterPickerLocation find(CancellationSignal signal, Consumer<AndroidBRouterPickerLocation> progress);
+    }
+
     interface DialogFactory {
         AlertDialog show(AndroidBRouterPickerLocation location);
     }
@@ -33,7 +41,7 @@ final class AndroidBRouterDeferredPrompt implements Application.ActivityLifecycl
     }
 
     static void request(Activity activity, int requestCode, boolean replacePending,
-                        AndroidBRouterFolderDiscovery.Query<AndroidBRouterPickerLocation> query, DialogFactory show) {
+                        LocationQuery query, DialogFactory show) {
         if (activity.isFinishing() || activity.isDestroyed()) {
             return;
         }
@@ -55,9 +63,10 @@ final class AndroidBRouterDeferredPrompt implements Application.ActivityLifecycl
         return true;
     }
 
-    private void discover(AndroidBRouterFolderDiscovery.Query<AndroidBRouterPickerLocation> query) {
+    private void discover(LocationQuery query) {
         if (equals(PENDING.get(activity))) {
-            AndroidBRouterFolderDiscovery.find(query, AndroidBRouterPickerLocation.browse(), result -> {
+            AtomicReference<AndroidBRouterPickerLocation> fallback = new AtomicReference<>(AndroidBRouterPickerLocation.browse());
+            AndroidBRouterFolderDiscovery.findWithFallback(signal -> query.find(signal, fallback::set), fallback::get, result -> {
                 location = result;
                 showIfReady();
             });

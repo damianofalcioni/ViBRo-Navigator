@@ -14,7 +14,8 @@ public final class BRouterFolderGrant {
     private static final String TREE_URI = "brouter_tree_uri";
     private static final String PROFILES_URI = "brouter_profiles_uri";
     private static final String SEGMENTS_URI = "brouter_segments_uri";
-    private static final String VERIFIED = "brouter_directories_verified";
+    private static final String PROFILES_TREE = "brouter_profiles_tree_uri";
+    private static final String SEGMENTS_TREE = "brouter_segments_tree_uri";
 
     private BRouterFolderGrant() {
     }
@@ -29,8 +30,13 @@ public final class BRouterFolderGrant {
         return readUri(context, profiles ? PROFILES_URI : SEGMENTS_URI);
     }
 
-    public static boolean directoriesVerified(Context context) {
-        return BRouterSegmentSourceSettings.prefs(context).getBoolean(VERIFIED, false);
+    @Nullable
+    public static Uri parentFor(Context context, boolean profiles) {
+        if (directory(context, profiles) == null) {
+            return null;
+        }
+        Uri parent = readUri(context, profiles ? PROFILES_TREE : SEGMENTS_TREE);
+        return parent == null ? get(context) : parent;
     }
 
     @Nullable
@@ -40,25 +46,36 @@ public final class BRouterFolderGrant {
     }
 
     public static void save(Context context, Uri parent, @Nullable Uri profiles, @Nullable Uri segments) {
-        BRouterSegmentSourceSettings.applySourceChange(BRouterSegmentSourceSettings.prefs(context).edit()
-                .putString(TREE_URI, parent.toString())
-                .putString(PROFILES_URI, profiles == null ? null : profiles.toString())
-                .putString(SEGMENTS_URI, segments == null ? null : segments.toString())
-                .putBoolean(VERIFIED, true));
+        Uri profileSource = profiles == null ? parentFor(context, true) : parent;
+        Uri segmentSource = segments == null ? parentFor(context, false) : parent;
+        var editor = BRouterSegmentSourceSettings.prefs(context).edit().putString(TREE_URI, parent.toString());
+        editor.putString(PROFILES_TREE, profileSource == null ? null : profileSource.toString());
+        editor.putString(SEGMENTS_TREE, segmentSource == null ? null : segmentSource.toString());
+        if (profiles != null) {
+            editor.putString(PROFILES_URI, profiles.toString());
+        }
+        if (segments != null) {
+            editor.putString(SEGMENTS_URI, segments.toString());
+        }
+        BRouterSegmentSourceSettings.applySourceChange(editor);
     }
 
     @Nullable
-    static Uri resolve(Context context, @Nullable Uri legacy, GrantCheck check) {
+    static Uri resolve(Context context, @Nullable Uri legacy, boolean profiles, GrantCheck check) {
         Uri shared = get(context);
         if (shared != null && check.isGranted(context, shared)) {
             return shared;
         }
+        Uri previous = parentFor(context, profiles);
+        if (previous != null && !previous.equals(shared) && check.isGranted(context, previous)) {
+            return previous;
+        }
         return check.isGranted(context, legacy) ? legacy : null;
     }
 
-    static List<Uri> discoveryTrees(Context context, @Nullable Uri legacy, GrantCheck check) {
+    static List<Uri> discoveryTrees(Context context, @Nullable Uri legacy, boolean profiles, GrantCheck check) {
         List<Uri> trees = new ArrayList<>();
-        Uri primary = resolve(context, legacy, check);
+        Uri primary = resolve(context, legacy, profiles, check);
         if (primary != null) {
             trees.add(primary);
         }

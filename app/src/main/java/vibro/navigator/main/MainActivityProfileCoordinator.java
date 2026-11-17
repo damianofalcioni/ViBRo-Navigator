@@ -122,6 +122,7 @@ final class MainActivityProfileCoordinator {
 
     static void disposeStartup(@Nullable MainActivityProfileCoordinator coordinator) {
         if (coordinator != null) {
+            coordinator.profileSpinnerController.dispose();
             coordinator.startup.dispose();
         }
     }

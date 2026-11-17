@@ -15,6 +15,11 @@ final class ProfileSpinnerOptions {
     private final List<String> profiles = new ArrayList<>();
     private final List<ProfileSpinnerOption> options = new ArrayList<>();
 
+    void replaceFromLoad(Context context, List<String> loaded, boolean complete, @Nullable String customProfile) {
+        List<String> available = complete || profiles.isEmpty() ? loaded : new ArrayList<>(profiles);
+        replace(context, available, customProfile);
+    }
+
     void replace(
             @NonNull Context context,
             @NonNull List<String> newProfiles,

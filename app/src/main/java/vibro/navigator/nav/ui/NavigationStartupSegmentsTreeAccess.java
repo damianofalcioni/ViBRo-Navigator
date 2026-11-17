@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.os.BundleCompat;
 
 import java.util.Collections;
 import java.util.List;
@@ -29,6 +30,7 @@ final class NavigationStartupSegmentsTreeAccess {
     private static final String TAG = "NavigationActivity";
     private static final int REQUEST_SEGMENTS_TREE = 3005;
     private static final String STATE_STEP = "navigation_segments_access_step";
+    private static final String STATE_OFFERED_FOLDER = "navigation_segments_access_folder";
 
     private enum Step {
         IDLE, CHECK_FOLDER, WAIT_FOR_PICKER, RETRY_FOLDER, CONTINUE;
@@ -42,6 +44,11 @@ final class NavigationStartupSegmentsTreeAccess {
 
         static Step afterResult(Completion completion) {
             return completion == Completion.RETRY ? RETRY_FOLDER : CONTINUE;
+        }
+
+        @Nullable
+        static Uri restoreOfferedFolder(@Nullable Bundle state) {
+            return state == null ? null : BundleCompat.getParcelable(state, STATE_OFFERED_FOLDER, Uri.class);
         }
     }
 
@@ -70,12 +77,14 @@ final class NavigationStartupSegmentsTreeAccess {
 
     boolean restoreState(@Nullable Bundle state) {
         step = Step.restored(state, picker.restore(state));
+        offeredFolder = Step.restoreOfferedFolder(state);
         picker.watch(this::applyCompletion);
         return step != Step.IDLE;
     }
 
     void saveState(@NonNull Bundle state) {
         state.putString(STATE_STEP, step.name());
+        state.putParcelable(STATE_OFFERED_FOLDER, offeredFolder);
         picker.save(state);
     }
 

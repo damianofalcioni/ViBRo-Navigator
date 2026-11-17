@@ -13,8 +13,10 @@ import vibro.navigator.android.brouter.AndroidBRouterSegmentsTreeAccessPrompt;
 
 final class AboutStreetPicker {
     private static final int REQUEST = AboutSettingsSwitches.REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE;
+    private static final String STATE_ENABLE_REQUESTED = "about_streets_enable_requested";
     private final Activity activity;
     private final AndroidBRouterPickerRequest picker;
+    private boolean enableRequested;
     @Nullable
     private Boolean restoredResult;
     @Nullable
@@ -26,12 +28,14 @@ final class AboutStreetPicker {
     }
 
     void restore(@Nullable Bundle state) {
+        enableRequested = state != null && state.getBoolean(STATE_ENABLE_REQUESTED, true);
         acceptCompletion(picker.restore(state));
         picker.watch(this::acceptCompletion);
     }
 
     private void acceptCompletion(@Nullable AndroidBRouterPickerRequest.Completion completion) {
-        if (completion != null) {
+        if (completion != null && enableRequested) {
+            enableRequested = false;
             restoredResult = completion == AndroidBRouterPickerRequest.Completion.ADVANCE;
             deliver();
         }
@@ -51,9 +55,31 @@ final class AboutStreetPicker {
     }
 
     void request(String logTag, Runnable onCancel) {
+        enableRequested = true;
         if (!picker.isPending()) {
-            AndroidBRouterSegmentsTreeAccessPrompt.show(activity, REQUEST, logTag, () -> picker.begin(REQUEST), onCancel);
+            AndroidBRouterSegmentsTreeAccessPrompt.show(activity, REQUEST, logTag, () -> picker.begin(REQUEST), () -> {
+                if (enableRequested) {
+                    enableRequested = false;
+                    onCancel.run();
+                }
+            });
         }
+    }
+
+    void changeSetting(boolean enabled, AboutDeferredBooleanSetting setting, Runnable requestEnable) {
+        if (setting.isRendering()) {
+            return;
+        }
+        if (enabled) {
+            requestEnable.run();
+        } else {
+            enableRequested = false;
+            setting.set(false);
+        }
+    }
+
+    boolean displayedValue(boolean storedEnabled) {
+        return storedEnabled || (enableRequested && picker.isPending());
     }
 
     boolean handleResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -77,7 +103,8 @@ final class AboutStreetPicker {
 
     private void onFolderSaved(boolean saved) {
         picker.complete(saved ? AndroidBRouterPickerRequest.Completion.ADVANCE : AndroidBRouterPickerRequest.Completion.RETRY);
-        if (!activity.isDestroyed()) {
+        if (!activity.isDestroyed() && enableRequested) {
+            enableRequested = false;
             restoredResult = saved;
             deliver();
         }
@@ -85,6 +112,7 @@ final class AboutStreetPicker {
 
     void save(Bundle state) {
         picker.save(state);
+        state.putBoolean(STATE_ENABLE_REQUESTED, enableRequested);
     }
 
     void dispose() {

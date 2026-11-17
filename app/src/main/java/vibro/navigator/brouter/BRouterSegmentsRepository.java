@@ -23,6 +23,10 @@ import vibro.navigator.nav.streets.SurroundingStreetRepository;
 public final class BRouterSegmentsRepository implements SurroundingStreetRepository {
     private static final String TAG = "BRouterSegments";
 
+    interface TileReader {
+        boolean read(Uri uri);
+    }
+
     @NonNull
     private final BRouterSegmentDependencies dependencies;
     @NonNull
@@ -65,7 +69,7 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
 
     @Nullable
     public Uri getGrantedSegmentsTreeUri(@NonNull Context context) {
-        return BRouterFolderGrant.resolve(context, getSegmentsTreeUri(context),
+        return BRouterFolderGrant.resolve(context, getSegmentsTreeUri(context), false,
                 dependencies.uriPermissionAccess::hasReadPermission);
     }
 
@@ -91,23 +95,28 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
         return segments.isEmpty() ? CompassStreetOverlay.EMPTY : new CompassStreetOverlay(segments);
     }
 
-    @Nullable
-    Uri resolveSegmentFileUri(@NonNull Context context, @NonNull String fileName) {
+    boolean readGrantedTile(@NonNull Context context, @NonNull String fileName, TileReader reader) {
         refreshSourceCaches(context);
         if (missingSegmentFiles.contains(fileName)) {
-            return null;
+            return false;
         }
-        if (segmentFileUris.containsKey(fileName)) {
-            return segmentFileUris.get(fileName);
+        Uri cached = segmentFileUris.get(fileName);
+        if (cached != null && reader.read(cached)) {
+            return true;
         }
+        segmentFileUris.remove(fileName);
+        return readRemainingGrants(context, fileName, reader, cached);
+    }
+
+    private boolean readRemainingGrants(Context context, String fileName, TileReader reader, @Nullable Uri cached) {
         for (Uri treeUri : discoveryTreeUris(context)) {
             Uri documentUri = dependencies.documentAccess.childDocumentUri(context, treeUri, fileName);
-            if (documentUri != null) {
+            if (documentUri != null && !documentUri.equals(cached) && reader.read(documentUri)) {
                 segmentFileUris.put(fileName, documentUri);
-                return documentUri;
+                return true;
             }
         }
-        return null;
+        return false;
     }
 
     private void refreshSourceCaches(@NonNull Context context) {
@@ -128,7 +137,7 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
     private List<Uri> discoveryTreeUris(@NonNull Context context) {
         if (discoveryTreeUris == null) {
             discoveryTreeUris = segmentDirectories.resolveSegmentsDiscoveryTreeUris(context, BRouterFolderGrant.discoveryTrees(
-                    context, getSegmentsTreeUri(context), dependencies.uriPermissionAccess::hasReadPermission));
+                    context, getSegmentsTreeUri(context), false, dependencies.uriPermissionAccess::hasReadPermission));
         }
         return discoveryTreeUris;
     }

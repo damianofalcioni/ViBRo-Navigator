@@ -17,7 +17,10 @@ import android.content.pm.PackageInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
+import android.net.Uri;
 import android.provider.DocumentsContract;
+
+import androidx.core.content.IntentCompat;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,6 +49,7 @@ import vibro.navigator.settings.AppCompassSettings;
 @Config(sdk = Build.VERSION_CODES.R)
 public class NavigationActivityStartupStorageRobolectricTest {
     private static final String SEGMENTS_FOLDER = "segments4";
+    private static final String STORAGE_AUTHORITY = "com.android.externalstorage.documents";
 
     @Before
     public void setUp() {
@@ -155,7 +159,7 @@ public class NavigationActivityStartupStorageRobolectricTest {
             assertNull(shadowOf(activity).getNextStartedActivityForResult());
 
             Intent grant = new Intent().setData(DocumentsContract.buildTreeDocumentUri(
-                    "com.android.externalstorage.documents", "primary:Android/media/btools.routingapp/brouter"))
+                    STORAGE_AUTHORITY, "primary:Android/media/btools.routingapp/brouter"))
                     .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             activity.onActivityResult(requestCode, Activity.RESULT_OK, grant);
 
@@ -221,7 +225,7 @@ public class NavigationActivityStartupStorageRobolectricTest {
             continueFromBRouterPrompt(activity);
             int request = shadowOf(activity).getNextStartedActivityForResult().requestCode;
             Intent invalid = new Intent().setData(DocumentsContract.buildTreeDocumentUri(
-                    "com.android.externalstorage.documents", "primary:Download"))
+                    STORAGE_AUTHORITY, "primary:Download"))
                     .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             controller.pause();
             activity.onActivityResult(request, Activity.RESULT_OK, invalid);
@@ -235,6 +239,31 @@ public class NavigationActivityStartupStorageRobolectricTest {
             assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(activity));
             assertEquals(NavigationStartupCoordinator.REQUEST_PERMISSIONS,
                     shadowOf(activity).getLastRequestedPermission().requestCode);
+        }
+    }
+
+    @Test
+    public void restoredPickerRetryKeepsTheOriginalFolder() {
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
+        try (var controller = Robolectric.buildActivity(TestNavigationActivity.class, navigationIntent()).setup()) {
+            var activity = controller.get();
+            continueFromBRouterPrompt(activity);
+            var initial = shadowOf(activity).getNextStartedActivityForResult();
+            Uri folder = IntentCompat.getParcelableExtra(initial.intent, DocumentsContract.EXTRA_INITIAL_URI, Uri.class);
+            assertNotNull(folder);
+            Intent invalid = new Intent().setData(DocumentsContract.buildTreeDocumentUri(
+                    STORAGE_AUTHORITY, "primary:Download"))
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            activity.onActivityResult(initial.requestCode, Activity.RESULT_OK, invalid);
+
+            controller.recreate();
+            var retry = ShadowAlertDialog.getLatestAlertDialog();
+            assertTrue(retry.isShowing());
+            retry.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            shadowOf(Looper.getMainLooper()).idle();
+
+            Intent picker = shadowOf(controller.get()).getNextStartedActivityForResult().intent;
+            assertEquals(folder, IntentCompat.getParcelableExtra(picker, DocumentsContract.EXTRA_INITIAL_URI, Uri.class));
         }
     }
 
@@ -259,7 +288,7 @@ public class NavigationActivityStartupStorageRobolectricTest {
     }
 
     private static Intent navigationIntentSkipping(String documentId) {
-        String folder = DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", documentId).toString();
+        String folder = DocumentsContract.buildDocumentUri(STORAGE_AUTHORITY, documentId).toString();
         return navigationIntent().putStringArrayListExtra(NavigationActivity.EXTRA_SKIPPED_SEGMENTS_FOLDERS,
                 new ArrayList<>(Collections.singletonList(folder)));
     }

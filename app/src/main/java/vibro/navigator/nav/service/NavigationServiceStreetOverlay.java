@@ -35,7 +35,7 @@ final class NavigationServiceStreetOverlay {
                 context,
                 scheduler,
                 AndroidElapsedRealtimeClock.INSTANCE,
-                AndroidBRouterSegmentsRepositoryFactory.create(),
+                AndroidBRouterSegmentsRepositoryFactory::create,
                 stateEmitter
         ));
     }

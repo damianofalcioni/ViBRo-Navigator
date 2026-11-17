@@ -1,7 +1,8 @@
 package vibro.navigator.brouter;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.content.Context;
@@ -41,11 +42,11 @@ public class BRouterSegmentsRepositoryTest {
         BRouterSegmentsRepository active = new BRouterSegmentsRepository(testDependencies.dependencies);
         BRouterSegmentsRepository picker = new BRouterSegmentsRepository(testDependencies.dependencies);
         String tile = "E015_N45.rd5";
-        assertNull(active.resolveSegmentFileUri(activity, tile));
+        assertFalse(active.readGrantedTile(activity, tile, uri -> true));
         active.recordMissingSegmentFile(tile);
 
         picker.saveSegmentsTreeUri(activity, tree);
-        active.resolveSegmentFileUri(activity, tile);
+        active.readGrantedTile(activity, tile, uri -> true);
 
         assertEquals(tree, testDependencies.documentAccess.firstChildTreeUri);
     }
@@ -61,6 +62,30 @@ public class BRouterSegmentsRepositoryTest {
         repository.loadSurroundingStreets(activity, 48.2d, 16.3d, 80d, 10, CompassStreetVisibility.all());
 
         assertEquals(treeUri, testDependencies.documentAccess.firstChildTreeUri);
+    }
+
+    @Test
+    public void unreadableTileInNewGrantFallsBackToTheLegacyTile() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Uri legacy = Uri.parse("content://test.legacy/tree/segments4");
+            Uri parent = Uri.parse("content://test.shared/tree/brouter");
+            var repository = new BRouterSegmentsRepository(new BRouterSegmentDependencies(
+                    new TileCopies(parent), new TestFileAccess(), context -> Collections.emptyList(),
+                    (context, uri) -> legacy.equals(uri) || parent.equals(uri)));
+            repository.saveSegmentsTreeUri(activity, legacy);
+            int original = loadFixtureStreets(repository, activity);
+            assertTrue(original > 0);
+
+            BRouterFolderGrant.save(activity, parent, null, parent.buildUpon().appendPath("segments4").build());
+
+            assertEquals(original, loadFixtureStreets(repository, activity));
+        }
+    }
+
+    private static int loadFixtureStreets(BRouterSegmentsRepository repository, Context context) {
+        return repository.loadSurroundingStreets(context, 48.18773346166013d, 16.38147556524725d,
+                360d, 100, CompassStreetVisibility.all()).segments.size();
     }
 
     private static final class TestSegmentDependencies {
@@ -97,7 +122,7 @@ public class BRouterSegmentsRepositoryTest {
         }
     }
 
-    private static final class TestDocumentAccess implements BRouterSegmentDependencies.DocumentAccess {
+    private static class TestDocumentAccess implements BRouterSegmentDependencies.DocumentAccess {
         @Nullable
         private Uri firstChildTreeUri;
 
@@ -126,6 +151,27 @@ public class BRouterSegmentsRepositoryTest {
         public BRouterSegmentReadFile openReadFile(@NonNull Context context, @NonNull Uri documentUri)
                 throws IOException {
             return null;
+        }
+    }
+
+    private static final class TileCopies extends TestDocumentAccess {
+        private final Uri inaccessibleParent;
+
+        TileCopies(Uri inaccessibleParent) {
+            this.inaccessibleParent = inaccessibleParent;
+        }
+
+        @Override
+        public Uri childDocumentUri(Context context, Uri tree, String name) {
+            return tree.buildUpon().appendPath("document").appendPath(name).build();
+        }
+
+        @Override
+        public BRouterSegmentReadFile openReadFile(Context context, Uri file) throws IOException {
+            if (inaccessibleParent.getAuthority().equals(file.getAuthority())) {
+                throw new IOException("The second source lists the tile but cannot open it");
+            }
+            return new BRouterStreetTestFile();
         }
     }
 

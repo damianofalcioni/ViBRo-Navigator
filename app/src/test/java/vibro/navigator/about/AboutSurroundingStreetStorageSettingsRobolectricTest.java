@@ -38,6 +38,7 @@ import org.robolectric.shadows.ShadowToast;
 @Config(sdk = 26)
 public class AboutSurroundingStreetStorageSettingsRobolectricTest {
     private static final String LEGACY_STORAGE_PERMISSION = "android.permission.READ_EXTERNAL_STORAGE";
+    private static final String SEGMENTS = "segments4";
     private static final int PERMISSION_GRANTED = 0;
     private static final int PERMISSION_DENIED = -1;
 
@@ -106,7 +107,7 @@ public class AboutSurroundingStreetStorageSettingsRobolectricTest {
     @Config(sdk = Build.VERSION_CODES.R)
     public void surroundingStreetsSwitchRequestsSegmentsTreeOnAndroid11() {
         installBRouterPackage();
-        TestBRouterStorage.createPrimaryFolder("segments4");
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS);
         AboutActivity activity = activity();
         Switch surroundingStreetsSwitch = activity.findViewById(R.id.aboutCompassSurroundingStreetsSwitch);
 
@@ -125,7 +126,7 @@ public class AboutSurroundingStreetStorageSettingsRobolectricTest {
     @Config(sdk = Build.VERSION_CODES.R)
     public void enableActionTakesPriorityOverPendingDiagnosticsLookup() {
         installBRouterPackage();
-        TestBRouterStorage.createPrimaryFolder("segments4");
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS);
         AboutActivity activity = activity();
         shadowOf(android.os.Looper.getMainLooper()).idleFor(
                 AboutDiagnosticRenderScheduler.INITIAL_DIAGNOSTIC_RENDER_DELAY_MS + 50,
@@ -139,7 +140,7 @@ public class AboutSurroundingStreetStorageSettingsRobolectricTest {
     @Config(sdk = Build.VERSION_CODES.R)
     public void streetSwitchConsumesPickerResultAfterRecreation() {
         installBRouterPackage();
-        TestBRouterStorage.createPrimaryFolder("segments4");
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS);
         try (var controller = AboutActivityTestSupport.setupControllerWithSettings()) {
             var activity = controller.get();
             activity.findViewById(R.id.aboutCompassSurroundingStreetsSwitch).performClick();
@@ -148,6 +149,31 @@ public class AboutSurroundingStreetStorageSettingsRobolectricTest {
             controller.recreate();
             grantFolder(controller.get(), picker.requestCode);
             assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(controller.get()));
+        }
+    }
+
+    @Test
+    @Config(sdk = Build.VERSION_CODES.R,
+            shadows = vibro.navigator.android.brouter.AndroidBRouterSegmentsTreeAccessPromptTest.DelayedDiscovery.class)
+    public void switchingOffWhileValidatingDoesNotReenableStreets() {
+        installBRouterPackage();
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS);
+        try (var controller = AboutActivityTestSupport.setupControllerWithSettings()) {
+            AboutActivity activity = controller.get();
+            Switch setting = activity.findViewById(R.id.aboutCompassSurroundingStreetsSwitch);
+            setting.performClick();
+            var main = shadowOf(android.os.Looper.getMainLooper());
+            main.idleFor(800, java.util.concurrent.TimeUnit.MILLISECONDS);
+            continueFromBRouterPrompt(activity);
+            int request = shadowOf(activity).getNextStartedActivityForResult().requestCode;
+            grantFolder(activity, request);
+            assertTrue(setting.isChecked());
+            setting.performClick();
+
+            main.idleFor(800, java.util.concurrent.TimeUnit.MILLISECONDS);
+
+            assertFalse(AppCompassSettings.isSurroundingStreetsEnabled(activity));
+            assertFalse(setting.isChecked());
         }
     }
 

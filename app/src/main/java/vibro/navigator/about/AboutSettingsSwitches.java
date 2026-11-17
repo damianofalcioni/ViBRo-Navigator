@@ -339,28 +339,22 @@ final class AboutSettingsSwitches {
                 surroundingStreetsSwitch,
                 storedSurroundingStreetsValue()
         );
-        surroundingStreetsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked && !isBRouterInstalled()) {
-                denySurroundingStreetsBRouterMissing();
-                return;
-            }
-            if (isChecked && AndroidLegacyExternalStorageAccess.shouldRequestReadPermission(activity)) {
-                AndroidLegacyExternalStorageAccess.requestReadPermission(
-                        activity,
-                        REQUEST_SURROUNDING_STREETS_STORAGE
-                );
-                return;
-            }
-            if (isChecked && shouldRequestSurroundingStreetSegmentsTree()) {
-                streetPicker.request(TAG, this::denySurroundingStreetsStorage);
-                return;
-            }
-            surroundingStreetsSetting.set(isChecked);
-        });
+        surroundingStreetsSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
+                streetPicker.changeSetting(isChecked, surroundingStreetsSetting, () -> {
+                    if (!isBRouterInstalled()) {
+                        denySurroundingStreetsBRouterMissing();
+                    } else if (AndroidLegacyExternalStorageAccess.shouldRequestReadPermission(activity)) {
+                        AndroidLegacyExternalStorageAccess.requestReadPermission(activity, REQUEST_SURROUNDING_STREETS_STORAGE);
+                    } else if (shouldRequestSurroundingStreetSegmentsTree()) {
+                        streetPicker.request(TAG, this::denySurroundingStreetsStorage);
+                    } else {
+                        surroundingStreetsSetting.set(true);
+                    }
+                }));
     }
 
     private boolean storedSurroundingStreetsValue() {
-        return AppCompassSettings.isSurroundingStreetsEnabled(activity) && isBRouterInstalled();
+        return streetPicker.displayedValue(AppCompassSettings.isSurroundingStreetsEnabled(activity)) && isBRouterInstalled();
     }
 
     private boolean shouldRequestSurroundingStreetSegmentsTree() {

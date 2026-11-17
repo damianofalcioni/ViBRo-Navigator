@@ -147,10 +147,17 @@ final class AboutPermissionStatusRows {
         boolean installed = profilesRepository.isBRouterInstalled(activity);
         brouterStorageRow.setVisible(installed);
         if (installed) {
-            brouterStorageRow.render(AndroidBRouterProfilesStorageAccess.hasAccess(activity, profilesRepository)
-                    && (AndroidLegacyExternalStorageAccess.isRuntimeReadPermissionRelevant()
-                            || segmentsRepository.hasPersistedSegmentsTreeAccess(activity)));
+            brouterStorageRow.render(hasBRouterStorageAccess());
         }
+    }
+
+    private boolean hasBRouterStorageAccess() {
+        if (AndroidLegacyExternalStorageAccess.isRuntimeReadPermissionRelevant()) {
+            return AndroidLegacyExternalStorageAccess.hasReadPermission(activity);
+        }
+        return AndroidBRouterFolderAccess.hasUsableParent(activity)
+                || (profilesRepository.hasPersistedProfilesTreeAccess(activity)
+                        && segmentsRepository.hasPersistedSegmentsTreeAccess(activity));
     }
 
     private void openBRouterStorageAccess() {

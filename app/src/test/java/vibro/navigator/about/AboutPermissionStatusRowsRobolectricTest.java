@@ -234,6 +234,23 @@ public class AboutPermissionStatusRowsRobolectricTest {
     }
 
     @Test
+    @Config(sdk = Build.VERSION_CODES.R)
+    public void diagnosticsRecognizesAUsableParentWithOnlyProfiles() {
+        installBRouterPackage();
+        TestBRouterStorage.createPrimaryFolder("profiles2");
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
+        idleInitialDiagnosticRender();
+        Intent grant = new Intent().setData(DocumentsContract.buildTreeDocumentUri(
+                "com.android.externalstorage.documents", "primary:Android/media/btools.routingapp/brouter"))
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        activity.onActivityResult(AboutPermissionStatusRows.REQUEST_BROUTER_STORAGE, android.app.Activity.RESULT_OK, grant);
+
+        TextView status = activity.findViewById(R.id.aboutPermissionBRouterStorageStatus);
+        assertEquals(activity.getString(R.string.permission_status_ok), status.getText().toString());
+    }
+
+    @Test
     @Config(sdk = {Build.VERSION_CODES.O, Build.VERSION_CODES.P})
     public void legacyStorageRequestsSharedPermissionAndUpdatesStorageRow() {
         installBRouterPackage();

@@ -3,6 +3,7 @@ package vibro.navigator.nav.streets;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.core.util.Supplier;
 
 import java.util.List;
 
@@ -52,7 +53,7 @@ public final class SurroundingStreetOverlayController {
             @NonNull Context context,
             @NonNull TaskScheduler resultScheduler,
             @NonNull ElapsedRealtimeClock elapsedRealtimeClock,
-            @NonNull SurroundingStreetRepository repository,
+            @NonNull Supplier<SurroundingStreetRepository> repository,
             @NonNull Runnable stateEmitter
     ) {
         runtime = SurroundingStreetOverlayRuntime.android(context, repository);
@@ -129,6 +130,8 @@ public final class SurroundingStreetOverlayController {
     public void onSourcesChanged() {
         boolean reloadViewport = viewportActive;
         clearAll();
+        executor.changeSource();
+        runtime.changeSource();
         if (reloadViewport) {
             onCompassViewport(lastCompassState);
             stateEmitter.run();
@@ -208,8 +211,9 @@ public final class SurroundingStreetOverlayController {
         NavigationLocation requestLocation = new NavigationLocation(lastAcceptedLocation);
         int requestGeneration = ++generation;
         inFlight = true;
+        var load = runtime.request(keys);
         executor.execute(() -> {
-            SurroundingStreetChunkLoadResult loaded = runtime.load(keys);
+            SurroundingStreetChunkLoadResult loaded = load.get();
             if (Thread.currentThread().isInterrupted()) {
                 return;
             }

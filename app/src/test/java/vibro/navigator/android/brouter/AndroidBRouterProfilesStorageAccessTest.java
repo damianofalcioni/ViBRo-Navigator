@@ -193,6 +193,28 @@ public class AndroidBRouterProfilesStorageAccessTest {
     }
 
     @Test
+    public void savedProfileHintMatchesMixedCaseParentAndReusesItAfterGranting() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            String parent = "Offline/BRouter";
+            String id = PRIMARY_ROOT_ID + parent;
+            TestBRouterStorage.createPrimaryDirectory(parent + "/profiles2");
+            var repository = AndroidBRouterProfilesRepositoryFactory.create();
+            repository.saveCustomProfile(activity, DocumentsContract.buildDocumentUri(AUTHORITY,
+                    id + "/profiles2/custom.brf"), "custom");
+            assertFolderPermissionStartsAt(activity, repository, parent);
+
+            Uri tree = DocumentsContract.buildTreeDocumentUri(AUTHORITY, id);
+            assertTrue(TestBRouterStorage.saveSelection(activity,
+                    new Intent().setData(tree).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)));
+            activity.getSharedPreferences("vibenavigator_brouter", Context.MODE_PRIVATE)
+                    .edit().remove("custom_profile_uri").apply();
+
+            assertFolderPermissionStartsAt(activity, repository, parent);
+        }
+    }
+
+    @Test
     public void finishingActivityDoesNotReceiveDeferredFolderPrompt() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         AndroidBRouterProfilesStorageAccess.request(activity, AndroidBRouterProfilesRepositoryFactory.create(),

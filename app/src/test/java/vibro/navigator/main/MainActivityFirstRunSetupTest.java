@@ -268,6 +268,29 @@ public class MainActivityFirstRunSetupTest {
     }
 
     @Test
+    @Config(sdk = Build.VERSION_CODES.Q,
+            shadows = vibro.navigator.android.brouter.AndroidBRouterSegmentsTreeAccessPromptTest.DelayedDiscovery.class)
+    public void resolvedFirstRunGrantWaitsForTheMainScreenToResume() {
+        installBRouterWithStorage();
+        try (var controller = Robolectric.buildActivity(MainActivity.class).setup()) {
+            MainActivity activity = controller.get();
+            continueWelcome();
+            shadowOf(Looper.getMainLooper()).idleFor(800, TimeUnit.MILLISECONDS);
+            int request = openFolderPicker(activity).requestCode;
+            controller.pause().stop().start();
+            activity.onActivityResult(request, Activity.RESULT_OK, folderSelection(BROUTER_FOLDER_ID));
+            controller.resume().pause().stop();
+            shadowOf(Looper.getMainLooper()).idleFor(800, TimeUnit.MILLISECONDS);
+            assertNull(shadowOf(activity).getLastRequestedPermission());
+
+            controller.restart().resume();
+
+            assertEquals(AndroidFirstRunPermissions.REQUEST_RUNTIME,
+                    shadowOf(activity).getLastRequestedPermission().requestCode);
+        }
+    }
+
+    @Test
     @Config(sdk = Build.VERSION_CODES.Q)
     public void rejectedForegroundGrantCanBeRetriedAfterReturningFromPicker() {
         Application app = ApplicationProvider.getApplicationContext();

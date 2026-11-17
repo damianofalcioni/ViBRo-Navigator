@@ -44,22 +44,27 @@ final class BRouterStreetFileLoader {
             @NonNull CompassStreetVisibility visibility,
             @NonNull List<CompassStreetSegment> out
     ) {
-        Uri documentUri = repository.resolveSegmentFileUri(context, fileName);
-        if (documentUri == null) {
+        if (!repository.readGrantedTile(context, fileName,
+                uri -> readDocument(context, uri, fileName, bounds, maxSegments, visibility, out))) {
             readLocal(context, fileName, bounds, maxSegments, visibility, out);
-            return;
         }
+    }
+
+    private boolean readDocument(Context context, Uri documentUri, String fileName, BRouterSegmentBounds bounds,
+                                 int maxSegments, CompassStreetVisibility visibility, List<CompassStreetSegment> out) {
+        int initialSize = out.size();
         try (BRouterSegmentReadFile readFile = dependencies.documentAccess.openReadFile(context, documentUri)) {
             if (readFile == null) {
-                readLocal(context, fileName, bounds, maxSegments, visibility, out);
-                return;
+                return false;
             }
             new BRouterRd5StreetReader(readFile, fileName, documentUri.toString(), decodedStreetCache)
                     .read(bounds, maxSegments, out, visibility);
+            return true;
         } catch (IOException | RuntimeException e) {
+            out.subList(initialSize, out.size()).clear();
             BRouterStreetReadCancellation.check();
             AppLogger.w(TAG, "Failed to read BRouter segment file=" + fileName, e);
-            readLocal(context, fileName, bounds, maxSegments, visibility, out);
+            return false;
         }
     }
 

@@ -79,6 +79,48 @@ public class MainActivityBRouterRecoveryTest {
     }
 
     @Test
+    public void manualBrowseSurvivesRecreationAndARejectedSelection() {
+        TestBRouterStorage.requireGrantToQueryPrimaryFolder(app);
+        try (var controller = Robolectric.buildActivity(MainActivity.class).setup()) {
+            controller.get().findViewById(R.id.brouterStorageAccessButton).performClick();
+            assertTrue(ShadowAlertDialog.getLatestAlertDialog().isShowing());
+
+            controller.recreate();
+            MainActivity activity = controller.get();
+            assertTrue(ShadowAlertDialog.getLatestAlertDialog().isShowing());
+            int request = openPicker(activity);
+            Uri invalid = AndroidDocumentAccess.buildExternalStorageTreeUri("primary:Download");
+            activity.onActivityResult(request, Activity.RESULT_OK,
+                    new Intent().setData(invalid).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));
+            idle();
+
+            assertTrue(ShadowAlertDialog.getLatestAlertDialog().isShowing());
+            assertEquals(request, openPicker(activity));
+        }
+    }
+
+    @Test
+    public void offersTheSameFolderAgainAfterAnAcceptedGrantIsRevoked() {
+        TestBRouterStorage.createPrimaryFolder("profiles2");
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
+        try (var controller = Robolectric.buildActivity(MainActivity.class).setup()) {
+            MainActivity activity = controller.get();
+            int request = openPicker(activity);
+            Intent grant = folderGrant();
+            activity.onActivityResult(request, Activity.RESULT_OK, grant);
+            idle();
+            assertFalse(ShadowAlertDialog.getLatestAlertDialog().isShowing());
+            controller.pause().stop();
+            app.getContentResolver().releasePersistableUriPermission(grant.getData(), Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            controller.restart().resume();
+            idle();
+
+            assertPromptContains(MEDIA_BASE);
+        }
+    }
+
+    @Test
     public void resultHandledAfterSnapshotSatisfiesBothFeaturesOnRestore() {
         TestBRouterStorage.createPrimaryFolder("profiles2");
         TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);

@@ -6,6 +6,7 @@ import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.util.Consumer;
 
 import vibro.navigator.logging.AppLogger;
 
@@ -231,13 +232,21 @@ public class BRouterProfilesRepository {
 
     @NonNull
     public List<String> listProfiles(@NonNull Context context) {
-        return profileLister.listProfiles(context, resolveProfilesDiscoveryTreeUris(context));
+        return listProfiles(context, ignored -> { });
+    }
+
+    @NonNull
+    public List<String> listProfiles(@NonNull Context context, Consumer<List<String>> onBundledProfiles) {
+        List<String> bundled = BRouterProfileLister.mergeProfileNames(Collections.emptyList(),
+                profileLister.listBundledProfiles(context));
+        onBundledProfiles.accept(bundled);
+        return profileLister.listProfiles(context, resolveProfilesDiscoveryTreeUris(context), bundled);
     }
 
     @NonNull
     private List<Uri> resolveProfilesDiscoveryTreeUris(@NonNull Context context) {
         return profileDirectories.resolveProfilesDiscoveryTreeUris(context, BRouterFolderGrant.discoveryTrees(
-                context, getProfilesTreeUri(context), dependencies.uriPermissionAccess::hasReadPermission));
+                context, getProfilesTreeUri(context), true, dependencies.uriPermissionAccess::hasReadPermission));
     }
 
     @Nullable
@@ -247,7 +256,7 @@ public class BRouterProfilesRepository {
 
     @Nullable
     private Uri getGrantedProfilesTreeUri(Context context) {
-        return BRouterFolderGrant.resolve(context, getProfilesTreeUri(context),
+        return BRouterFolderGrant.resolve(context, getProfilesTreeUri(context), true,
                 dependencies.uriPermissionAccess::hasReadPermission);
     }
 }

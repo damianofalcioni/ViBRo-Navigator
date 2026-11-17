@@ -14,6 +14,7 @@ import java.util.Collections;
 
 import vibro.navigator.android.brouter.AndroidBRouterPickerRequest.Completion;
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
+import vibro.navigator.brouter.BRouterSegmentSourceSettings;
 
 /** Sequences first-run folder grants and owns manual and automatic main-screen requests. */
 public final class AndroidBRouterStorageSetup {
@@ -28,6 +29,7 @@ public final class AndroidBRouterStorageSetup {
     private AlertDialog folderDialog;
     private Runnable firstRunOffer;
     private boolean resumed;
+    private Runnable stopObservingSources = () -> { };
 
     public AndroidBRouterStorageSetup(Activity activity, @Nullable Bundle state) {
         this.activity = activity;
@@ -35,10 +37,13 @@ public final class AndroidBRouterStorageSetup {
         foreground = new AndroidBRouterForegroundChecks(activity, this, requests, state);
         firstRunPicker = new AndroidBRouterPickerRequest(activity, STATE_FIRST_RUN);
         firstRunCompletion = firstRunPicker.restore(state);
+        if (firstRunCompletion != null) {
+            foreground.offers().finish(firstRunCompletion);
+        }
     }
 
     public boolean completedFirstRunStep() {
-        return firstRunCompletion == Completion.ADVANCE;
+        return firstRunCompletion != null && firstRunCompletion != Completion.RETRY;
     }
 
     public static boolean hasSharedPickerState(Bundle state) {
@@ -46,13 +51,7 @@ public final class AndroidBRouterStorageSetup {
     }
 
     public void watchFirstRun(Runnable onAdvance, Runnable onRetry) {
-        firstRunPicker.watch(completion -> {
-            if (completion == Completion.ADVANCE) {
-                onAdvance.run();
-            } else {
-                onRetry.run();
-            }
-        });
+        firstRunPicker.watch(completion -> onFirstRunResult(completion, onAdvance, onRetry));
     }
 
     public boolean requestForFirstRun(Runnable onCancel) {
@@ -71,7 +70,7 @@ public final class AndroidBRouterStorageSetup {
         if (canShowDialog()) {
             requests.findLocation(Collections.emptySet(), AndroidBRouterPickerLocation.browse(),
                     location -> {
-                        firstRunOffer = () -> showFolder(location, () -> firstRunPicker.begin(REQUEST_FOLDER), onCancel);
+                        firstRunOffer = () -> showFirstRunFolder(location, onCancel);
                         showFirstRunOffer();
                     });
         }
@@ -94,6 +93,7 @@ public final class AndroidBRouterStorageSetup {
 
     public void bindManualAction(View action, Runnable onPickerFinished) {
         foreground.bindAction(action, onPickerFinished);
+        stopObservingSources = BRouterSegmentSourceSettings.observe(activity, foreground::sourcesChanged);
     }
 
     public void setForegroundChecksEnabled(boolean enabled) {
@@ -104,28 +104,42 @@ public final class AndroidBRouterStorageSetup {
         return foreground.offers().copy();
     }
 
-    void showFolder(AndroidBRouterPickerLocation location, Runnable beforeLaunch, Runnable onCancel) {
-        Runnable launch = rememberOffer(location, beforeLaunch);
-        Runnable cancel = rememberOffer(location, onCancel);
+    void showFolder(AndroidBRouterPickerLocation location, Runnable beforeLaunch, Runnable onCancel, Runnable onFailure) {
         folderDialog = AndroidBRouterFolderPrompt.show(activity, location.initialUri, REQUEST_FOLDER, TAG,
-                launch, cancel, cancel);
+                beforeLaunch, onCancel, onFailure);
     }
 
-    private Runnable rememberOffer(AndroidBRouterPickerLocation location, Runnable callback) {
-        return () -> {
+    private void showFirstRunFolder(AndroidBRouterPickerLocation location, Runnable onCancel) {
+        showFolder(location, () -> {
+            foreground.offers().begin(location.confirmedUri());
+            firstRunPicker.begin(REQUEST_FOLDER);
+        }, () -> {
             foreground.offers().record(location.confirmedUri());
-            callback.run();
-        };
+            onCancel.run();
+        }, () -> {
+            foreground.deferAutomaticOffer();
+            onCancel.run();
+        });
     }
 
     public boolean handleActivityResult(
             int requestCode, int resultCode, @Nullable Intent data, Runnable onAdvance, Runnable onRetry
     ) {
         if (firstRunPicker.matches(requestCode)) {
-            requests.handleResult(resultCode, data, firstRunPicker, onAdvance, onRetry);
+            requests.handleResult(resultCode, data, firstRunPicker,
+                    completion -> onFirstRunResult(completion, onAdvance, onRetry));
             return true;
         }
         return foreground.handleResult(requestCode, resultCode, data);
+    }
+
+    private void onFirstRunResult(Completion completion, Runnable onAdvance, Runnable onRetry) {
+        foreground.offers().finish(completion);
+        if (completion == Completion.RETRY) {
+            onRetry.run();
+        } else {
+            onAdvance.run();
+        }
     }
 
     boolean canShowDialog() {
@@ -138,6 +152,7 @@ public final class AndroidBRouterStorageSetup {
     }
 
     public void dispose() {
+        stopObservingSources.run();
         foreground.dispose();
         firstRunPicker.stopWatching();
         if (isDialogShowing()) {

@@ -14,7 +14,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.List;
-import java.util.Map;
 
 import vibro.navigator.logging.AppLogger;
 
@@ -168,10 +167,6 @@ public final class AndroidDocumentAccess {
         return AndroidDocumentTreeFileAccess.childDisplayNames(context, treeUri);
     }
 
-    public static Map<String, Uri> childDirectories(Context context, Uri tree, CancellationSignal signal) {
-        return AndroidDocumentTreeFileAccess.childDirectories(context, tree, signal);
-    }
-
     public static boolean canReadExternalDirectory(Context context, String documentId) {
         return AndroidExternalStorageDocumentFiles.directoryExists(context, documentId);
     }
@@ -209,6 +204,10 @@ public final class AndroidDocumentAccess {
             @NonNull CancellationSignal signal
     ) {
         return AndroidExternalDirectoryPresence.check(context, documentId, signal);
+    }
+
+    public static boolean isDirectExternalDirectory(Context context, String documentId) {
+        return AndroidExternalDirectoryPresence.directDirectoryPresence(context, documentId) == DirectoryPresence.PRESENT;
     }
 
     private static void addInitialUriIfSupported(@NonNull Intent intent, @Nullable Uri initialUri) {

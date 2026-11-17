@@ -39,12 +39,12 @@ final class BRouterProfileLister {
     }
 
     @NonNull
-    List<String> listProfiles(@NonNull Context context, @NonNull List<Uri> discoveryTreeUris) {
+    List<String> listProfiles(@NonNull Context context, @NonNull List<Uri> discoveryTreeUris,
+                              @NonNull List<String> bundled) {
         List<String> externalProfiles = new ArrayList<>();
         for (Uri treeUri : discoveryTreeUris) {
             externalProfiles.addAll(listProfilesFromTree(context, treeUri));
         }
-        List<String> bundled = listBundledProfiles(context);
         List<String> out = mergeProfileNames(externalProfiles, bundled);
         AppLogger.i(TAG, "Listed profiles total=" + out.size()
                 + " external=" + new TreeSet<>(externalProfiles).size()

@@ -16,6 +16,7 @@ import static vibro.navigator.android.brouter.AndroidBRouterStorageSetup.REQUEST
 final class AndroidBRouterForegroundChecks {
     private static final String STATE_REQUEST = "brouter_foreground_request";
     private static final String STATE_MANUAL = "brouter_manual_pending";
+    private static final String STATE_MANUAL_PICKER = "brouter_manual_picker";
     private final AndroidBRouterStorageSetup setup;
     private final AndroidBRouterFolderRequests requests;
     private final AndroidBRouterPickerRequest picker;
@@ -25,6 +26,8 @@ final class AndroidBRouterForegroundChecks {
     private boolean discovering;
     private boolean manualDiscovery;
     private boolean manualPending;
+    private boolean manualPicker;
+    private boolean suppressAutomatic;
     private View action;
     private Runnable onPickerFinished = () -> { };
 
@@ -35,15 +38,12 @@ final class AndroidBRouterForegroundChecks {
         picker = new AndroidBRouterPickerRequest(activity, STATE_REQUEST);
         offers = new AndroidBRouterFolderOffers(state);
         manualPending = state != null && state.getBoolean(STATE_MANUAL);
-        if (picker.restore(state) == Completion.RETRY) {
-            offers.forgetCurrent();
+        manualPicker = state != null && state.getBoolean(STATE_MANUAL_PICKER);
+        Completion restored = picker.restore(state);
+        if (restored != null) {
+            finishOffer(restored);
         }
-        picker.watch(completion -> {
-            if (completion == Completion.RETRY) {
-                offers.forgetCurrent();
-            }
-            pickerFinished();
-        });
+        picker.watch(this::onPickerResult);
     }
 
     void bindAction(View action, Runnable onPickerFinished) {
@@ -60,6 +60,7 @@ final class AndroidBRouterForegroundChecks {
         if (!enabled) {
             discoveryGeneration++;
             discovering = false;
+            suppressAutomatic = false;
             return;
         }
         refresh();
@@ -77,9 +78,10 @@ final class AndroidBRouterForegroundChecks {
         updateAction(needsGrant);
         if (!needsGrant) {
             manualPending = false;
+            return;
         }
         // An explicit tap can supersede an automatic probe already in flight.
-        if (needsGrant && !hasActivePicker() && !lookupAlreadyPending(manual)) {
+        if ((manual || !suppressAutomatic) && !hasActivePicker() && !lookupAlreadyPending(manual)) {
             queueDiscovery(manual);
         }
     }
@@ -119,11 +121,18 @@ final class AndroidBRouterForegroundChecks {
             refresh();
             return;
         }
-        manualPending = false;
         setup.showFolder(location, () -> {
+            manualPending = false;
+            manualPicker = manual;
             offers.begin(location.confirmedUri());
             picker.begin(REQUEST_FOLDER);
-        }, () -> { });
+        }, () -> {
+            manualPending = false;
+            offers.record(location.confirmedUri());
+        }, () -> {
+            manualPending = false;
+            deferAutomaticOffer();
+        });
         setup.refreshAfterDismiss(this::refresh);
     }
 
@@ -139,16 +148,28 @@ final class AndroidBRouterForegroundChecks {
         if (!picker.matches(requestCode)) {
             return false;
         }
-        requests.handleResult(resultCode, data, picker, this::pickerFinished, () -> {
-            offers.forgetCurrent();
-            refresh();
-        });
+        requests.handleResult(resultCode, data, picker, this::onPickerResult);
         return true;
     }
 
-    private void pickerFinished() {
+    private void finishOffer(Completion completion) {
+        offers.finish(completion);
+        manualPending = completion == Completion.RETRY && manualPicker;
+        manualPicker = false;
+    }
+
+    private void onPickerResult(Completion completion) {
+        finishOffer(completion);
+        sourcesChanged();
+    }
+
+    void sourcesChanged() {
         onPickerFinished.run();
         refresh();
+    }
+
+    void deferAutomaticOffer() {
+        suppressAutomatic = true;
     }
 
     AndroidBRouterFolderOffers offers() {
@@ -159,6 +180,7 @@ final class AndroidBRouterForegroundChecks {
         offers.save(state);
         picker.save(state);
         state.putBoolean(STATE_MANUAL, manualPending);
+        state.putBoolean(STATE_MANUAL_PICKER, manualPicker);
     }
 
     void dispose() {

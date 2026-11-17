@@ -5,6 +5,7 @@ import android.os.OperationCanceledException;
 
 import androidx.annotation.Nullable;
 import androidx.core.util.Consumer;
+import androidx.core.util.Supplier;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.FutureTask;
@@ -21,6 +22,8 @@ final class AndroidBRouterFolderDiscovery {
     private static final long TIMEOUT_MS = 1000;
     private static final ExecutorService WORKER = new ThreadPoolExecutor(
             0, 8, 30, TimeUnit.SECONDS, new SynchronousQueue<>());
+    private static final ExecutorService PROFILE_WORKER = new ThreadPoolExecutor(
+            0, 2, 30, TimeUnit.SECONDS, new SynchronousQueue<>());
 
     interface Query<T> {
         T run(CancellationSignal signal);
@@ -30,7 +33,15 @@ final class AndroidBRouterFolderDiscovery {
     }
 
     static <T> void find(Query<T> work, @Nullable T fallback, Consumer<T> onResult) {
-        new Request<>(work, fallback, onResult).start();
+        findWithFallback(work, () -> fallback, onResult);
+    }
+
+    static <T> void findWithFallback(Query<T> work, Supplier<T> fallback, Consumer<T> onResult) {
+        new Request<>(work, fallback, onResult).start(AndroidBRouterFolderDiscovery::execute);
+    }
+
+    static <T> void listProfiles(Query<T> work, Supplier<T> fallback, Consumer<T> onResult) {
+        new Request<>(work, fallback, onResult).start(AndroidBRouterFolderDiscovery::executeProfileLookup);
     }
 
     private static void cancelTask(FutureTask<Void> task, CancellationSignal signal) {
@@ -41,14 +52,14 @@ final class AndroidBRouterFolderDiscovery {
     }
 
     private static <T> T resolve(Query<T> work, CancellationSignal signal,
-                                 @Nullable T fallback) {
+                                 Supplier<T> fallback) {
         try {
             return work.run(signal);
         } catch (OperationCanceledException e) {
-            return fallback;
+            return fallback.get();
         } catch (RuntimeException e) {
             AppLogger.w("BRouterFolderDiscovery", "Unable to inspect BRouter folders", e);
-            return fallback;
+            return fallback.get();
         }
     }
 
@@ -57,11 +68,11 @@ final class AndroidBRouterFolderDiscovery {
         private final CancellationSignal signal = new CancellationSignal();
         private final Runnable timeout = this::onTimeout;
         private final FutureTask<Void> task;
-        private final T fallback;
+        private final Supplier<T> fallback;
         private final Consumer<T> onResult;
         private boolean delivered;
 
-        Request(Query<T> work, @Nullable T fallback, Consumer<T> onResult) {
+        Request(Query<T> work, Supplier<T> fallback, Consumer<T> onResult) {
             this.fallback = fallback;
             this.onResult = onResult;
             task = new FutureTask<>(() -> {
@@ -70,19 +81,19 @@ final class AndroidBRouterFolderDiscovery {
             }, null);
         }
 
-        void start() {
+        void start(Consumer<Runnable> submit) {
             main.postDelayed(timeout, TIMEOUT_MS);
             try {
-                execute(task);
+                submit.accept(task);
             } catch (RejectedExecutionException e) {
                 AppLogger.d("BRouterFolderDiscovery", "Folder discovery workers are busy");
-                postResult(() -> deliver(fallback));
+                postResult(() -> deliver(fallback.get()));
             }
         }
 
         private void onTimeout() {
             cancelTask(task, signal);
-            deliver(fallback);
+            deliver(fallback.get());
         }
 
         private void deliver(@Nullable T result) {
@@ -96,6 +107,10 @@ final class AndroidBRouterFolderDiscovery {
 
     static void execute(Runnable work) {
         WORKER.execute(work);
+    }
+
+    static void executeProfileLookup(Runnable work) {
+        PROFILE_WORKER.execute(work);
     }
 
     static void postResult(Runnable callback) {

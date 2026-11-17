@@ -105,7 +105,7 @@ public class ProfileParameterSettingsControllerTest {
         }
 
         @Override
-        public List<String> listProfiles(Context context) {
+        public List<String> listProfiles(Context context, androidx.core.util.Consumer<List<String>> onBundledProfiles) {
             return Collections.singletonList(profileName);
         }
 

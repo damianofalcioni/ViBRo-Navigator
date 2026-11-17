@@ -20,6 +20,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.CompassRouteGeometry;
@@ -145,6 +146,46 @@ public class SurroundingStreetOverlayControllerTest {
 
         assertTrue(chunkLoader.calls > initialCalls);
         assertFalse(controller.currentOverlay().isEmpty());
+    }
+
+    @Test
+    public void sourceChangeCanLoadWhileTheOldProviderIsStillBlocked() throws InterruptedException {
+        var initialLoad = new CountDownLatch(1);
+        var releaseInitialLoad = new CountDownLatch(1);
+        var replacementLoad = new CountDownLatch(1);
+        var first = new AtomicBoolean(true);
+        var runtime = new SurroundingStreetOverlayRuntime((keys, visibility) -> {
+            if (first.getAndSet(false)) {
+                initialLoad.countDown();
+                waitForProvider(releaseInitialLoad);
+            } else {
+                replacementLoad.countDown();
+            }
+            return new SurroundingStreetChunkLoadResult();
+        }, settings);
+        var active = new SurroundingStreetOverlayController(scheduledResults::add, clock, runtime, () -> { });
+        try {
+            active.onAcceptedLocation(location(48.2082d, 16.3738d));
+            active.onCompassViewport(compassState());
+            assertTrue(initialLoad.await(3, TimeUnit.SECONDS));
+
+            active.onSourcesChanged();
+
+            assertTrue(replacementLoad.await(3, TimeUnit.SECONDS));
+        } finally {
+            releaseInitialLoad.countDown();
+            active.shutdown();
+        }
+    }
+
+    private static void waitForProvider(CountDownLatch release) {
+        while (release.getCount() > 0) {
+            try {
+                release.await();
+            } catch (InterruptedException ignored) {
+                // Some provider calls do not return when the caller is interrupted.
+            }
+        }
     }
 
     @Test

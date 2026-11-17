@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.brouter.BRouterProfilesRepository;
+import vibro.navigator.android.brouter.AndroidBRouterProfileLoader;
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
@@ -34,6 +35,7 @@ final class ProfileSpinnerController {
     private final BRouterProfilesRepository profilesRepository;
     private final Listener listener;
     private final ProfileSpinnerAdapter adapter;
+    private final AndroidBRouterProfileLoader loader;
     private final ProfileSpinnerOptions options = new ProfileSpinnerOptions();
     private final TaskScheduler selectionScheduler = AndroidTaskScheduler.main();
 
@@ -56,6 +58,7 @@ final class ProfileSpinnerController {
         this.profilesRepository = profilesRepository;
         this.listener = listener;
         this.adapter = new ProfileSpinnerAdapter(context);
+        loader = new AndroidBRouterProfileLoader(context, profilesRepository, this::updateOptions);
         this.spinner.setAdapter(adapter);
         this.spinner.setOnTouchListener((v, event) -> {
             if (event == null) {
@@ -86,6 +89,10 @@ final class ProfileSpinnerController {
     }
 
     void refresh() {
+        loader.refresh();
+    }
+
+    private void updateOptions(AndroidBRouterProfileLoader.Result result) {
         String currentSelectionKey = selectedProfileKey;
         if (currentSelectionKey == null) {
             currentSelectionKey = profilesRepository.getSelectedProfileKey(context);
@@ -93,7 +100,7 @@ final class ProfileSpinnerController {
         String customProfile = profilesRepository.getCustomProfileUri(context) == null
                 ? null : profilesRepository.getCustomProfileName(context);
         boolean bRouterInstalled = profilesRepository.isBRouterInstalled(context);
-        options.replace(context, profilesRepository.listProfiles(context), customProfile);
+        options.replaceFromLoad(context, result.profiles(), result.complete(), customProfile);
         suppressSelectionCallback = true;
         adapter.clear();
         adapter.addAll(options.all());
@@ -107,8 +114,12 @@ final class ProfileSpinnerController {
     }
 
     void onCustomProfileSaved() {
+        selectedProfileKey = ProfileSpinnerOption.CUSTOM_KEY;
         refresh();
-        selectCustomProfileOption();
+    }
+
+    void dispose() {
+        loader.dispose();
     }
 
     void onCustomProfilePickerCancelled() {
@@ -208,13 +219,6 @@ final class ProfileSpinnerController {
 
     private void restoreSelection(@Nullable String selectionKey, boolean bRouterInstalled) {
         setSelection(options.restoredPosition(selectionKey, bRouterInstalled));
-    }
-
-    private void selectCustomProfileOption() {
-        int position = options.findCustomPosition();
-        if (position >= 0) {
-            setSelection(position);
-        }
     }
 
     private void setSelection(int position) {

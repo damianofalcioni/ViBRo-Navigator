@@ -11,6 +11,11 @@ public final class ShadowBRouterFolderDiscovery {
     }
 
     @Implementation
+    protected static void executeProfileLookup(Runnable work) {
+        work.run();
+    }
+
+    @Implementation
     protected static void postResult(Runnable callback) {
         callback.run();
     }

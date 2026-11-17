@@ -16,7 +16,7 @@ public final class AndroidBRouterPickerRequest {
     private static final String PROCESS_VALIDATION = VALIDATING + UUID.randomUUID();
 
     public enum Completion {
-        ADVANCE, RETRY
+        ADVANCE, RETRY, CANCELED
     }
 
     private final Context context;

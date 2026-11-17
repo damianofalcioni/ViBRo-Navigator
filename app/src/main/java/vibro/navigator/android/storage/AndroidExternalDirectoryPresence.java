@@ -82,7 +82,7 @@ final class AndroidExternalDirectoryPresence {
     }
 
     @NonNull
-    private static DirectoryPresence directDirectoryPresence(@NonNull Context context, @NonNull String documentId) {
+    static DirectoryPresence directDirectoryPresence(@NonNull Context context, @NonNull String documentId) {
         File directory = AndroidExternalStorageDocumentFiles.fileForDocumentId(context, documentId);
         if (directory == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             return DirectoryPresence.UNKNOWN;

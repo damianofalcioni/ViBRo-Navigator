@@ -23,6 +23,7 @@ public final class AndroidFirstRunPermissions {
     public static final int REQUEST_SETTINGS = 1101;
     private static final String STATE_STEP = "first_run_permission_step";
     private static final String STATE_WAITING = "first_run_permission_waiting";
+    private static final String STATE_DEFER_FOLDER_RESULT = "first_run_defer_folder_result";
 
     private final Activity activity;
     private final Runnable onComplete;
@@ -30,6 +31,7 @@ public final class AndroidFirstRunPermissions {
     private final Step[] steps;
     private int step;
     private boolean waitingForResult;
+    private final FolderContinuation folderContinuation;
     private AlertDialog settingsDialog;
 
     public AndroidFirstRunPermissions(Activity activity, Bundle state, Runnable onComplete) {
@@ -41,11 +43,12 @@ public final class AndroidFirstRunPermissions {
         SavedStep saved = SavedStep.restore(state, storage.completedFirstRunStep());
         step = saved.index;
         waitingForResult = saved.waiting;
-        storage.watchFirstRun(this::next, this::resumeSetup);
+        folderContinuation = new FolderContinuation(state, storage.completedFirstRunStep(), this::resumeSetup);
+        storage.watchFirstRun(this::advanceAfterFolder, this::resumeAfterFolder);
     }
 
     public void start() {
-        if (activity.isFinishing() || activity.isDestroyed() || waitingForResult) {
+        if (activity.isFinishing() || activity.isDestroyed() || waitingForResult || folderContinuation.deferred) {
             return;
         }
         while (step < steps.length) {
@@ -68,7 +71,16 @@ public final class AndroidFirstRunPermissions {
     }
 
     private boolean brouterStorage() {
-        return storage.requestForFirstRun(this::next);
+        return storage.requestForFirstRun(this::advanceAfterFolder);
+    }
+
+    private void advanceAfterFolder() {
+        step++;
+        resumeAfterFolder();
+    }
+
+    private void resumeAfterFolder() {
+        folderContinuation.continueWhenResumed();
     }
 
     private boolean runtime() {
@@ -134,7 +146,8 @@ public final class AndroidFirstRunPermissions {
             next();
             return true;
         }
-        return storage.handleActivityResult(requestCode, resultCode, data, this::next, this::resumeSetup);
+        return storage.handleActivityResult(requestCode, resultCode, data,
+                this::advanceAfterFolder, this::resumeAfterFolder);
     }
 
     public boolean onRequestPermissionsResult(int requestCode) {
@@ -148,6 +161,7 @@ public final class AndroidFirstRunPermissions {
     public void saveState(Bundle state) {
         state.putInt(STATE_STEP, step);
         state.putBoolean(STATE_WAITING, waitingForResult);
+        state.putBoolean(STATE_DEFER_FOLDER_RESULT, folderContinuation.deferred);
         storage.saveState(state);
     }
 
@@ -156,6 +170,7 @@ public final class AndroidFirstRunPermissions {
     }
 
     public void setResumed(boolean resumed) {
+        folderContinuation.setResumed(resumed);
         storage.setResumed(resumed);
     }
 
@@ -176,6 +191,33 @@ public final class AndroidFirstRunPermissions {
 
     private interface Step {
         boolean request();
+    }
+
+    private static final class FolderContinuation {
+        private final Runnable resumeSetup;
+        private boolean resumed;
+        private boolean deferred;
+
+        FolderContinuation(Bundle state, boolean completedFolder, Runnable resumeSetup) {
+            this.resumeSetup = resumeSetup;
+            deferred = completedFolder || (state != null && state.getBoolean(STATE_DEFER_FOLDER_RESULT));
+        }
+
+        void continueWhenResumed() {
+            if (resumed) {
+                resumeSetup.run();
+            } else {
+                deferred = true;
+            }
+        }
+
+        void setResumed(boolean resumed) {
+            this.resumed = resumed;
+            if (resumed && deferred) {
+                deferred = false;
+                resumeSetup.run();
+            }
+        }
     }
 
     private record SavedStep(int index, boolean waiting) {

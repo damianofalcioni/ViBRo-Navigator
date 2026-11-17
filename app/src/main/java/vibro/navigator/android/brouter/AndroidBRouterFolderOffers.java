@@ -7,6 +7,8 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 
+import vibro.navigator.android.brouter.AndroidBRouterPickerRequest.Completion;
+
 final class AndroidBRouterFolderOffers {
     private static final String OFFERED = "brouter_offered_uris";
     private static final String CURRENT = "brouter_foreground_offer";
@@ -29,9 +31,24 @@ final class AndroidBRouterFolderOffers {
         }
     }
 
-    void forgetCurrent() {
+    private void forgetCurrent() {
         folders.remove(current);
         current = null;
+    }
+
+    private void declineCurrent() {
+        if (current != null) {
+            record(Uri.parse(current));
+            current = null;
+        }
+    }
+
+    void finish(Completion completion) {
+        if (completion == Completion.CANCELED) {
+            declineCurrent();
+        } else {
+            forgetCurrent();
+        }
     }
 
     ArrayList<String> copy() {

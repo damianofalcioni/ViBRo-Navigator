@@ -64,6 +64,18 @@ public class AndroidBRouterSegmentsTreeAccessPromptTest {
     }
 
     @Test
+    public void navigationOffersSegmentsAheadOfAnEarlierProfilesOnlyLocation() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            TestBRouterStorage.createPrimaryFolder("profiles2");
+            TestBRouterStorage.createPrimaryDirectory("brouter/segments4");
+
+            assertEquals(DocumentsContract.buildDocumentUri(AUTHORITY, "primary:brouter"),
+                    findAvailableFolder(activity));
+        }
+    }
+
+    @Test
     public void offersSegmentsFolderVisibleOnlyThroughDocumentProvider() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         String id = "primary:Android/media/btools.routingapp/brouter";
