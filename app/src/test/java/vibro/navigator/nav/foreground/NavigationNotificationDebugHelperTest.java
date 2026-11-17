@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import android.app.Application;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -24,7 +25,7 @@ import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.settings.AppNotificationSettings;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+@Config(application = Application.class, sdk = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 public class NavigationNotificationDebugHelperTest {
     @Test
     public void postSymbolTestNotificationUsesLeftChannelForLeftSymbols() {

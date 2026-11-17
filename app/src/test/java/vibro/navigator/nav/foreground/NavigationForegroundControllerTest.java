@@ -12,6 +12,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import android.app.Application;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -40,7 +41,7 @@ import org.robolectric.annotation.Config;
 import org.xmlpull.v1.XmlPullParser;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+@Config(application = Application.class, sdk = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 public class NavigationForegroundControllerTest {
 
     private static final String ANDROID_XML_NAMESPACE = "http://schemas.android.com/apk/res/android";

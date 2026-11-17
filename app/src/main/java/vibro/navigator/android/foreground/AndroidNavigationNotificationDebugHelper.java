@@ -63,7 +63,7 @@ public final class AndroidNavigationNotificationDebugHelper {
                 + "-"
                 + now;
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(
+        NotificationCompat.Builder builder = AndroidNavigationNotificationChannels.guidanceAlert(
                 context,
                 channelIdForGroup(group)
         )
@@ -73,8 +73,7 @@ public final class AndroidNavigationNotificationDebugHelper {
                 .setStyle(new NotificationCompat.BigTextStyle()
                         .bigText(message)
                         .setSummaryText(summary))
-                .setAutoCancel(true)
-                .setPriority(NotificationCompat.PRIORITY_HIGH);
+                .setAutoCancel(true);
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             builder.setVibrate(vibrationPatternForGroup(group));

@@ -19,7 +19,7 @@ import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.ui.NavigationActivity;
 
-/** Separate silent ongoing car notification preserves the phone's transient vibration alerts. */
+/** Separate ongoing car notification leaves transient phone alerts on their own lifecycle. */
 public final class AndroidCarNavigationNotifications {
     public static final int NOTIFICATION_ID = 3;
     private final Context context;
