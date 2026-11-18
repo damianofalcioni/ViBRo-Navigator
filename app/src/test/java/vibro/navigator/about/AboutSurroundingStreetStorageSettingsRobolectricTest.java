@@ -177,6 +177,51 @@ public class AboutSurroundingStreetStorageSettingsRobolectricTest {
         }
     }
 
+    @Test
+    @Config(sdk = Build.VERSION_CODES.R,
+            shadows = vibro.navigator.android.brouter.AndroidBRouterSegmentsTreeAccessPromptTest.DelayedDiscovery.class)
+    public void turningOffDuringDiscoveryCancelsThePrompt() {
+        installBRouterPackage();
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS);
+        try (var controller = AboutActivityTestSupport.setupControllerWithSettings()) {
+            Switch setting = controller.get().findViewById(R.id.aboutCompassSurroundingStreetsSwitch);
+            setting.performClick();
+            setting.performClick();
+            shadowOf(android.os.Looper.getMainLooper()).idleFor(800, java.util.concurrent.TimeUnit.MILLISECONDS);
+
+            assertNull(ShadowAlertDialog.getLatestAlertDialog());
+            assertFalse(setting.isChecked());
+        }
+    }
+
+    @Test
+    @Config(sdk = Build.VERSION_CODES.R)
+    public void pickerSurvivesAnotherSnapshotBeforeSettingsViewsInflate() {
+        installBRouterPackage();
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS);
+        var initial = new android.os.Bundle();
+        var next = new android.os.Bundle();
+        int request;
+        try (var original = org.robolectric.Robolectric.buildActivity(AboutActivity.class).setup()) {
+            shadowOf(android.os.Looper.getMainLooper()).idleFor(
+                    AboutActivity.SETTINGS_INITIALIZATION_DELAY_MS, java.util.concurrent.TimeUnit.MILLISECONDS);
+            AboutActivity activity = original.get();
+            activity.findViewById(R.id.aboutCompassSurroundingStreetsSwitch).performClick();
+            continueFromBRouterPrompt(activity);
+            request = shadowOf(activity).getNextStartedActivityForResult().requestCode;
+            original.pause().stop().saveInstanceState(initial);
+        }
+        try (var replacement = org.robolectric.Robolectric.buildActivity(AboutActivity.class)
+                .create(initial).start().resume()) {
+            assertNull(replacement.get().findViewById(R.id.aboutCompassSurroundingStreetsSwitch));
+            replacement.pause().stop().saveInstanceState(next);
+        }
+        try (var restored = org.robolectric.Robolectric.buildActivity(AboutActivity.class).setup(next)) {
+            grantFolder(restored.get(), request);
+            assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(restored.get()));
+        }
+    }
+
     private static void enableStreets(AboutActivity activity) {
         activity.findViewById(R.id.aboutCompassSurroundingStreetsSwitch).performClick();
         continueFromBRouterPrompt(activity);

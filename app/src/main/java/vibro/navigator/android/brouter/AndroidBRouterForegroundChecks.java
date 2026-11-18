@@ -28,6 +28,7 @@ final class AndroidBRouterForegroundChecks {
     private boolean manualPending;
     private boolean manualPicker;
     private boolean suppressAutomatic;
+    private Runnable deferredOffer = this::refresh;
     private View action;
     private Runnable onPickerFinished = () -> { };
 
@@ -58,12 +59,12 @@ final class AndroidBRouterForegroundChecks {
     void setEnabled(boolean enabled) {
         this.enabled = enabled;
         if (!enabled) {
-            discoveryGeneration++;
-            discovering = false;
             suppressAutomatic = false;
             return;
         }
-        refresh();
+        Runnable offer = deferredOffer;
+        deferredOffer = this::refresh;
+        offer.run();
     }
 
     void refresh() {
@@ -106,34 +107,44 @@ final class AndroidBRouterForegroundChecks {
         manualDiscovery = manual;
         requests.findLocation(manual ? Collections.emptyList() : offers.copy(),
                 manual ? AndroidBRouterPickerLocation.browse() : null,
-                location -> applyOffer(generation, location, manual));
+                location -> applyOffer(generation, new Offer(location, manual)));
     }
 
-    private void applyOffer(int generation, @Nullable AndroidBRouterPickerLocation location, boolean manual) {
+    private void applyOffer(int generation, Offer offer) {
         if (generation != discoveryGeneration) {
             return;
         }
+        if (!enabled) {
+            deferredOffer = () -> applyOffer(generation, offer);
+            return;
+        }
         discovering = false;
-        if (location == null || (!manual && location.confirmedUri() == null) || !canShowOffer()) {
+        if (!offer.hasLocation() || !canShowOffer()) {
             return;
         }
         if (!needsFolderGrant()) {
             refresh();
             return;
         }
-        setup.showFolder(location, () -> {
+        setup.showFolder(offer.location(), () -> {
             manualPending = false;
-            manualPicker = manual;
-            offers.begin(location.confirmedUri());
+            manualPicker = offer.manual();
+            offers.begin(offer.location().confirmedUri());
             picker.begin(REQUEST_FOLDER);
         }, () -> {
             manualPending = false;
-            offers.record(location.confirmedUri());
+            offers.record(offer.location().confirmedUri());
         }, () -> {
             manualPending = false;
             deferAutomaticOffer();
         });
         setup.refreshAfterDismiss(this::refresh);
+    }
+
+    private record Offer(@Nullable AndroidBRouterPickerLocation location, boolean manual) {
+        boolean hasLocation() {
+            return location != null && (manual || location.confirmedUri() != null);
+        }
     }
 
     private boolean canShowOffer() {
@@ -185,6 +196,8 @@ final class AndroidBRouterForegroundChecks {
 
     void dispose() {
         setEnabled(false);
+        discoveryGeneration++;
+        deferredOffer = this::refresh;
         picker.stopWatching();
     }
 }

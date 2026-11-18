@@ -12,6 +12,7 @@ import java.util.UUID;
 /** Reconciles a restored pending picker with results handled after the saved snapshot. */
 public final class AndroidBRouterPickerRequest {
     private static final int COMPLETION_HISTORY_LENGTH = 64;
+    private static final String TOKEN_SUFFIX = "_token";
     private static final String VALIDATING = "VALIDATING:";
     private static final String PROCESS_VALIDATION = VALIDATING + UUID.randomUUID();
 
@@ -36,7 +37,7 @@ public final class AndroidBRouterPickerRequest {
             return null;
         }
         requestCode = state.getInt(key);
-        token = state.getString(key + "_token");
+        token = state.getString(key + TOKEN_SUFFIX);
         if (isPending() && token != null) {
             return restoreCompletion();
         }
@@ -126,9 +127,14 @@ public final class AndroidBRouterPickerRequest {
         preferences().edit().putString(keyWithCompletion(), history.toString()).apply();
     }
 
+    public static void copySavedState(Bundle from, Bundle to, String key) {
+        to.putInt(key, from.getInt(key));
+        to.putString(key + TOKEN_SUFFIX, from.getString(key + TOKEN_SUFFIX));
+    }
+
     public void save(Bundle state) {
         state.putInt(key, requestCode);
-        state.putString(key + "_token", token);
+        state.putString(key + TOKEN_SUFFIX, token);
     }
 
     private String[] completionHistory() {

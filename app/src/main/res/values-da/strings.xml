@@ -158,7 +158,8 @@
     <string name="msg_brouter_profiles_storage_permission_required">Lagringsadgang er nødvendig for at læse BRouter profildata.</string>
     <string name="title_brouter_storage_access">BRouter-lager</string>
     <string name="msg_brouter_storage_access_prompt">Vælg BRouter-mappen på %1$s, så ViBRo kan læse profiler og rutedata.</string>
-    <string name="msg_brouter_folder_required">Vælg mappen brouter, der indeholder profiles2 og segments4.</string>
+    <string name="msg_brouter_folder_required">Vælg en brouter-mappe, der indeholder profiles2, segments4 eller begge.</string>
+    <string name="msg_brouter_segments_folder_required">Vælg mappen brouter, der indeholder segments4.</string>
     <string name="action_browse">Gennemse</string>
     <string name="msg_brouter_storage_folder_missing">Gennemse mapperne, og vælg %1$s. Hvis mappen endnu ikke findes, skal du fuldføre opsætningen af lageret i BRouter.</string>
     <string name="msg_symbol_test_notification_sent">Symboltestmeddelelse sendt.</string>

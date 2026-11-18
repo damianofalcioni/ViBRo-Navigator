@@ -22,6 +22,8 @@ public final class AndroidFirstRunPermissions {
     public static final int REQUEST_RUNTIME = 1100;
     public static final int REQUEST_SETTINGS = 1101;
     private static final String STATE_STEP = "first_run_permission_step";
+    private static final String STATE_LEGACY_PICKER = "first_run_legacy_folder_picker";
+    private static final int LEGACY_PROFILES_PICKER = 1102;
     private static final String STATE_WAITING = "first_run_permission_waiting";
     private static final String STATE_DEFER_FOLDER_RESULT = "first_run_defer_folder_result";
 
@@ -43,7 +45,7 @@ public final class AndroidFirstRunPermissions {
         SavedStep saved = SavedStep.restore(state, storage.completedFirstRunStep());
         step = saved.index;
         waitingForResult = saved.waiting;
-        folderContinuation = new FolderContinuation(state, storage.completedFirstRunStep(), this::resumeSetup);
+        folderContinuation = new FolderContinuation(state, saved, storage.completedFirstRunStep(), this::resumeSetup);
         storage.watchFirstRun(this::advanceAfterFolder, this::resumeAfterFolder);
     }
 
@@ -146,7 +148,8 @@ public final class AndroidFirstRunPermissions {
             next();
             return true;
         }
-        return storage.handleActivityResult(requestCode, resultCode, data,
+        return folderContinuation.acceptLegacyResult(storage, requestCode, resultCode, data)
+                || storage.handleActivityResult(requestCode, resultCode, data,
                 this::advanceAfterFolder, this::resumeAfterFolder);
     }
 
@@ -160,6 +163,7 @@ public final class AndroidFirstRunPermissions {
 
     public void saveState(Bundle state) {
         state.putInt(STATE_STEP, step);
+        state.putInt(STATE_LEGACY_PICKER, folderContinuation.legacyPicker);
         state.putBoolean(STATE_WAITING, waitingForResult);
         state.putBoolean(STATE_DEFER_FOLDER_RESULT, folderContinuation.deferred);
         storage.saveState(state);
@@ -197,10 +201,21 @@ public final class AndroidFirstRunPermissions {
         private final Runnable resumeSetup;
         private boolean resumed;
         private boolean deferred;
+        private int legacyPicker;
 
-        FolderContinuation(Bundle state, boolean completedFolder, Runnable resumeSetup) {
+        FolderContinuation(Bundle state, SavedStep saved, boolean completedFolder, Runnable resumeSetup) {
+            legacyPicker = saved.legacyPicker;
             this.resumeSetup = resumeSetup;
             deferred = completedFolder || (state != null && state.getBoolean(STATE_DEFER_FOLDER_RESULT));
+        }
+
+        boolean acceptLegacyResult(AndroidBRouterStorageSetup storage, int requestCode, int resultCode, Intent data) {
+            if (legacyPicker == 0 || requestCode != legacyPicker) {
+                return false;
+            }
+            legacyPicker = 0;
+            storage.acceptLegacyPickerResult(requestCode == LEGACY_PROFILES_PICKER, resultCode, data);
+            return true;
         }
 
         void continueWhenResumed() {
@@ -220,18 +235,19 @@ public final class AndroidFirstRunPermissions {
         }
     }
 
-    private record SavedStep(int index, boolean waiting) {
+    private record SavedStep(int index, boolean waiting, int legacyPicker) {
         static SavedStep restore(Bundle state, boolean completedFolderStep) {
             if (state == null) {
-                return new SavedStep(0, false);
+                return new SavedStep(0, false, 0);
             }
             int index = state.getInt(STATE_STEP);
             boolean waiting = state.getBoolean(STATE_WAITING);
             if (AndroidBRouterStorageSetup.hasSharedPickerState(state)) {
-                return new SavedStep(index + (completedFolderStep ? 1 : 0), waiting);
+                return new SavedStep(index + (completedFolderStep ? 1 : 0), waiting, state.getInt(STATE_LEGACY_PICKER));
             }
             // Old snapshots used two folder pickers. Recheck grants in the shared step.
-            return new SavedStep(Math.max(0, index - 1), waiting && index >= 2);
+            int legacy = waiting && index < 2 ? LEGACY_PROFILES_PICKER + index : 0;
+            return new SavedStep(Math.max(0, index - 1), waiting && index >= 2, legacy);
         }
     }
 }

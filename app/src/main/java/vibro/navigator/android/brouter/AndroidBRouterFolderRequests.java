@@ -2,17 +2,18 @@ package vibro.navigator.android.brouter;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.core.util.Consumer;
 
 import java.util.Collection;
-import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 import vibro.navigator.R;
 import vibro.navigator.android.brouter.AndroidBRouterPickerRequest.Completion;
+import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.android.storage.AndroidLegacyExternalStorageAccess;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.brouter.BRouterSegmentsRepository;
@@ -41,20 +42,28 @@ final class AndroidBRouterFolderRequests {
     void findLocation(Collection<String> excluded, @Nullable AndroidBRouterPickerLocation fallback,
                       Consumer<AndroidBRouterPickerLocation> callback) {
         AtomicReference<AndroidBRouterPickerLocation> confirmed = new AtomicReference<>(fallback);
-        Collection<String> candidates = fallback == null ? excludeAlreadyGrantedParent(excluded) : excluded;
+        boolean profilesMissing = fallback == null && !profiles.hasPersistedProfilesTreeAccess(activity);
+        boolean segmentsMissing = fallback == null && AppCompassSettings.isSurroundingStreetsEnabled(activity)
+                && !segments.hasPersistedSegmentsTreeAccess(activity);
+        var wanted = profilesMissing == segmentsMissing ? null : profilesMissing
+                ? AndroidBRouterFolderAccess.Kind.PROFILES : AndroidBRouterFolderAccess.Kind.SEGMENTS;
         AndroidBRouterFolderDiscovery.findWithFallback(
-                signal -> AndroidBRouterProfilesTreeAccessPrompt.findLocation(activity, profiles, candidates, signal,
-                        confirmed::set), confirmed::get, callback);
+                signal -> AndroidBRouterProfilesTreeAccessPrompt.findLocation(
+                        activity, profiles, excluded, signal, confirmed::set, wanted),
+                confirmed::get, callback);
     }
 
-    private Collection<String> excludeAlreadyGrantedParent(Collection<String> excluded) {
-        var grantedParent = AndroidBRouterProfilesTreeAccessPrompt.savedParent(activity, excluded);
-        if (grantedParent == null) {
-            return excluded;
+    static void acceptLegacyPickerResult(Activity activity, boolean profiles, int resultCode, @Nullable Intent data) {
+        Uri uri = data == null ? null : data.getData();
+        if (resultCode != Activity.RESULT_OK || uri == null || AndroidBRouterFolderAccess.treeId(uri) == null
+                || !AndroidDocumentAccess.persistReadPermission(activity, data, uri)) {
+            return;
         }
-        var unavailable = new ArrayList<>(excluded);
-        unavailable.add(grantedParent.toString());
-        return unavailable;
+        if (profiles) {
+            AndroidBRouterProfilesRepositoryFactory.create().saveProfilesTreeUri(activity, uri);
+        } else {
+            AndroidBRouterSegmentsRepositoryFactory.create().saveSegmentsTreeUri(activity, uri);
+        }
     }
 
     void handleResult(int resultCode, @Nullable Intent data, AndroidBRouterPickerRequest picker,

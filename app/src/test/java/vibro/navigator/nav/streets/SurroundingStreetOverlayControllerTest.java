@@ -178,6 +178,42 @@ public class SurroundingStreetOverlayControllerTest {
         }
     }
 
+    @Test
+    public void newestSourceLoadsWhileTwoRetiredReadsAreStillStalled() throws InterruptedException {
+        var initial = new CountDownLatch(1);
+        var second = new CountDownLatch(1);
+        var newest = new CountDownLatch(1);
+        var release = new CountDownLatch(1);
+        var starts = new java.util.concurrent.atomic.AtomicInteger();
+        var runtime = new SurroundingStreetOverlayRuntime((keys, visibility) -> {
+            switch (starts.incrementAndGet()) {
+                case 1 -> {
+                    initial.countDown();
+                    waitForProvider(release);
+                }
+                case 2 -> {
+                    second.countDown();
+                    waitForProvider(release);
+                }
+                default -> newest.countDown();
+            }
+            return new SurroundingStreetChunkLoadResult();
+        }, settings);
+        var active = new SurroundingStreetOverlayController(scheduledResults::add, clock, runtime, () -> { });
+        try {
+            active.onAcceptedLocation(location(48.2082d, 16.3738d));
+            active.onCompassViewport(compassState());
+            assertTrue(initial.await(3, TimeUnit.SECONDS));
+            active.onSourcesChanged();
+            assertTrue(second.await(3, TimeUnit.SECONDS));
+            active.onSourcesChanged();
+            assertTrue(newest.await(3, TimeUnit.SECONDS));
+        } finally {
+            active.shutdown();
+            release.countDown();
+        }
+    }
+
     private static void waitForProvider(CountDownLatch release) {
         while (release.getCount() > 0) {
             try {

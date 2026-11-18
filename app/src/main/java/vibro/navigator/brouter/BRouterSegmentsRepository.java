@@ -36,7 +36,8 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
     @NonNull
     private final Set<String> missingSegmentFiles = new HashSet<>();
     @Nullable
-    private List<Uri> discoveryTreeUris;
+    private List<Uri> detectedTrees;
+    private List<Uri> grantedTrees = java.util.Collections.emptyList();
     @Nullable
     private List<String> discoveryDirectoryIds;
     private final BRouterDecodedStreetCache decodedStreetCache = new BRouterDecodedStreetCache();
@@ -105,28 +106,39 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
             return true;
         }
         segmentFileUris.remove(fileName);
-        return readRemainingGrants(context, fileName, reader, cached);
+        return readTrees(context, fileName, reader, cached, grantedTrees, true)
+                || readTrees(context, fileName, reader, cached, detectedTrees(context), grantedTrees.isEmpty());
     }
 
-    private boolean readRemainingGrants(Context context, String fileName, TileReader reader, @Nullable Uri cached) {
-        for (Uri treeUri : discoveryTreeUris(context)) {
-            Uri documentUri = dependencies.documentAccess.childDocumentUri(context, treeUri, fileName);
-            if (documentUri != null && !documentUri.equals(cached) && reader.read(documentUri)) {
-                segmentFileUris.put(fileName, documentUri);
+    private boolean readTrees(Context context, String fileName, TileReader reader, @Nullable Uri cached,
+                              List<Uri> trees, boolean preferFirst) {
+        boolean preferred = preferFirst;
+        for (Uri tree : trees) {
+            Uri document = dependencies.documentAccess.childDocumentUri(context, tree, fileName);
+            if (document != null && !document.equals(cached) && reader.read(document)) {
+                if (preferred) {
+                    segmentFileUris.put(fileName, document);
+                }
                 return true;
             }
+            preferred = false;
         }
         return false;
     }
 
     private void refreshSourceCaches(@NonNull Context context) {
         String revision = BRouterSegmentSourceSettings.getRevision(context);
-        if (Objects.equals(sourceRevision, revision)) {
+        List<String> directories = segmentDirectories.getSegmentsDocumentIdCandidates(context);
+        List<Uri> grants = BRouterFolderGrant.discoveryTrees(
+                context, getSegmentsTreeUri(context), false, dependencies.uriPermissionAccess::hasReadPermission);
+        if (Objects.equals(sourceRevision, revision) && directories.equals(discoveryDirectoryIds)
+                && grants.equals(grantedTrees)) {
             return;
         }
         sourceRevision = revision;
-        discoveryTreeUris = null;
-        discoveryDirectoryIds = null;
+        detectedTrees = null;
+        discoveryDirectoryIds = directories;
+        grantedTrees = grants;
         segmentFileUris.clear();
         missingSegmentFiles.clear();
         streetFileLoader.clearSources();
@@ -134,12 +146,12 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
     }
 
     @NonNull
-    private List<Uri> discoveryTreeUris(@NonNull Context context) {
-        if (discoveryTreeUris == null) {
-            discoveryTreeUris = segmentDirectories.resolveSegmentsDiscoveryTreeUris(context, BRouterFolderGrant.discoveryTrees(
-                    context, getSegmentsTreeUri(context), false, dependencies.uriPermissionAccess::hasReadPermission));
+    private List<Uri> detectedTrees(@NonNull Context context) {
+        if (detectedTrees == null) {
+            detectedTrees = segmentDirectories.resolveSegmentsDiscoveryTreeUris(context, discoveryDirectoryIds);
+            detectedTrees.removeAll(grantedTrees);
         }
-        return discoveryTreeUris;
+        return detectedTrees;
     }
 
     @NonNull

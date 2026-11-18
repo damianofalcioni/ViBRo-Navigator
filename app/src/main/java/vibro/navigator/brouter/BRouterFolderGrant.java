@@ -1,88 +1,180 @@
 package vibro.navigator.brouter;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
-/** The read grant shared by profiles and routing segments. */
+/** Records each accepted parent and its independently verified children. */
 public final class BRouterFolderGrant {
-    private static final String TREE_URI = "brouter_tree_uri";
-    private static final String PROFILES_URI = "brouter_profiles_uri";
-    private static final String SEGMENTS_URI = "brouter_segments_uri";
-    private static final String PROFILES_TREE = "brouter_profiles_tree_uri";
-    private static final String SEGMENTS_TREE = "brouter_segments_tree_uri";
+    private static final String LATEST = "brouter_tree_uri";
+    private static final String PARENTS = "brouter_granted_parents";
+    private static final String REVISION = "brouter_folder_revision";
+    private static final String DIRECT = ".direct";
 
-    private BRouterFolderGrant() {
-    }
+    private BRouterFolderGrant() { }
 
     @Nullable
-    public static Uri get(@NonNull Context context) {
-        return readUri(context, TREE_URI);
-    }
-
-    @Nullable
-    public static Uri directory(Context context, boolean profiles) {
-        return readUri(context, profiles ? PROFILES_URI : SEGMENTS_URI);
+    public static Uri get(Context context) {
+        return uri(prefs(context), LATEST);
     }
 
     @Nullable
     public static Uri parentFor(Context context, boolean profiles) {
-        if (directory(context, profiles) == null) {
+        SharedPreferences settings = prefs(context);
+        if (uri(settings, directoryKey(profiles)) == null) {
             return null;
         }
-        Uri parent = readUri(context, profiles ? PROFILES_TREE : SEGMENTS_TREE);
+        Uri parent = uri(settings, parentKey(profiles));
         return parent == null ? get(context) : parent;
     }
 
     @Nullable
-    private static Uri readUri(Context context, String key) {
-        String value = BRouterSegmentSourceSettings.prefs(context).getString(key, null);
-        return value == null ? null : Uri.parse(value);
+    public static Uri directory(Context context, boolean profiles) {
+        return uri(prefs(context), directoryKey(profiles));
+    }
+
+    @Nullable
+    public static Uri directory(Context context, Uri parent, boolean profiles) {
+        Uri child = uri(prefs(context), childKey(parent, profiles));
+        return child == null && parent.equals(parentFor(context, profiles)) ? directory(context, profiles) : child;
+    }
+
+    public static boolean isDirect(Context context, Uri parent, boolean profiles) {
+        return prefs(context).getBoolean(childKey(parent, profiles) + DIRECT, false);
+    }
+
+    public static List<Uri> parents(Context context) {
+        var parents = new LinkedHashSet<Uri>();
+        addParent(parents, get(context));
+        var stored = new android.text.TextUtils.SimpleStringSplitter('\n');
+        stored.setString(prefs(context).getString(PARENTS, ""));
+        for (String parent : stored) {
+            parents.add(Uri.parse(parent));
+        }
+        addParent(parents, parentFor(context, true));
+        addParent(parents, parentFor(context, false));
+        return new ArrayList<>(parents);
+    }
+
+    private static void addParent(LinkedHashSet<Uri> parents, @Nullable Uri parent) {
+        if (parent != null) {
+            parents.add(parent);
+        }
     }
 
     public static void save(Context context, Uri parent, @Nullable Uri profiles, @Nullable Uri segments) {
-        Uri profileSource = profiles == null ? parentFor(context, true) : parent;
-        Uri segmentSource = segments == null ? parentFor(context, false) : parent;
-        var editor = BRouterSegmentSourceSettings.prefs(context).edit().putString(TREE_URI, parent.toString());
-        editor.putString(PROFILES_TREE, profileSource == null ? null : profileSource.toString());
-        editor.putString(SEGMENTS_TREE, segmentSource == null ? null : segmentSource.toString());
-        if (profiles != null) {
-            editor.putString(PROFILES_URI, profiles.toString());
+        save(context, parent, new Child(profiles, false, true), new Child(segments, false, true), true);
+    }
+
+    public record Child(@Nullable Uri uri, boolean direct, boolean prefer) { }
+
+    public static void save(Context context, Uri parent, Child profiles, Child segments, boolean latest) {
+        List<Uri> parents = parents(context);
+        if (!parents.contains(parent)) {
+            parents.add(0, parent);
         }
-        if (segments != null) {
-            editor.putString(SEGMENTS_URI, segments.toString());
+        SharedPreferences.Editor edit = prefs(context).edit();
+        edit.putString(PARENTS, android.text.TextUtils.join("\n", parents));
+        if (latest) {
+            edit.putString(LATEST, parent.toString());
         }
-        BRouterSegmentSourceSettings.applySourceChange(editor);
+        putChild(context, edit, parent, profiles, true);
+        boolean segmentChanged = putChild(context, edit, parent, segments, false);
+        edit.putString(REVISION, UUID.randomUUID().toString());
+        if (segmentChanged) {
+            BRouterSegmentSourceSettings.applySourceChange(edit);
+        } else {
+            edit.apply();
+        }
+    }
+
+    private static boolean putChild(Context context, SharedPreferences.Editor edit, Uri parent,
+                                    Child child, boolean profiles) {
+        if (child.uri() == null) {
+            Uri previous = parentFor(context, profiles);
+            if (previous != null) {
+                edit.putString(parentKey(profiles), previous.toString());
+            }
+            return false;
+        }
+        String key = childKey(parent, profiles);
+        boolean changed = !Objects.equals(child.uri(), directory(context, parent, profiles));
+        edit.putString(key, child.uri().toString()).putBoolean(key + DIRECT, child.direct());
+        if (child.prefer()) {
+            changed |= !parent.equals(parentFor(context, profiles));
+            edit.putString(parentKey(profiles), parent.toString());
+            edit.putString(directoryKey(profiles), child.uri().toString());
+        }
+        return changed;
+    }
+
+    public static Runnable observe(Context context, Runnable onChanged) {
+        return BRouterSegmentSourceSettings.observeKey(context, REVISION, onChanged);
     }
 
     @Nullable
     static Uri resolve(Context context, @Nullable Uri legacy, boolean profiles, GrantCheck check) {
-        Uri shared = get(context);
-        if (shared != null && check.isGranted(context, shared)) {
-            return shared;
-        }
-        Uri previous = parentFor(context, profiles);
-        if (previous != null && !previous.equals(shared) && check.isGranted(context, previous)) {
-            return previous;
-        }
-        return check.isGranted(context, legacy) ? legacy : null;
+        return new Candidates(context, check).first(sourceCandidates(context, legacy, profiles));
     }
 
     static List<Uri> discoveryTrees(Context context, @Nullable Uri legacy, boolean profiles, GrantCheck check) {
-        List<Uri> trees = new ArrayList<>();
-        Uri primary = resolve(context, legacy, profiles, check);
-        if (primary != null) {
-            trees.add(primary);
+        var granted = new ArrayList<Uri>();
+        for (Uri tree : sourceCandidates(context, legacy, profiles)) {
+            if (check.isGranted(context, tree)) {
+                granted.add(tree);
+            }
         }
-        if (legacy != null && !legacy.equals(primary) && check.isGranted(context, legacy)) {
-            trees.add(legacy);
+        return granted;
+    }
+
+    private static LinkedHashSet<Uri> sourceCandidates(Context context, @Nullable Uri legacy, boolean profiles) {
+        var candidates = new LinkedHashSet<Uri>();
+        addParent(candidates, parentFor(context, profiles));
+        candidates.addAll(parents(context));
+        addParent(candidates, legacy);
+        return candidates;
+    }
+
+    private static String parentKey(boolean profiles) {
+        return profiles ? "brouter_profiles_tree_uri" : "brouter_segments_tree_uri";
+    }
+
+    private static String directoryKey(boolean profiles) {
+        return profiles ? "brouter_profiles_uri" : "brouter_segments_uri";
+    }
+
+    private static String childKey(Uri parent, boolean profiles) {
+        return directoryKey(profiles) + "." + parent;
+    }
+
+    @Nullable
+    private static Uri uri(SharedPreferences prefs, String key) {
+        String value = prefs.getString(key, null);
+        return value == null ? null : Uri.parse(value);
+    }
+
+    private static SharedPreferences prefs(Context context) {
+        return BRouterSegmentSourceSettings.prefs(context);
+    }
+
+    private record Candidates(Context context, GrantCheck check) {
+        @Nullable
+        Uri first(Iterable<Uri> candidates) {
+            for (Uri candidate : candidates) {
+                if (check.isGranted(context, candidate)) {
+                    return candidate;
+                }
+            }
+            return null;
         }
-        return trees;
     }
 
     interface GrantCheck {

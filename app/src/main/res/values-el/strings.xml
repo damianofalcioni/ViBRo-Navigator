@@ -158,7 +158,8 @@
     <string name="msg_brouter_profiles_storage_permission_required">Απαιτείται πρόσβαση αποθήκευσης για ανάγνωση των αρχείων προφίλ BRouter.</string>
     <string name="title_brouter_storage_access">Χώρος αποθήκευσης BRouter</string>
     <string name="msg_brouter_storage_access_prompt">Επιλέξτε τον φάκελο του BRouter στη θέση %1$s για να μπορεί το ViBRo να διαβάζει τα προφίλ και τα δεδομένα δρομολόγησης.</string>
-    <string name="msg_brouter_folder_required">Επιλέξτε τον φάκελο brouter που περιέχει τους φακέλους profiles2 και segments4.</string>
+    <string name="msg_brouter_folder_required">Επιλέξτε έναν φάκελο brouter που περιέχει profiles2, segments4 ή και τους δύο φακέλους.</string>
+    <string name="msg_brouter_segments_folder_required">Επιλέξτε τον φάκελο brouter που περιέχει τον φάκελο segments4.</string>
     <string name="action_browse">Περιήγηση</string>
     <string name="msg_brouter_storage_folder_missing">Περιηγηθείτε για να επιλέξετε τον φάκελο %1$s. Αν δεν υπάρχει ακόμη, ολοκληρώστε τη ρύθμιση του χώρου αποθήκευσης στο BRouter.</string>
     <string name="msg_symbol_test_notification_sent">Στάλθηκε ειδοποίηση δοκιμής συμβόλου.</string>

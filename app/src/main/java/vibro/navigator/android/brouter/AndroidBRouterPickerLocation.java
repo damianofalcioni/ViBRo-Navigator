@@ -50,7 +50,14 @@ final class AndroidBRouterPickerLocation {
     static AndroidBRouterPickerLocation resolve(Context context, @Nullable Uri hint, String folderName,
                                                 @Nullable String wantedChild, Collection<String> excluded,
                                                 CancellationSignal signal, Consumer<AndroidBRouterPickerLocation> progress) {
-        if (hint != null && DocumentsContractCompat.isTreeUri(hint) && !excluded.contains(hint.toString())) {
+        return resolve(context, hint, folderName, wantedChild, excluded, signal, progress, false);
+    }
+
+    static AndroidBRouterPickerLocation resolve(Context context, @Nullable Uri hint, String folderName,
+                                                @Nullable String wantedChild, Collection<String> excluded,
+                                                CancellationSignal signal, Consumer<AndroidBRouterPickerLocation> progress,
+                                                boolean requireChild) {
+        if (wantedChild == null && hint != null && DocumentsContractCompat.isTreeUri(hint) && !excluded.contains(hint.toString())) {
             return confirmed(hint);
         }
         String preferredId = hint == null ? null : AndroidDocumentAccess.documentId(hint);
@@ -58,7 +65,7 @@ final class AndroidBRouterPickerLocation {
         if (wantedChild == null) {
             return findSelectableFolder(context, candidates, preferredId, signal, progress);
         }
-        return findWithChild(context, candidates, wantedChild, signal, progress);
+        return new ChildSearch(context, wantedChild, signal, progress, requireChild).find(candidates);
     }
 
     private static List<Candidate> candidates(Context context, String folderName, @Nullable String preferredId,
@@ -97,30 +104,46 @@ final class AndroidBRouterPickerLocation {
         return new AndroidBRouterPickerLocation(unverified, false);
     }
 
-    private static AndroidBRouterPickerLocation findWithChild(Context context, List<Candidate> candidates, String child,
-                                                              CancellationSignal signal,
-                                                              Consumer<AndroidBRouterPickerLocation> progress) {
-        publishDirectFallback(candidates, progress);
-        publishDirectChild(context, candidates, child, signal, progress);
-        AndroidBRouterPickerLocation fallback = browse();
-        for (Candidate candidate : candidates) {
-            DirectoryPresence parent = candidate.presence(context, signal);
-            if (parent == DirectoryPresence.PRESENT && candidate.hasChild(context, child, signal)) {
-                return confirmed(candidate.uri);
+    private record ChildSearch(Context context, String child, CancellationSignal signal,
+                               Consumer<AndroidBRouterPickerLocation> progress, boolean requireChild) {
+        AndroidBRouterPickerLocation find(List<Candidate> candidates) {
+            if (!requireChild) {
+                publishDirectFallback(candidates, progress);
             }
-            fallback = candidate.preferOver(fallback, parent);
+            AndroidBRouterPickerLocation fallback = directChild(candidates);
+            if (fallback.confirmed) {
+                progress.accept(fallback);
+            }
+            for (Candidate candidate : candidates) {
+                DirectoryPresence presence = candidate.presence(context, signal);
+                if (presence == DirectoryPresence.PRESENT && candidate.hasChild(context, child, signal)) {
+                    return confirmed(candidate.uri);
+                }
+                fallback = preferFallback(fallback, candidate, presence);
+            }
+            return fallback;
         }
-        return fallback;
-    }
 
-    private static void publishDirectChild(Context context, List<Candidate> candidates, String child,
-                                           CancellationSignal signal, Consumer<AndroidBRouterPickerLocation> progress) {
-        for (Candidate candidate : candidates) {
-            signal.throwIfCanceled();
-            if (AndroidDocumentAccess.isDirectExternalDirectory(context, candidate.id + "/" + child)) {
-                progress.accept(confirmed(candidate.uri));
-                return;
+        private AndroidBRouterPickerLocation preferFallback(AndroidBRouterPickerLocation fallback, Candidate candidate,
+                                                            DirectoryPresence presence) {
+            if (requireChild || fallback.confirmed) {
+                return fallback;
             }
+            AndroidBRouterPickerLocation next = candidate.preferOver(fallback, presence);
+            if (next.confirmed) {
+                progress.accept(next);
+            }
+            return next;
+        }
+
+        private AndroidBRouterPickerLocation directChild(List<Candidate> candidates) {
+            for (Candidate candidate : candidates) {
+                signal.throwIfCanceled();
+                if (AndroidDocumentAccess.isDirectExternalDirectory(context, candidate.id + "/" + child)) {
+                    return confirmed(candidate.uri);
+                }
+            }
+            return browse();
         }
     }
 

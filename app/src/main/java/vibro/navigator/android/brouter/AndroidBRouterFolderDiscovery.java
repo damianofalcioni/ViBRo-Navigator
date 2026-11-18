@@ -8,6 +8,7 @@ import androidx.core.util.Consumer;
 import androidx.core.util.Supplier;
 
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.SynchronousQueue;
@@ -24,6 +25,10 @@ final class AndroidBRouterFolderDiscovery {
             0, 8, 30, TimeUnit.SECONDS, new SynchronousQueue<>());
     private static final ExecutorService PROFILE_WORKER = new ThreadPoolExecutor(
             0, 2, 30, TimeUnit.SECONDS, new SynchronousQueue<>());
+
+    private static final ExecutorService CHILD_WORKER = new ThreadPoolExecutor(
+            0, 4, 30, TimeUnit.SECONDS, new SynchronousQueue<>());
+    private static final ExecutorService BUNDLED_WORKER = Executors.newSingleThreadExecutor();
 
     interface Query<T> {
         T run(CancellationSignal signal);
@@ -44,7 +49,7 @@ final class AndroidBRouterFolderDiscovery {
         new Request<>(work, fallback, onResult).start(AndroidBRouterFolderDiscovery::executeProfileLookup);
     }
 
-    private static void cancelTask(FutureTask<Void> task, CancellationSignal signal) {
+    static void cancelTask(FutureTask<Void> task, CancellationSignal signal) {
         if (task.cancel(true)) {
             // Cancellation can call a remote provider. Keep it off the main thread.
             new Thread(signal::cancel, "BRouter query cancellation").start();
@@ -107,6 +112,19 @@ final class AndroidBRouterFolderDiscovery {
 
     static void execute(Runnable work) {
         WORKER.execute(work);
+    }
+
+    static boolean executeChildLookup(Runnable work) {
+        try {
+            CHILD_WORKER.execute(work);
+            return true;
+        } catch (RejectedExecutionException e) {
+            return false;
+        }
+    }
+
+    static void executeBundledLookup(Runnable work) {
+        BUNDLED_WORKER.execute(work);
     }
 
     static void executeProfileLookup(Runnable work) {

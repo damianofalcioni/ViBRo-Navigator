@@ -38,9 +38,13 @@ public final class BRouterSegmentSourceSettings {
 
     @NonNull
     public static Runnable observe(Context context, Runnable onChanged) {
+        return observeKey(context, REVISION, onChanged);
+    }
+
+    static Runnable observeKey(Context context, String revision, Runnable onChanged) {
         SharedPreferences prefs = prefs(context);
         SharedPreferences.OnSharedPreferenceChangeListener listener = (preferences, key) -> {
-            if (key == null || REVISION.equals(key)) {
+            if (key == null || revision.equals(key)) {
                 onChanged.run();
             }
         };

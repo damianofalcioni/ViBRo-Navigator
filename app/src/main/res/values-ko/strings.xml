@@ -158,7 +158,8 @@
     <string name="msg_brouter_profiles_storage_permission_required">BRouter 프로필 파일을 읽으려면 저장소 접근 권한이 필요합니다.</string>
     <string name="title_brouter_storage_access">BRouter 저장소</string>
     <string name="msg_brouter_storage_access_prompt">ViBRo에서 프로필과 경로 데이터를 읽을 수 있도록 %1$s에 있는 BRouter 폴더를 선택하세요.</string>
-    <string name="msg_brouter_folder_required">profiles2 및 segments4가 들어 있는 brouter 폴더를 선택하세요.</string>
+    <string name="msg_brouter_folder_required">profiles2 또는 segments4 중 하나 이상이 들어 있는 brouter 폴더를 선택하세요.</string>
+    <string name="msg_brouter_segments_folder_required">segments4가 들어 있는 brouter 폴더를 선택하세요.</string>
     <string name="action_browse">찾아보기</string>
     <string name="msg_brouter_storage_folder_missing">저장소를 찾아 %1$s 폴더를 선택하세요. 폴더가 아직 없으면 BRouter에서 저장소 설정을 완료하세요.</string>
     <string name="msg_symbol_test_notification_sent">심볼 테스트 알림이 전송되었습니다.</string>

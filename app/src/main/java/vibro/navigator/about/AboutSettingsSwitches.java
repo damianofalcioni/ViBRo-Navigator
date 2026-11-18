@@ -247,8 +247,10 @@ final class AboutSettingsSwitches {
         }
     }
 
-    static void savePicker(@Nullable AboutSettingsSwitches switches, Bundle state) {
-        if (switches != null) {
+    static void savePicker(@Nullable AboutSettingsSwitches switches, @Nullable Bundle original, Bundle state) {
+        if (switches == null) {
+            AboutStreetPicker.retainSavedState(original, state);
+        } else {
             switches.streetPicker.save(state);
         }
     }

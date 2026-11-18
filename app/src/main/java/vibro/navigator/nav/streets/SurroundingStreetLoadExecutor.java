@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 final class SurroundingStreetLoadExecutor {
-    // One obsolete source may still be in an uncancellable document-provider call.
-    private static final int MAX_ACTIVE_SOURCES = 2;
+    // Reserve room for a current load when two obsolete reads are still in provider calls.
+    private static final int MAX_ACTIVE_SOURCES = 3;
     private final ExecutorService executor = Executors.newFixedThreadPool(MAX_ACTIVE_SOURCES);
     private final Map<Integer, Work> running = new HashMap<>();
     private int source;

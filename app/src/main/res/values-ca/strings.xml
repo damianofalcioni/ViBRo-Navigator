@@ -158,7 +158,8 @@
     <string name="msg_brouter_profiles_storage_permission_required">Cal accés a l\'emmagatzematge per llegir fitxers de perfil BRouter.</string>
     <string name="title_brouter_storage_access">Emmagatzematge del BRouter</string>
     <string name="msg_brouter_storage_access_prompt">Selecciona la carpeta del BRouter a %1$s perquè ViBRo pugui llegir els perfils i les dades de rutes.</string>
-    <string name="msg_brouter_folder_required">Selecciona la carpeta brouter que conté profiles2 i segments4.</string>
+    <string name="msg_brouter_folder_required">Selecciona una carpeta brouter que contingui profiles2, segments4 o totes dues.</string>
+    <string name="msg_brouter_segments_folder_required">Selecciona la carpeta brouter que conté segments4.</string>
     <string name="action_browse">Navega</string>
     <string name="msg_brouter_storage_folder_missing">Navega per seleccionar la carpeta %1$s. Si encara no existeix, completa la configuració de l’emmagatzematge a BRouter.</string>
     <string name="msg_symbol_test_notification_sent">enviada.</string>

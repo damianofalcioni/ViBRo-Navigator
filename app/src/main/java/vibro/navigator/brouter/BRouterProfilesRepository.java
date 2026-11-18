@@ -6,7 +6,6 @@ import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.util.Consumer;
 
 import vibro.navigator.logging.AppLogger;
 
@@ -232,14 +231,16 @@ public class BRouterProfilesRepository {
 
     @NonNull
     public List<String> listProfiles(@NonNull Context context) {
-        return listProfiles(context, ignored -> { });
+        return listAvailableProfiles(context, listBundledProfiles(context));
     }
 
     @NonNull
-    public List<String> listProfiles(@NonNull Context context, Consumer<List<String>> onBundledProfiles) {
-        List<String> bundled = BRouterProfileLister.mergeProfileNames(Collections.emptyList(),
-                profileLister.listBundledProfiles(context));
-        onBundledProfiles.accept(bundled);
+    public List<String> listBundledProfiles(Context context) {
+        return BRouterProfileLister.mergeProfileNames(Collections.emptyList(), profileLister.listBundledProfiles(context));
+    }
+
+    @NonNull
+    public List<String> listAvailableProfiles(Context context, List<String> bundled) {
         return profileLister.listProfiles(context, resolveProfilesDiscoveryTreeUris(context), bundled);
     }
 

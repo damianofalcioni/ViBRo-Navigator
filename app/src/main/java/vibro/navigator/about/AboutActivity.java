@@ -230,7 +230,7 @@ public class AboutActivity extends AndroidLocalizedActivity {
     protected void onSaveInstanceState(@NonNull Bundle state) {
         flushDeferredSettings();
         outputSaving.saveState(state);
-        AboutSettingsSwitches.savePicker(settingsSwitches, state);
+        AboutSettingsSwitches.savePicker(settingsSwitches, initialSettingsState, state);
         super.onSaveInstanceState(state);
     }
 

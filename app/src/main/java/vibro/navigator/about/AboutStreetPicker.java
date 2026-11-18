@@ -13,6 +13,7 @@ import vibro.navigator.android.brouter.AndroidBRouterSegmentsTreeAccessPrompt;
 
 final class AboutStreetPicker {
     private static final int REQUEST = AboutSettingsSwitches.REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE;
+    private static final String STATE_PICKER = "about_streets_picker_pending";
     private static final String STATE_ENABLE_REQUESTED = "about_streets_enable_requested";
     private final Activity activity;
     private final AndroidBRouterPickerRequest picker;
@@ -24,7 +25,7 @@ final class AboutStreetPicker {
 
     AboutStreetPicker(Activity activity) {
         this.activity = activity;
-        picker = new AndroidBRouterPickerRequest(activity, "about_streets_picker_pending");
+        picker = new AndroidBRouterPickerRequest(activity, STATE_PICKER);
     }
 
     void restore(@Nullable Bundle state) {
@@ -74,6 +75,7 @@ final class AboutStreetPicker {
             requestEnable.run();
         } else {
             enableRequested = false;
+            AndroidBRouterSegmentsTreeAccessPrompt.cancel(activity, REQUEST);
             setting.set(false);
         }
     }
@@ -113,6 +115,13 @@ final class AboutStreetPicker {
     void save(Bundle state) {
         picker.save(state);
         state.putBoolean(STATE_ENABLE_REQUESTED, enableRequested);
+    }
+
+    static void retainSavedState(@Nullable Bundle from, Bundle to) {
+        if (from != null) {
+            AndroidBRouterPickerRequest.copySavedState(from, to, STATE_PICKER);
+            to.putBoolean(STATE_ENABLE_REQUESTED, from.getBoolean(STATE_ENABLE_REQUESTED, true));
+        }
     }
 
     void dispose() {

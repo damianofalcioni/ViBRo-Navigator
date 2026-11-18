@@ -158,7 +158,8 @@
     <string name="msg_brouter_profiles_storage_permission_required">يلزم الوصول إلى التخزين لقراءة ملفات ملفات تعريف BRouter.</string>
     <string name="title_brouter_storage_access">مساحة تخزين BRouter</string>
     <string name="msg_brouter_storage_access_prompt">اختر مجلد BRouter في %1$s لمنح ViBRo صلاحية قراءة ملفات التعريف وبيانات التوجيه.</string>
-    <string name="msg_brouter_folder_required">اختر مجلد brouter الذي يحتوي على profiles2 وsegments4.</string>
+    <string name="msg_brouter_folder_required">اختر مجلد brouter الذي يحتوي على profiles2 أو segments4 أو كليهما.</string>
+    <string name="msg_brouter_segments_folder_required">اختر مجلد brouter الذي يحتوي على segments4.</string>
     <string name="action_browse">استعراض</string>
     <string name="msg_brouter_storage_folder_missing">استعرض الملفات لاختيار مجلد %1$s. إذا لم يكن موجودًا بعد، فأكمل إعداد التخزين في BRouter.</string>
     <string name="msg_symbol_test_notification_sent">.</string>

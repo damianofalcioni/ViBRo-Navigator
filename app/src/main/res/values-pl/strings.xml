@@ -158,7 +158,8 @@
     <string name="msg_brouter_profiles_storage_permission_required">Dostęp do pamięci jest potrzebny, aby odczytać pliki profilu BRouter.</string>
     <string name="title_brouter_storage_access">Pamięć BRoutera</string>
     <string name="msg_brouter_storage_access_prompt">Wybierz folder BRoutera w lokalizacji %1$s, aby ViBRo mogło odczytać profile i dane tras.</string>
-    <string name="msg_brouter_folder_required">Wybierz folder brouter zawierający profiles2 i segments4.</string>
+    <string name="msg_brouter_folder_required">Wybierz folder brouter zawierający profiles2, segments4 lub oba foldery.</string>
+    <string name="msg_brouter_segments_folder_required">Wybierz folder brouter zawierający segments4.</string>
     <string name="action_browse">Przeglądaj</string>
     <string name="msg_brouter_storage_folder_missing">Odszukaj i wybierz folder %1$s. Jeśli jeszcze nie istnieje, dokończ konfigurację pamięci w BRouterze.</string>
     <string name="msg_symbol_test_notification_sent">wysłane.</string>

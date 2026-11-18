@@ -83,6 +83,52 @@ public class BRouterSegmentsRepositoryTest {
         }
     }
 
+    @Test
+    public void remountedCardIsDetectedWithoutSavingTheGrantAgain() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Uri card = Uri.parse("content://test.card/tree/segments4");
+            var mounted = new java.util.concurrent.atomic.AtomicBoolean();
+            var repository = new BRouterSegmentsRepository(new BRouterSegmentDependencies(
+                    new TileCopies(Uri.EMPTY), new TestFileAccess(), context -> Collections.emptyList(),
+                    (context, uri) -> card.equals(uri) && mounted.get()));
+            repository.saveSegmentsTreeUri(activity, card);
+            assertFalse(repository.readGrantedTile(activity, "E015_N45.rd5", tile -> true));
+
+            mounted.set(true);
+
+            assertTrue(repository.readGrantedTile(activity, "E015_N50.rd5", tile -> true));
+        }
+    }
+
+    @Test
+    public void preferredSourceIsRetriedAfterATransientFailure() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Uri earlier = Uri.parse("content://test.earlier/tree/brouter");
+            Uri preferred = Uri.parse("content://test.preferred/tree/brouter");
+            var repository = new BRouterSegmentsRepository(new BRouterSegmentDependencies(
+                    new TileCopies(preferred), new TestFileAccess(), context -> Collections.emptyList(),
+                    (context, uri) -> earlier.equals(uri) || preferred.equals(uri)));
+            BRouterFolderGrant.save(activity, earlier, null, childFolder(earlier));
+            BRouterFolderGrant.save(activity, preferred, null, childFolder(preferred));
+            String tile = "E015_N45.rd5";
+            assertTrue(repository.readGrantedTile(activity, tile,
+                    uri -> earlier.getAuthority().equals(uri.getAuthority())));
+
+            var source = new java.util.concurrent.atomic.AtomicReference<String>();
+            assertTrue(repository.readGrantedTile(activity, tile, uri -> {
+                source.set(uri.getAuthority());
+                return true;
+            }));
+            assertEquals(preferred.getAuthority(), source.get());
+        }
+    }
+
+    private static Uri childFolder(Uri tree) {
+        return tree.buildUpon().appendPath("segments4").build();
+    }
+
     private static int loadFixtureStreets(BRouterSegmentsRepository repository, Context context) {
         return repository.loadSurroundingStreets(context, 48.18773346166013d, 16.38147556524725d,
                 360d, 100, CompassStreetVisibility.all()).segments.size();

@@ -158,7 +158,8 @@
     <string name="msg_brouter_profiles_storage_permission_required">Toegang tot opslag is nodig om BRouter-profielbestanden te kunnen lezen.</string>
     <string name="title_brouter_storage_access">BRouter-opslag</string>
     <string name="msg_brouter_storage_access_prompt">Selecteer de BRouter-map op %1$s zodat ViBRo profielen en routegegevens kan lezen.</string>
-    <string name="msg_brouter_folder_required">Selecteer de map brouter die profiles2 en segments4 bevat.</string>
+    <string name="msg_brouter_folder_required">Selecteer een map brouter die profiles2, segments4 of beide bevat.</string>
+    <string name="msg_brouter_segments_folder_required">Selecteer de map brouter die segments4 bevat.</string>
     <string name="action_browse">Bladeren</string>
     <string name="msg_brouter_storage_folder_missing">Blader naar de map %1$s en selecteer deze. Als de map nog niet bestaat, rond je de opslaginstellingen af in BRouter.</string>
     <string name="msg_symbol_test_notification_sent">Symbol-testmelding verzonden.</string>

@@ -4,15 +4,13 @@ import android.content.Context;
 
 import androidx.core.util.Consumer;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import vibro.navigator.brouter.BRouterProfilesRepository;
 
-/** Enumerates profiles away from the activity and keeps bundled profiles available if a provider stalls. */
+/** Reads APK profiles independently of potentially stalled external providers. */
 public final class AndroidBRouterProfileLoader {
-    public record Result(List<String> profiles, boolean complete) { }
+    public record Result(List<String> profiles, List<String> bundled, boolean complete) { }
 
     private final Context app;
     private final BRouterProfilesRepository repository;
@@ -28,19 +26,32 @@ public final class AndroidBRouterProfileLoader {
     }
 
     public void refresh() {
-        if (disposed) {
-            return;
-        }
-        if (loading) {
-            reloadPending = true;
+        if (disposed || loading) {
             return;
         }
         loading = true;
-        AtomicReference<Result> bundled = new AtomicReference<>(new Result(Collections.emptyList(), false));
-        AndroidBRouterFolderDiscovery.listProfiles(signal -> {
-            List<String> profiles = repository.listProfiles(app, names -> bundled.set(new Result(names, false)));
-            return new Result(profiles, true);
-        }, bundled::get, this::apply);
+        AndroidBRouterFolderDiscovery.executeBundledLookup(() -> {
+            List<String> bundled = repository.listBundledProfiles(app);
+            AndroidBRouterFolderDiscovery.postResult(() -> loadExternal(bundled));
+        });
+    }
+
+    public void refreshAfterAccessChange() {
+        reloadPending = loading;
+        refresh();
+    }
+
+    private void loadExternal(List<String> bundled) {
+        if (disposed) {
+            return;
+        }
+        Result available = new Result(bundled, bundled, false);
+        if (!bundled.isEmpty()) {
+            onResult.accept(available);
+        }
+        AndroidBRouterFolderDiscovery.listProfiles(
+                signal -> new Result(repository.listAvailableProfiles(app, bundled), bundled, true),
+                () -> available, this::apply);
     }
 
     private void apply(Result result) {

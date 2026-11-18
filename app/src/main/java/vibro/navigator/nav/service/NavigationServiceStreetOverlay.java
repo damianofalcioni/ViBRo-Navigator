@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import vibro.navigator.android.brouter.AndroidBRouterSegmentsRepositoryFactory;
+import vibro.navigator.android.brouter.AndroidBRouterVolumeChanges;
 import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.brouter.BRouterSegmentSourceSettings;
 import vibro.navigator.dispatch.TaskScheduler;
@@ -22,7 +23,12 @@ final class NavigationServiceStreetOverlay {
 
     private NavigationServiceStreetOverlay(@NonNull Context context, @NonNull SurroundingStreetOverlayController controller) {
         this.controller = controller;
-        stopObservingSources = BRouterSegmentSourceSettings.observe(context, controller::onSourcesChanged);
+        Runnable stopSettingsObserver = BRouterSegmentSourceSettings.observe(context, controller::onSourcesChanged);
+        Runnable stopVolumeObserver = AndroidBRouterVolumeChanges.observe(context, controller::onSourcesChanged);
+        stopObservingSources = () -> {
+            stopSettingsObserver.run();
+            stopVolumeObserver.run();
+        };
     }
 
     @NonNull

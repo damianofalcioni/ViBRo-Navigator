@@ -14,7 +14,7 @@ import java.util.Collections;
 
 import vibro.navigator.android.brouter.AndroidBRouterPickerRequest.Completion;
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
-import vibro.navigator.brouter.BRouterSegmentSourceSettings;
+import vibro.navigator.brouter.BRouterFolderGrant;
 
 /** Sequences first-run folder grants and owns manual and automatic main-screen requests. */
 public final class AndroidBRouterStorageSetup {
@@ -93,7 +93,7 @@ public final class AndroidBRouterStorageSetup {
 
     public void bindManualAction(View action, Runnable onPickerFinished) {
         foreground.bindAction(action, onPickerFinished);
-        stopObservingSources = BRouterSegmentSourceSettings.observe(activity, foreground::sourcesChanged);
+        stopObservingSources = BRouterFolderGrant.observe(activity, foreground::sourcesChanged);
     }
 
     public void setForegroundChecksEnabled(boolean enabled) {
@@ -110,6 +110,10 @@ public final class AndroidBRouterStorageSetup {
     }
 
     private void showFirstRunFolder(AndroidBRouterPickerLocation location, Runnable onCancel) {
+        if (!requests.needsFolderAccess() || !requests.needsGrant()) {
+            onCancel.run();
+            return;
+        }
         showFolder(location, () -> {
             foreground.offers().begin(location.confirmedUri());
             firstRunPicker.begin(REQUEST_FOLDER);
@@ -120,6 +124,10 @@ public final class AndroidBRouterStorageSetup {
             foreground.deferAutomaticOffer();
             onCancel.run();
         });
+    }
+
+    public void acceptLegacyPickerResult(boolean profiles, int resultCode, @Nullable Intent data) {
+        AndroidBRouterFolderRequests.acceptLegacyPickerResult(activity, profiles, resultCode, data);
     }
 
     public boolean handleActivityResult(

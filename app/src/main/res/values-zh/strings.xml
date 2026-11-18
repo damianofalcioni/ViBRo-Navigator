@@ -158,7 +158,8 @@
     <string name="msg_brouter_profiles_storage_permission_required">需要存储权限以读取 BRouter 配置文件文件。</string>
     <string name="title_brouter_storage_access">BRouter 存储</string>
     <string name="msg_brouter_storage_access_prompt">请选择 %1$s 处的 BRouter 文件夹，以便 ViBRo 读取配置文件和路线数据。</string>
-    <string name="msg_brouter_folder_required">请选择包含 profiles2 和 segments4 的 brouter 文件夹。</string>
+    <string name="msg_brouter_folder_required">请选择包含 profiles2、segments4 或两者的 brouter 文件夹。</string>
+    <string name="msg_brouter_segments_folder_required">请选择包含 segments4 的 brouter 文件夹。</string>
     <string name="action_browse">浏览</string>
     <string name="msg_brouter_storage_folder_missing">浏览并选择 %1$s 文件夹。如果该文件夹尚不存在，请先在 BRouter 中完成存储设置。</string>
     <string name="msg_symbol_test_notification_sent">符号测试通知已发送。</string>

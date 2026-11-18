@@ -32,6 +32,7 @@ final class AndroidBRouterDeferredPrompt implements Application.ActivityLifecycl
     private final int requestCode;
     private boolean paused;
     private boolean showing;
+    private AlertDialog dialog;
     private AndroidBRouterPickerLocation location;
 
     private AndroidBRouterDeferredPrompt(Activity activity, int requestCode, DialogFactory show) {
@@ -53,6 +54,13 @@ final class AndroidBRouterDeferredPrompt implements Application.ActivityLifecycl
         PENDING.put(activity, prompt);
         activity.getApplication().registerActivityLifecycleCallbacks(prompt);
         AndroidTaskScheduler.main().postDelayed(() -> prompt.discover(query), ViewConfiguration.getPressedStateDuration());
+    }
+
+    static void cancel(Activity activity, int requestCode) {
+        AndroidBRouterDeferredPrompt prompt = PENDING.get(activity);
+        if (prompt != null && prompt.requestCode == requestCode) {
+            prompt.dispose();
+        }
     }
 
     private boolean replace(int nextRequestCode, boolean replacePending) {
@@ -82,7 +90,7 @@ final class AndroidBRouterDeferredPrompt implements Application.ActivityLifecycl
             return;
         }
         showing = true;
-        AlertDialog dialog = show.show(location);
+        dialog = show.show(location);
         location = null;
         dialog.setOnDismissListener(ignored -> dispose());
     }
@@ -91,6 +99,9 @@ final class AndroidBRouterDeferredPrompt implements Application.ActivityLifecycl
         if (equals(PENDING.get(activity))) {
             PENDING.remove(activity);
             activity.getApplication().unregisterActivityLifecycleCallbacks(this);
+            if (dialog != null && dialog.isShowing()) {
+                dialog.dismiss();
+            }
         }
     }
 

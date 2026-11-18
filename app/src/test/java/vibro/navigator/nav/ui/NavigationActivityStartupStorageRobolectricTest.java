@@ -267,6 +267,60 @@ public class NavigationActivityStartupStorageRobolectricTest {
         }
     }
 
+    @Test
+    public void retryIsSkippedIfSegmentsWereGrantedWhilePaused() {
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
+        try (var controller = Robolectric.buildActivity(TestNavigationActivity.class, navigationIntent()).setup()) {
+            TestNavigationActivity activity = controller.get();
+            int request = openSegmentsPicker(activity);
+            controller.pause();
+            rejectFolder(activity, request);
+            Uri parent = DocumentsContract.buildTreeDocumentUri(
+                    STORAGE_AUTHORITY, "primary:Android/media/btools.routingapp/brouter");
+            var granted = new java.util.concurrent.atomic.AtomicBoolean();
+            vibro.navigator.android.brouter.AndroidBRouterFolderAccess.saveSelection(activity, treeResult(parent),
+                    granted::set);
+            assertTrue(granted.get());
+
+            controller.resume();
+
+            assertFalse(ShadowAlertDialog.getLatestAlertDialog().isShowing());
+            assertEquals(NavigationStartupCoordinator.REQUEST_PERMISSIONS,
+                    shadowOf(activity).getLastRequestedPermission().requestCode);
+        }
+    }
+
+    @Test
+    public void returningFromTheRetryPickerKeepsStreetSettingEnabled() {
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
+        try (var controller = Robolectric.buildActivity(TestNavigationActivity.class, navigationIntent()).setup()) {
+            TestNavigationActivity activity = controller.get();
+            rejectFolder(activity, openSegmentsPicker(activity));
+            ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            shadowOf(Looper.getMainLooper()).idle();
+            int retry = shadowOf(activity).getNextStartedActivityForResult().requestCode;
+
+            activity.onActivityResult(retry, Activity.RESULT_CANCELED, null);
+
+            assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(activity));
+            assertNotNull(shadowOf(activity).getLastRequestedPermission());
+        }
+    }
+
+    private static int openSegmentsPicker(TestNavigationActivity activity) {
+        continueFromBRouterPrompt(activity);
+        return shadowOf(activity).getNextStartedActivityForResult().requestCode;
+    }
+
+    private static void rejectFolder(TestNavigationActivity activity, int request) {
+        Uri invalid = DocumentsContract.buildTreeDocumentUri(STORAGE_AUTHORITY, "primary:Download");
+        activity.onActivityResult(request, Activity.RESULT_OK, treeResult(invalid));
+    }
+
+    private static Intent treeResult(Uri tree) {
+        return new Intent().setData(tree).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+    }
+
     private static void continueFromBRouterPrompt(TestNavigationActivity activity) {
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         assertNotNull(dialog);

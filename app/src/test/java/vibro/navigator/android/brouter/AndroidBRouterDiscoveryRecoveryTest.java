@@ -132,6 +132,100 @@ public class AndroidBRouterDiscoveryRecoveryTest {
         }
     }
 
+    @Test
+    public void profileProviderTimeoutCannotHideReadableSegments() throws InterruptedException {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Uri uri = android.provider.DocumentsContract.buildTreeDocumentUri("test.child.documents", "root");
+            var started = new CountDownLatch(1);
+            var release = new CountDownLatch(1);
+            var checkedSegments = new CountDownLatch(1);
+            var provider = new AndroidBRouterParentGrantTest.ParentProvider() {
+                @Override
+                public android.database.Cursor query(Uri document, String[] projection, String selection,
+                                                     String[] args, String sort) {
+                    String id = android.provider.DocumentsContract.getDocumentId(document);
+                    if ("profile-dir".equals(id)) {
+                        waitForRelease(started, release);
+                    }
+                    if ("segment-dir".equals(id)) {
+                        checkedSegments.countDown();
+                    }
+                    return super.query(document, projection, selection, args, sort);
+                }
+            };
+            org.robolectric.shadows.ShadowContentResolver.registerProviderInternal(uri.getAuthority(), provider);
+            var accepted = new AtomicReference<Boolean>();
+            try {
+                AndroidBRouterFolderAccess.saveSelection(activity,
+                        new Intent().setData(uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION), accepted::set);
+                assertTrue(started.await(5, TimeUnit.SECONDS));
+                assertTrue(checkedSegments.await(5, TimeUnit.SECONDS));
+                shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1100));
+                assertEquals(Boolean.TRUE, accepted.get());
+                assertTrue(AndroidBRouterSegmentsRepositoryFactory.create().hasPersistedSegmentsTreeAccess(activity));
+            } finally {
+                release.countDown();
+            }
+        }
+    }
+
+    @Test
+    @Config(shadows = ResumeDiscovery.class)
+    public void mainScreenUsesTheRunningSearchAfterPauseAndResume() throws InterruptedException {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            var info = new PackageInfo();
+            info.packageName = BRouterProfilesRepository.BROUTER_PACKAGE_NAME;
+            shadowOf(activity.getPackageManager()).installPackage(info);
+            var started = new CountDownLatch(1);
+            var release = new CountDownLatch(1);
+            TestBRouterStorage.registerDirectoryProvider(defaultParent(), () -> {
+                waitForRelease(started, release);
+                return true;
+            });
+            var setup = new AndroidBRouterStorageSetup(activity, null);
+            setup.bindManualAction(new View(activity), () -> { });
+            try {
+                setup.setForegroundChecksEnabled(true);
+                assertTrue(started.await(5, TimeUnit.SECONDS));
+                setup.setForegroundChecksEnabled(false);
+                controller.pause().stop().start().resume();
+                setup.setForegroundChecksEnabled(true);
+
+                release.countDown();
+                ResumeDiscovery.worker.join(5000);
+                shadowOf(Looper.getMainLooper()).idle();
+
+                assertTrue(org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().isShowing());
+            } finally {
+                release.countDown();
+                setup.dispose();
+            }
+        }
+    }
+
+    @Implements(value = AndroidBRouterFolderDiscovery.class, isInAndroidSdk = false)
+    public static class ResumeDiscovery {
+        private static Thread worker;
+
+        @org.robolectric.annotation.Implementation
+        protected static void execute(Runnable work) {
+            if (worker == null) {
+                worker = new Thread(work, "test folder discovery");
+                worker.setDaemon(true);
+                worker.start();
+            } else {
+                work.run();
+            }
+        }
+
+        @org.robolectric.annotation.Implementation
+        protected static void postResult(Runnable work) {
+            new android.os.Handler(Looper.getMainLooper()).post(work);
+        }
+    }
+
     private static Uri defaultParent() {
         return AndroidDocumentAccess.buildExternalStorageTreeUri("primary:Android/media/btools.routingapp/brouter");
     }

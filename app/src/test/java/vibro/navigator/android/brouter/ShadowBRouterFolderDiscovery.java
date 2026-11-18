@@ -11,6 +11,17 @@ public final class ShadowBRouterFolderDiscovery {
     }
 
     @Implementation
+    protected static boolean executeChildLookup(Runnable work) {
+        work.run();
+        return true;
+    }
+
+    @Implementation
+    protected static void executeBundledLookup(Runnable work) {
+        work.run();
+    }
+
+    @Implementation
     protected static void executeProfileLookup(Runnable work) {
         work.run();
     }

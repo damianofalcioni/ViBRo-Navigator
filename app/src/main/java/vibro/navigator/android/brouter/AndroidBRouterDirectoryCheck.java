@@ -11,10 +11,13 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicReference;
 
 import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.android.storage.AndroidDocumentTreeDirectories;
+import vibro.navigator.brouter.BRouterFolderGrant.Child;
 
 import static vibro.navigator.android.brouter.AndroidBRouterFolderAccess.FOLDER;
 import static vibro.navigator.android.brouter.AndroidBRouterFolderAccess.Kind.PROFILES;
@@ -25,10 +28,14 @@ final class AndroidBRouterDirectoryCheck {
     private static final Set<Uri> ACTIVE = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private static final String RESTRICTED = "Android/data/";
 
-    record Directories(@Nullable Uri profiles, @Nullable Uri segments) {
-        boolean isEmpty() {
-            return profiles == null && segments == null;
+    record Directories(Child profiles, Child segments) {
+        static Directories empty() {
+            return new Directories(child(null, false), child(null, false));
         }
+    }
+
+    private static Child child(@Nullable Uri uri, boolean direct) {
+        return new Child(uri, direct, false);
     }
 
     private AndroidBRouterDirectoryCheck() { }
@@ -50,26 +57,35 @@ final class AndroidBRouterDirectoryCheck {
 
     private static Directories inspectTree(Context context, Uri tree, String id, CancellationSignal signal,
                                            AtomicReference<Directories> verified, boolean validateParent) {
-        if (!ACTIVE.add(tree)) {
+        boolean external = AndroidDocumentAccess.isExternalStorageDocument(tree);
+        if (!validExternalParent(context, tree, id, signal, external && validateParent)) {
             return verified.get();
         }
-        try {
-            if (!validateParent || isParentFolder(context, tree, id, signal)) {
-                inspectChildren(context, tree, id, signal, verified);
-            }
-            return verified.get();
-        } finally {
-            ACTIVE.remove(tree);
+        Directories direct = new Directories(child(directChild(context, tree, id + "/" + PROFILES.folder), true),
+                child(directChild(context, tree, id + "/" + SEGMENTS.folder), true));
+        verified.set(direct);
+        if (direct.profiles().uri() == null || direct.segments().uri() == null) {
+            inspectProvider(context, tree, id, signal, verified, !external && validateParent);
         }
+        return verified.get();
     }
 
-    private static void inspectChildren(Context context, Uri tree, String id, CancellationSignal signal,
-                                        AtomicReference<Directories> verified) {
-        Directories direct = new Directories(directChild(context, tree, id + "/" + PROFILES.folder),
-                directChild(context, tree, id + "/" + SEGMENTS.folder));
-        verified.set(direct);
-        if (direct.profiles == null || direct.segments == null) {
-            verifyProviderChildren(context, tree, signal, verified);
+    private static boolean validExternalParent(Context context, Uri tree, String id,
+                                               CancellationSignal signal, boolean validate) {
+        return !validate || isParentFolder(context, tree, id, signal);
+    }
+
+    private static void inspectProvider(Context context, Uri tree, String id, CancellationSignal signal,
+                                        AtomicReference<Directories> verified, boolean validate) {
+        if (!ACTIVE.add(tree)) {
+            return;
+        }
+        try {
+            if (!validate || isParentFolder(context, tree, id, signal)) {
+                verifyProviderChildren(context, tree, signal, verified);
+            }
+        } finally {
+            ACTIVE.remove(tree);
         }
     }
 
@@ -77,20 +93,66 @@ final class AndroidBRouterDirectoryCheck {
                                                AtomicReference<Directories> verified) {
         Map<String, Uri> directories = AndroidDocumentTreeDirectories.childDirectories(context, tree, signal);
         Directories direct = verified.get();
-        Uri profiles = verifyChild(context, direct.profiles, directories.get(PROFILES.folder), signal);
-        verified.set(new Directories(profiles, direct.segments));
-        Uri segments = verifyChild(context, direct.segments, directories.get(SEGMENTS.folder), signal);
-        verified.set(new Directories(profiles, segments));
+        Uri profiles = direct.profiles().uri() == null ? directories.get(PROFILES.folder) : null;
+        Uri segments = direct.segments().uri() == null ? directories.get(SEGMENTS.folder) : null;
+        if (profiles == null || segments == null) {
+            verifyProfile(context, profiles, signal, verified);
+            verifySegments(context, segments, signal, verified);
+            return;
+        }
+        verifyBoth(context, profiles, segments, signal, verified);
     }
 
-    @Nullable
-    private static Uri verifyChild(Context context, @Nullable Uri direct, @Nullable Uri listed,
-                                   CancellationSignal signal) {
-        signal.throwIfCanceled();
-        if (direct != null) {
-            return direct;
+    private static void verifyBoth(Context context, Uri profiles, Uri segments, CancellationSignal signal,
+                                   AtomicReference<Directories> verified) {
+        CancellationSignal profileSignal = new CancellationSignal();
+        FutureTask<Void> profileLookup = new FutureTask<>(() -> verifyProfile(context, profiles, profileSignal, verified), null);
+        if (!AndroidBRouterFolderDiscovery.executeChildLookup(profileLookup)) {
+            verifySegments(context, segments, signal, verified);
+            return;
         }
-        return listed != null && AndroidDocumentTreeDirectories.canList(context, listed, signal) ? listed : null;
+        signal.setOnCancelListener(() -> AndroidBRouterFolderDiscovery.cancelTask(profileLookup, profileSignal));
+        try {
+            verifySegments(context, segments, signal, verified);
+            profileLookup.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException ignored) {
+            // The other directory can still supply a usable grant.
+        } finally {
+            signal.setOnCancelListener(null);
+            AndroidBRouterFolderDiscovery.cancelTask(profileLookup, profileSignal);
+        }
+    }
+
+    private static void verifyProfile(Context context, @Nullable Uri uri, CancellationSignal signal,
+                                      AtomicReference<Directories> verified) {
+        if (verifyChild(context, uri, signal)) {
+            synchronized (verified) {
+                verified.set(new Directories(child(uri, false), verified.get().segments()));
+            }
+        }
+    }
+
+    private static void verifySegments(Context context, @Nullable Uri uri, CancellationSignal signal,
+                                       AtomicReference<Directories> verified) {
+        if (verifyChild(context, uri, signal)) {
+            synchronized (verified) {
+                verified.set(new Directories(verified.get().profiles(), child(uri, false)));
+            }
+        }
+    }
+
+    private static boolean verifyChild(Context context, @Nullable Uri listed, CancellationSignal signal) {
+        if (listed == null || !ACTIVE.add(listed)) {
+            return false;
+        }
+        try {
+            signal.throwIfCanceled();
+            return AndroidDocumentTreeDirectories.canList(context, listed, signal);
+        } finally {
+            ACTIVE.remove(listed);
+        }
     }
 
     @Nullable

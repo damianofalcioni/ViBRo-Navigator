@@ -158,7 +158,8 @@
     <string name="msg_brouter_profiles_storage_permission_required">A BRouter profil fájlok olvasásához tárolási hozzáférés szükséges.</string>
     <string name="title_brouter_storage_access">BRouter-tárhely</string>
     <string name="msg_brouter_storage_access_prompt">Válaszd ki a BRouter mappáját itt: %1$s, hogy a ViBRo olvashassa a profilokat és az útvonaladatokat.</string>
-    <string name="msg_brouter_folder_required">Válaszd ki a profiles2 és a segments4 mappát tartalmazó brouter mappát.</string>
+    <string name="msg_brouter_folder_required">Válassz egy brouter mappát, amely a profiles2, a segments4 vagy mindkét mappát tartalmazza.</string>
+    <string name="msg_brouter_segments_folder_required">Válaszd ki a segments4 mappát tartalmazó brouter mappát.</string>
     <string name="action_browse">Tallózás</string>
     <string name="msg_brouter_storage_folder_missing">Tallózással válassza ki a(z) %1$s mappát. Ha még nem létezik, fejezze be a tárhely beállítását a BRouterben.</string>
     <string name="msg_symbol_test_notification_sent">Szimbólum teszt értesítés elküldve.</string>

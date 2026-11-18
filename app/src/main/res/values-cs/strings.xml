@@ -158,7 +158,8 @@
     <string name="msg_brouter_profiles_storage_permission_required">Pro čtení profilových souborů BRouter je potřeba přístup k úložišti.</string>
     <string name="title_brouter_storage_access">Úložiště BRouteru</string>
     <string name="msg_brouter_storage_access_prompt">Vyberte složku BRouteru v umístění %1$s, aby ViBRo mohl číst profily a data tras.</string>
-    <string name="msg_brouter_folder_required">Vyberte složku brouter obsahující profiles2 a segments4.</string>
+    <string name="msg_brouter_folder_required">Vyberte složku brouter obsahující profiles2, segments4 nebo obě složky.</string>
+    <string name="msg_brouter_segments_folder_required">Vyberte složku brouter obsahující segments4.</string>
     <string name="action_browse">Procházet</string>
     <string name="msg_brouter_storage_folder_missing">Vyhledejte a vyberte složku %1$s. Pokud ještě neexistuje, dokončete nastavení úložiště v BRouteru.</string>
     <string name="msg_symbol_test_notification_sent">.</string>

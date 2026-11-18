@@ -207,7 +207,11 @@ public final class AndroidDocumentAccess {
     }
 
     public static boolean isDirectExternalDirectory(Context context, String documentId) {
-        return AndroidExternalDirectoryPresence.directDirectoryPresence(context, documentId) == DirectoryPresence.PRESENT;
+        return directDirectoryPresence(context, documentId) == DirectoryPresence.PRESENT;
+    }
+
+    public static DirectoryPresence directDirectoryPresence(Context context, String documentId) {
+        return AndroidExternalDirectoryPresence.directDirectoryPresence(context, documentId);
     }
 
     private static void addInitialUriIfSupported(@NonNull Intent intent, @Nullable Uri initialUri) {

@@ -208,6 +208,61 @@ public class AndroidBRouterParentGrantTest {
         }
     }
 
+    @Test
+    public void earlierParentIsRecheckedForStreetDataAfterTheNewerGrantIsRevoked() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Uri earlier = tree("primary:alternate/brouter");
+            Uri later = tree(PARENT_ID);
+            TestBRouterStorage.createPrimaryDirectory("alternate/brouter/" + PROFILES);
+            TestBRouterStorage.createPrimaryFolder(SEGMENTS);
+            assertTrue(TestBRouterStorage.saveSelection(activity, grant(earlier)));
+            assertTrue(TestBRouterStorage.saveSelection(activity, grant(later)));
+
+            activity.getContentResolver().releasePersistableUriPermission(later, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            TestBRouterStorage.createPrimaryDirectory("alternate/brouter/" + SEGMENTS);
+
+            assertEquals(earlier, AndroidBRouterSegmentsRepositoryFactory.create().getGrantedSegmentsTreeUri(activity));
+        }
+    }
+
+    @Test
+    public void removingTheOnlyVerifiedLocalDirectoryMakesTheParentUnusable() throws Exception {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            File directory = TestBRouterStorage.createPrimaryDirectory(
+                    "Android/media/btools.routingapp/brouter/" + SEGMENTS);
+            assertTrue(TestBRouterStorage.saveSelection(activity, grant(tree(PARENT_ID))));
+            assertTrue(AndroidBRouterFolderAccess.hasUsableParent(activity));
+
+            Files.delete(directory.toPath());
+
+            assertFalse(AndroidBRouterFolderAccess.hasUsableParent(activity));
+        }
+    }
+
+    @Test
+    public void profilesOnlyGrantDoesNotInvalidateTheStreetSource() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            TestBRouterStorage.createPrimaryFolder(SEGMENTS);
+            Uri streetSource = tree(PARENT_ID);
+            assertTrue(TestBRouterStorage.saveSelection(activity, grant(streetSource)));
+            var revisionChanges = new java.util.concurrent.atomic.AtomicInteger();
+            Runnable stopObserving = vibro.navigator.brouter.BRouterSegmentSourceSettings.observe(
+                    activity, revisionChanges::incrementAndGet);
+            try {
+                TestBRouterStorage.createPrimaryDirectory("alternate/brouter/" + PROFILES);
+                assertTrue(TestBRouterStorage.saveSelection(activity, grant(tree("primary:alternate/brouter"))));
+
+                assertEquals(streetSource, AndroidBRouterSegmentsRepositoryFactory.create().getGrantedSegmentsTreeUri(activity));
+                assertEquals(0, revisionChanges.get());
+            } finally {
+                stopObserving.run();
+            }
+        }
+    }
+
     private static Uri tree(String id) {
         return AndroidDocumentAccess.buildExternalStorageTreeUri(id);
     }

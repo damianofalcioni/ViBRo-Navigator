@@ -43,8 +43,9 @@ final class BRouterDecodedStreetCache {
         }
     }
 
-    void clear() {
+    synchronized void clear() {
         cells.clear();
+        metadataCache.clear();
         bytes = 0;
     }
 

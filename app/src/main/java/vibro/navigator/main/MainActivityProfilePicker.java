@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.android.brouter.AndroidBRouterProfilesTreeAccessPrompt;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.android.storage.AndroidOutputStorageBrowser;
@@ -28,6 +29,9 @@ final class MainActivityProfilePicker {
 
     @Nullable
     private ProfileSpinnerController profileSpinnerController;
+    private boolean findingPickerLocation;
+    private boolean resumed = true;
+    private Runnable deferredPicker = () -> { };
 
     MainActivityProfilePicker(
             @NonNull Activity activity,
@@ -43,15 +47,34 @@ final class MainActivityProfilePicker {
 
     void refreshProfiles() {
         ProfileSpinnerController controller = requireProfileSpinnerController();
-        controller.refresh();
+        controller.refreshAfterAccessChange();
     }
 
     void startCustomProfilePicker() {
-        startCustomProfileDocumentPicker();
+        if (!findingPickerLocation) {
+            findingPickerLocation = true;
+            AndroidBRouterProfilesTreeAccessPrompt.findCustomProfileLocation(activity, profilesRepository, this::openPicker);
+        }
     }
 
-    private void startCustomProfileDocumentPicker() {
-        Uri initialUri = profilesRepository.getCustomProfilePickerInitialUri(activity);
+    void setResumed(boolean resumed) {
+        this.resumed = resumed;
+        if (resumed) {
+            Runnable show = deferredPicker;
+            deferredPicker = () -> { };
+            show.run();
+        }
+    }
+
+    private void openPicker(@Nullable Uri initialUri) {
+        if (!resumed) {
+            deferredPicker = () -> openPicker(initialUri);
+            return;
+        }
+        findingPickerLocation = false;
+        if (activity.isFinishing() || activity.isDestroyed()) {
+            return;
+        }
         Intent intent = AndroidDocumentAccess.openDocumentIntent(initialUri);
         AppLogger.i(TAG, "Launching custom profile document picker initialUri=" + safe(initialUri));
         try {

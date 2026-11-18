@@ -90,8 +90,13 @@ final class MainActivityProfileCoordinator {
         profileSpinnerController.refresh();
     }
 
+    void refreshAfterAccessChange() {
+        profileSpinnerController.refreshAfterAccessChange();
+    }
+
     static void refresh(@Nullable MainActivityProfileCoordinator coordinator) {
         if (coordinator != null) {
+            coordinator.profilePicker.setResumed(true);
             coordinator.refresh();
             coordinator.startup.onResume();
         }
@@ -99,6 +104,7 @@ final class MainActivityProfileCoordinator {
 
     static void pauseStartup(@Nullable MainActivityProfileCoordinator coordinator) {
         if (coordinator != null) {
+            coordinator.profilePicker.setResumed(false);
             coordinator.startup.onPause();
         }
     }

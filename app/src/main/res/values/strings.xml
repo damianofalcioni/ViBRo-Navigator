@@ -174,7 +174,8 @@
     <string name="msg_brouter_profiles_storage_permission_required">Storage access is needed to read BRouter profile files.</string>
     <string name="title_brouter_storage_access">BRouter storage</string>
     <string name="msg_brouter_storage_access_prompt">Select the BRouter folder at %1$s to give ViBRo read access to profiles and routing data.</string>
-    <string name="msg_brouter_folder_required">Select the brouter folder that contains profiles2 and segments4.</string>
+    <string name="msg_brouter_folder_required">Select a brouter folder containing profiles2, segments4, or both.</string>
+    <string name="msg_brouter_segments_folder_required">Select the brouter folder containing segments4.</string>
     <string name="action_browse">Browse</string>
     <string name="msg_brouter_storage_folder_missing">Browse to select your %1$s folder. If it does not exist yet, finish storage setup in BRouter.</string>
     <string name="msg_symbol_test_notification_sent">Symbol test notification sent.</string>

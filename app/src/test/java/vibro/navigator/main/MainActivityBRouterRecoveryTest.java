@@ -43,6 +43,7 @@ import vibro.navigator.settings.AppMainUiSettings;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = Build.VERSION_CODES.Q)
 public class MainActivityBRouterRecoveryTest {
+    private static final String PROFILES_FOLDER = "profiles2";
     private static final String MEDIA_BASE = "Android/media/btools.routingapp/brouter";
     private static final String SEGMENTS_FOLDER = "segments4";
     private Application app;
@@ -69,7 +70,7 @@ public class MainActivityBRouterRecoveryTest {
             action.performClick();
             assertTrue(ShadowAlertDialog.getLatestAlertDialog().isShowing());
             int request = openPicker(activity);
-            TestBRouterStorage.createPrimaryFolder("profiles2");
+            TestBRouterStorage.createPrimaryFolder(PROFILES_FOLDER);
             TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
             activity.onActivityResult(request, Activity.RESULT_OK, folderGrant());
             idle();
@@ -101,7 +102,7 @@ public class MainActivityBRouterRecoveryTest {
 
     @Test
     public void offersTheSameFolderAgainAfterAnAcceptedGrantIsRevoked() {
-        TestBRouterStorage.createPrimaryFolder("profiles2");
+        TestBRouterStorage.createPrimaryFolder(PROFILES_FOLDER);
         TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
         try (var controller = Robolectric.buildActivity(MainActivity.class).setup()) {
             MainActivity activity = controller.get();
@@ -122,7 +123,7 @@ public class MainActivityBRouterRecoveryTest {
 
     @Test
     public void resultHandledAfterSnapshotSatisfiesBothFeaturesOnRestore() {
-        TestBRouterStorage.createPrimaryFolder("profiles2");
+        TestBRouterStorage.createPrimaryFolder(PROFILES_FOLDER);
         TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
         Bundle snapshot = new Bundle();
         try (var controller = Robolectric.buildActivity(MainActivity.class).setup()) {
@@ -190,6 +191,22 @@ public class MainActivityBRouterRecoveryTest {
             assertFalse(ShadowAlertDialog.getLatestAlertDialog().isShowing());
             activity.findViewById(R.id.brouterStorageAccessButton).performClick();
             assertPromptContains(MEDIA_BASE);
+        }
+    }
+
+    @Test
+    public void profilesOnlyGrantDoesNotOfferAnotherProfilesOnlyFolderForStreetAccess() {
+        TestBRouterStorage.createPrimaryFolder(PROFILES_FOLDER);
+        TestBRouterStorage.createPrimaryDirectory("brouter/profiles2");
+        try (var controller = Robolectric.buildActivity(MainActivity.class).setup()) {
+            MainActivity activity = controller.get();
+            assertPromptContains(MEDIA_BASE);
+            int request = openPicker(activity);
+            activity.onActivityResult(request, Activity.RESULT_OK, folderGrant());
+            idle();
+
+            assertFalse(ShadowAlertDialog.getLatestAlertDialog().isShowing());
+            assertEquals(View.VISIBLE, activity.findViewById(R.id.brouterStorageAccessButton).getVisibility());
         }
     }
 

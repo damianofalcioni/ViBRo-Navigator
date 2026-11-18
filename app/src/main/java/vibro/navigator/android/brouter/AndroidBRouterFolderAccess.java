@@ -10,7 +10,6 @@ import androidx.annotation.MainThread;
 import androidx.core.provider.DocumentsContractCompat;
 import androidx.core.util.Consumer;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -18,14 +17,16 @@ import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.android.storage.AndroidPersistedUriPermissions;
 import vibro.navigator.android.storage.AndroidStorageVolumes;
 import vibro.navigator.brouter.BRouterFolderGrant;
+import vibro.navigator.brouter.BRouterFolderGrant.Child;
 
 import vibro.navigator.android.brouter.AndroidBRouterDirectoryCheck.Directories;
 
 public final class AndroidBRouterFolderAccess {
     static final String FOLDER = "brouter";
-    private static final AtomicBoolean MIGRATING = new AtomicBoolean();
     private static final AtomicLong SELECTION_ORDER = new AtomicLong();
     private static long lastSavedSelection;
+    private static long profilesOrder;
+    private static long segmentsOrder;
 
     enum Kind {
         PROFILES("profiles2", "segments4"), SEGMENTS("segments4", "profiles2");
@@ -50,7 +51,7 @@ public final class AndroidBRouterFolderAccess {
             return;
         }
         long selection = SELECTION_ORDER.incrementAndGet();
-        AtomicReference<Directories> verified = new AtomicReference<>(new Directories(null, null));
+        AtomicReference<Directories> verified = new AtomicReference<>(Directories.empty());
         AndroidBRouterFolderDiscovery.findWithFallback(
                 signal -> AndroidBRouterDirectoryCheck.verify(activity, uri, signal, verified), verified::get,
                 grant -> onResult.accept(saveVerifiedSelection(activity, data, uri, selection, grant)));
@@ -58,39 +59,44 @@ public final class AndroidBRouterFolderAccess {
 
     private static boolean saveVerifiedSelection(Activity activity, Intent data, Uri tree, long selection,
                                                  @Nullable Directories grant) {
-        if (grant == null || grant.isEmpty()) {
+        if (grant == null || grant.profiles().uri() == null && grant.segments().uri() == null
+                || !AndroidDocumentAccess.persistReadPermission(activity, data, tree)) {
             return false;
         }
-        if (selection < lastSavedSelection) {
-            return true;
+        Child profiles = prefer(grant.profiles(), selection >= profilesOrder);
+        Child segments = prefer(grant.segments(), selection >= segmentsOrder);
+        boolean latest = selection >= lastSavedSelection;
+        lastSavedSelection = Math.max(lastSavedSelection, selection);
+        if (profiles.prefer()) {
+            profilesOrder = selection;
         }
-        if (!AndroidDocumentAccess.persistReadPermission(activity, data, tree)) {
-            return false;
+        if (segments.prefer()) {
+            segmentsOrder = selection;
         }
-        lastSavedSelection = selection;
-        BRouterFolderGrant.save(activity, tree, grant.profiles(), grant.segments());
+        BRouterFolderGrant.save(activity, tree, profiles, segments, latest);
         return true;
     }
 
     @Nullable
     static Uri dataDirectory(Context context, Uri tree, Kind kind) {
         boolean profiles = kind == Kind.PROFILES;
-        if (tree.equals(BRouterFolderGrant.parentFor(context, profiles))) {
-            return BRouterFolderGrant.directory(context, profiles);
+        if (BRouterFolderGrant.parents(context).contains(tree)) {
+            return BRouterFolderGrant.directory(context, tree, profiles);
         }
-        return tree.equals(BRouterFolderGrant.get(context)) ? null : tree;
+        return tree;
     }
 
     public static boolean hasUsableParent(Context context) {
-        return hasPersistedReadPermission(context, BRouterFolderGrant.parentFor(context, true), Kind.PROFILES)
-                || hasPersistedReadPermission(context, BRouterFolderGrant.parentFor(context, false), Kind.SEGMENTS);
+        for (Uri parent : BRouterFolderGrant.parents(context)) {
+            if (hasUsableParent(context, parent)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     static boolean hasUsableParent(Context context, Uri parent) {
-        return parent.equals(BRouterFolderGrant.parentFor(context, true))
-                && hasPersistedReadPermission(context, parent, Kind.PROFILES)
-                || parent.equals(BRouterFolderGrant.parentFor(context, false))
-                && hasPersistedReadPermission(context, parent, Kind.SEGMENTS);
+        return AndroidBRouterGrantedDirectories.hasKnownChild(context, parent, Kind.PROFILES) || AndroidBRouterGrantedDirectories.hasKnownChild(context, parent, Kind.SEGMENTS);
     }
 
     static boolean hasPersistedReadPermission(Context context, @Nullable Uri uri, Kind kind) {
@@ -101,46 +107,25 @@ public final class AndroidBRouterFolderAccess {
         if (id == null || !isVolumeAvailable(context, uri, id)) {
             return false;
         }
-        boolean profiles = kind == Kind.PROFILES;
-        if (uri.equals(BRouterFolderGrant.parentFor(context, profiles))) {
-            return true;
-        }
-        if (uri.equals(BRouterFolderGrant.get(context))) {
-            refreshMissingDirectories(context, uri, id);
-            return uri.equals(BRouterFolderGrant.parentFor(context, profiles));
+        if (BRouterFolderGrant.parents(context).contains(uri)) {
+            if (BRouterFolderGrant.directory(context, uri, kind == Kind.PROFILES) == null) {
+                AndroidBRouterGrantedDirectories.refreshMissingDirectories(context, uri, id);
+            }
+            return AndroidBRouterGrantedDirectories.hasKnownChild(context, uri, kind);
         }
         // Old grants remain readable wherever Android continues to honor them.
         return !AndroidDocumentAccess.isExternalStorageDocument(uri) || !kind.otherFolder.equalsIgnoreCase(folderName(id));
     }
 
-    private static void refreshMissingDirectories(Context context, Uri tree, String id) {
-        if (!MIGRATING.compareAndSet(false, true)) {
-            return;
-        }
-        Context app = context.getApplicationContext();
-        AtomicReference<Directories> verified = new AtomicReference<>(new Directories(null, null));
-        AndroidBRouterFolderDiscovery.findWithFallback(
-                signal -> AndroidBRouterDirectoryCheck.inspect(app, tree, id, signal, verified), verified::get,
-                directories -> onDirectoriesRefreshed(app, tree, directories));
+    private static Child prefer(Child child, boolean preferred) {
+        return new Child(child.uri(), child.direct(), child.uri() != null && preferred);
     }
 
-    private static void onDirectoriesRefreshed(Context context, Uri tree, Directories directories) {
-        MIGRATING.set(false);
-        if (!tree.equals(BRouterFolderGrant.get(context))) {
-            return;
-        }
-        Uri profiles = tree.equals(BRouterFolderGrant.parentFor(context, true)) ? null : directories.profiles();
-        Uri segments = tree.equals(BRouterFolderGrant.parentFor(context, false)) ? null : directories.segments();
-        if (profiles != null || segments != null) {
-            BRouterFolderGrant.save(context, tree, profiles, segments);
-        }
-    }
-
-    static boolean isVolumeAvailable(Context context, Uri uri, String id) {
+    static boolean isVolumeAvailable(Context context, Uri uri, @Nullable String id) {
         if (!AndroidDocumentAccess.isExternalStorageDocument(uri)) {
             return true;
         }
-        int separator = id.indexOf(':');
+        int separator = id == null ? -1 : id.indexOf(':');
         if (separator <= 0) {
             return false;
         }

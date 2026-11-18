@@ -73,6 +73,31 @@ public class AndroidBRouterGrantOrderingTest {
         }
     }
 
+    @Test
+    @Config(shadows = DelayFirstGrant.class)
+    public void aLateSegmentsOnlyGrantComplementsTheNewerProfilesGrant() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Uri earlier = createChild("slow-parent", "segments4");
+            Uri later = createChild("new-parent", "profiles2");
+            var accepted = new AtomicReference<Boolean>();
+            AndroidBRouterFolderAccess.saveSelection(activity, grant(earlier), accepted::set);
+            assertTrue(TestBRouterStorage.saveSelection(activity, grant(later)));
+
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(700));
+
+            assertEquals(Boolean.TRUE, accepted.get());
+            assertEquals(earlier, BRouterFolderGrant.parentFor(activity, false));
+            assertEquals(later, BRouterFolderGrant.parentFor(activity, true));
+        }
+    }
+
+    private static Uri createChild(String directory, String child) {
+        String parent = directory + "/brouter";
+        TestBRouterStorage.createPrimaryDirectory(parent + "/" + child);
+        return AndroidDocumentAccess.buildExternalStorageTreeUri("primary:" + parent);
+    }
+
     private static Uri createParent(String directory) {
         String parent = directory + "/brouter";
         TestBRouterStorage.createPrimaryDirectory(parent + "/profiles2");

@@ -20,6 +20,12 @@ public final class AndroidBRouterProfilesTreeAccessPrompt {
     private AndroidBRouterProfilesTreeAccessPrompt() {
     }
 
+    public static void findCustomProfileLocation(Activity activity, BRouterProfilesRepository repository,
+                                                 Consumer<Uri> onResult) {
+        var app = activity.getApplicationContext();
+        AndroidBRouterFolderDiscovery.find(signal -> repository.getCustomProfilePickerInitialUri(app), null, onResult);
+    }
+
     public static void show(
             @NonNull Activity activity,
             @NonNull BRouterProfilesRepository profilesRepository,
@@ -42,7 +48,15 @@ public final class AndroidBRouterProfilesTreeAccessPrompt {
             CancellationSignal signal,
             Consumer<AndroidBRouterPickerLocation> progress
     ) {
-        Uri savedParent = savedParent(activity, excluded);
+        return findLocation(activity, profilesRepository, excluded, signal, progress, null);
+    }
+
+    static AndroidBRouterPickerLocation findLocation(
+            Activity activity, BRouterProfilesRepository profilesRepository, Collection<String> excluded,
+            CancellationSignal signal, Consumer<AndroidBRouterPickerLocation> progress,
+            @Nullable AndroidBRouterFolderAccess.Kind needed
+    ) {
+        Uri savedParent = needed == null ? savedParent(activity, excluded) : null;
         if (savedParent != null) {
             return AndroidBRouterPickerLocation.confirmed(savedParent);
         }
@@ -52,7 +66,8 @@ public final class AndroidBRouterProfilesTreeAccessPrompt {
                 ? AndroidDocumentAccess.documentId(hint) : null;
         Uri parent = parentHint(id);
         return AndroidBRouterPickerLocation.resolve(
-                activity, parent, AndroidBRouterFolderAccess.FOLDER, null, excluded, signal, progress);
+                activity, parent, AndroidBRouterFolderAccess.FOLDER, needed == null ? null : needed.folder,
+                excluded, signal, progress, needed != null);
     }
 
     @Nullable

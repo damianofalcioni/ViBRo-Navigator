@@ -14,6 +14,8 @@ import androidx.core.os.BundleCompat;
 import java.util.Collections;
 import java.util.List;
 
+import androidx.core.util.Consumer;
+
 import vibro.navigator.R;
 import vibro.navigator.android.brouter.AndroidBRouterFolderAccess;
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
@@ -30,6 +32,7 @@ final class NavigationStartupSegmentsTreeAccess {
     private static final String TAG = "NavigationActivity";
     private static final int REQUEST_SEGMENTS_TREE = 3005;
     private static final String STATE_STEP = "navigation_segments_access_step";
+    private static final String STATE_RETRY_PICKER = "navigation_segments_retry_picker";
     private static final String STATE_OFFERED_FOLDER = "navigation_segments_access_folder";
 
     private enum Step {
@@ -58,7 +61,7 @@ final class NavigationStartupSegmentsTreeAccess {
     private final StorageNeeds storageNeeds = new StorageNeeds();
     @NonNull
     private final Runnable continueStartup;
-    private final AndroidBRouterPickerRequest picker;
+    private final PendingPicker pendingPicker;
     private Step step = Step.IDLE;
     private boolean resumed;
     private boolean discovering;
@@ -72,20 +75,19 @@ final class NavigationStartupSegmentsTreeAccess {
     NavigationStartupSegmentsTreeAccess(@NonNull Activity activity, @NonNull Runnable continueStartup) {
         this.activity = activity;
         this.continueStartup = continueStartup;
-        picker = new AndroidBRouterPickerRequest(activity, "navigation_segments_picker");
+        pendingPicker = new PendingPicker(activity);
     }
 
     boolean restoreState(@Nullable Bundle state) {
-        step = Step.restored(state, picker.restore(state));
+        step = Step.restored(state, pendingPicker.restore(state, this::applyCompletion));
         offeredFolder = Step.restoreOfferedFolder(state);
-        picker.watch(this::applyCompletion);
         return step != Step.IDLE;
     }
 
     void saveState(@NonNull Bundle state) {
         state.putString(STATE_STEP, step.name());
         state.putParcelable(STATE_OFFERED_FOLDER, offeredFolder);
-        picker.save(state);
+        pendingPicker.save(state);
     }
 
     void onResume() {
@@ -120,14 +122,22 @@ final class NavigationStartupSegmentsTreeAccess {
         }
         switch (step) {
             case CHECK_FOLDER -> checkFolder();
-            case RETRY_FOLDER -> folderDialog = AndroidBRouterSegmentsTreeAccessPrompt.showRetry(
-                    activity, offeredFolder, REQUEST_SEGMENTS_TREE, TAG, this::pickerOpened, this::finishCheck);
+            case RETRY_FOLDER -> retryIfStillNeeded();
             case CONTINUE -> {
                 step = Step.IDLE;
                 continueStartup.run();
             }
             default -> { }
         }
+    }
+
+    private void retryIfStillNeeded() {
+        if (!storageNeeds.requiresGrant(activity)) {
+            finishCheck();
+            return;
+        }
+        folderDialog = AndroidBRouterSegmentsTreeAccessPrompt.showRetry(
+                activity, offeredFolder, REQUEST_SEGMENTS_TREE, TAG, this::pickerOpened, this::finishCheck);
     }
 
     private boolean canAdvance() {
@@ -166,7 +176,7 @@ final class NavigationStartupSegmentsTreeAccess {
     }
 
     private void pickerOpened() {
-        picker.begin(REQUEST_SEGMENTS_TREE);
+        pendingPicker.begin(step == Step.RETRY_FOLDER);
         step = Step.WAIT_FOR_PICKER;
     }
 
@@ -174,25 +184,15 @@ final class NavigationStartupSegmentsTreeAccess {
         if (requestCode != REQUEST_SEGMENTS_TREE) {
             return false;
         }
-        if (step != Step.WAIT_FOR_PICKER) {
-            return true;
-        }
-        if (resultCode == Activity.RESULT_OK) {
-            picker.beginValidation();
-            AndroidBRouterFolderAccess.saveSelection(activity, data, this::onFolderSelection);
-        } else {
-            denySurroundingStreetStorage();
-            picker.complete(Completion.ADVANCE);
-            finishCheck();
+        if (step == Step.WAIT_FOR_PICKER) {
+            pendingPicker.accept(resultCode, data, storageNeeds, this::denySurroundingStreetStorage, this::onFolderResult);
         }
         return true;
     }
 
-    private void onFolderSelection(boolean saved) {
-        boolean canContinue = saved && !storageNeeds.requiresGrant(activity);
-        picker.complete(canContinue ? Completion.ADVANCE : Completion.RETRY);
+    private void onFolderResult(Completion completion) {
         if (step == Step.WAIT_FOR_PICKER) {
-            applyCompletion(canContinue ? Completion.ADVANCE : Completion.RETRY);
+            applyCompletion(completion);
         }
     }
 
@@ -210,7 +210,7 @@ final class NavigationStartupSegmentsTreeAccess {
 
     void clear() {
         cancelDiscovery();
-        picker.stopWatching();
+        pendingPicker.stopWatching();
         step = Step.IDLE;
         if (folderDialog != null) {
             folderDialog.dismiss();
@@ -234,6 +234,58 @@ final class NavigationStartupSegmentsTreeAccess {
                 R.string.msg_compass_surrounding_streets_storage_permission_required,
                 Toast.LENGTH_SHORT
         ).show();
+    }
+
+    private static final class PendingPicker {
+        private final Activity activity;
+        private final AndroidBRouterPickerRequest picker;
+        private boolean retry;
+
+        PendingPicker(Activity activity) {
+            this.activity = activity;
+            picker = new AndroidBRouterPickerRequest(activity, "navigation_segments_picker");
+        }
+
+        @Nullable
+        Completion restore(@Nullable Bundle state, Consumer<Completion> onCompletion) {
+            retry = state != null && state.getBoolean(STATE_RETRY_PICKER);
+            Completion outcome = picker.restore(state);
+            picker.watch(onCompletion);
+            return outcome;
+        }
+
+        void save(Bundle state) {
+            state.putBoolean(STATE_RETRY_PICKER, retry);
+            picker.save(state);
+        }
+
+        void begin(boolean retry) {
+            this.retry = retry;
+            picker.begin(REQUEST_SEGMENTS_TREE);
+        }
+
+        void stopWatching() {
+            picker.stopWatching();
+        }
+
+        void accept(int resultCode, @Nullable Intent data, StorageNeeds needs, Runnable onDeny,
+                    Consumer<Completion> onCompletion) {
+            if (resultCode == Activity.RESULT_OK) {
+                picker.beginValidation();
+                AndroidBRouterFolderAccess.saveSelection(activity, data, saved ->
+                        finish(needs.requiresGrant(activity) ? Completion.RETRY : Completion.ADVANCE, onCompletion));
+                return;
+            }
+            if (!retry && needs.requiresGrant(activity)) {
+                onDeny.run();
+            }
+            finish(Completion.ADVANCE, onCompletion);
+        }
+
+        private void finish(Completion outcome, Consumer<Completion> onCompletion) {
+            picker.complete(outcome);
+            onCompletion.accept(outcome);
+        }
     }
 
     private static final class StorageNeeds {

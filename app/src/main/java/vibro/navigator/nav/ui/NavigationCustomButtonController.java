@@ -50,7 +50,9 @@ final class NavigationCustomButtonController {
     @NonNull
     private final Runnable recreateForThemeChange = this::recreateForThemeChangeIfActive;
     private boolean waitingForSurroundingStreetPermission;
-    private boolean waitingForSurroundingStreetSegmentsTree;
+    private StreetRequest streetRequest = StreetRequest.IDLE;
+
+    private enum StreetRequest { IDLE, PICKER, VALIDATING }
 
     NavigationCustomButtonController(
             @NonNull Activity activity,
@@ -68,20 +70,30 @@ final class NavigationCustomButtonController {
         }
         Target target = AppNavigationCustomButtonSettings.getTarget(activity);
         boolean enabled = !AppNavigationCustomButtonTargetState.isEnabled(activity, target);
-        if (target == Target.SURROUNDING_STREETS && enabled && !isBRouterInstalled()) {
-            denySurroundingStreetsBRouterMissing();
-            return;
+        if (target != Target.SURROUNDING_STREETS || streetSettingReady(enabled)) {
+            applySelectedSetting(target, enabled);
         }
-        if (shouldRequestSurroundingStreetPermission(target, enabled)) {
+    }
+
+    private boolean streetSettingReady(boolean enabled) {
+        return streetRequest == StreetRequest.IDLE && (!enabled || canEnableStreetSetting());
+    }
+
+    private boolean canEnableStreetSetting() {
+        if (!isBRouterInstalled()) {
+            denySurroundingStreetsBRouterMissing();
+            return false;
+        }
+        if (AndroidLegacyExternalStorageAccess.shouldRequestReadPermission(activity)) {
             waitingForSurroundingStreetPermission = true;
             AndroidLegacyExternalStorageAccess.requestReadPermission(activity, REQUEST_SURROUNDING_STREETS_STORAGE);
-            return;
+            return false;
         }
-        if (shouldRequestSurroundingStreetSegmentsTree(target, enabled)) {
+        if (shouldRequestSurroundingStreetSegmentsTree()) {
             startSurroundingStreetSegmentsTreePicker();
-            return;
+            return false;
         }
-        applySelectedSetting(target, enabled);
+        return true;
     }
 
     boolean onRequestPermissionsResult(int requestCode, @NonNull int[] grantResults) {
@@ -111,19 +123,20 @@ final class NavigationCustomButtonController {
         if (requestCode != REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE) {
             return false;
         }
-        if (!waitingForSurroundingStreetSegmentsTree) {
+        if (streetRequest != StreetRequest.PICKER) {
             return true;
         }
-        waitingForSurroundingStreetSegmentsTree = false;
         if (resultCode != Activity.RESULT_OK) {
-            denySurroundingStreetStorage();
+            onStreetFolderSaved(false);
         } else {
+            streetRequest = StreetRequest.VALIDATING;
             AndroidBRouterFolderAccess.saveSelection(activity, data, this::onStreetFolderSaved);
         }
         return true;
     }
 
     private void onStreetFolderSaved(boolean saved) {
+        streetRequest = StreetRequest.IDLE;
         if (!isBRouterInstalled()) {
             denySurroundingStreetsBRouterMissing();
         } else if (!saved || !segmentsRepository.hasPersistedSegmentsTreeAccess(activity)) {
@@ -133,16 +146,8 @@ final class NavigationCustomButtonController {
         }
     }
 
-    private boolean shouldRequestSurroundingStreetPermission(@NonNull Target target, boolean enabled) {
-        return target == Target.SURROUNDING_STREETS
-                && enabled
-                && AndroidLegacyExternalStorageAccess.shouldRequestReadPermission(activity);
-    }
-
-    private boolean shouldRequestSurroundingStreetSegmentsTree(@NonNull Target target, boolean enabled) {
-        return target == Target.SURROUNDING_STREETS
-                && enabled
-                && !AndroidLegacyExternalStorageAccess.isRuntimeReadPermissionRelevant()
+    private boolean shouldRequestSurroundingStreetSegmentsTree() {
+        return !AndroidLegacyExternalStorageAccess.isRuntimeReadPermissionRelevant()
                 && !segmentsRepository.hasPersistedSegmentsTreeAccess(activity);
     }
 
@@ -151,7 +156,7 @@ final class NavigationCustomButtonController {
                 activity,
                 REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE,
                 TAG,
-                () -> waitingForSurroundingStreetSegmentsTree = true,
+                () -> streetRequest = StreetRequest.PICKER,
                 this::denySurroundingStreetStorage
         );
     }
