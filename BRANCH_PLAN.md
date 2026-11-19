@@ -1,7 +1,7 @@
 # BRouter branch regression plan
 
 Review baseline is `codex/brouter-folder-picker` at `7db525c2` against local `main` at `1a502328`.
-The branch review recorded **52 findings** with **13 P2** and **39 P3** reports. The IDs preserve report order. RG-14 and RG-48 describe the same profile-settings freeze with different setups. RG-15 and RG-38 exercise the same fallback loop at different positions. Keep both reproduction cases for each shared fix.
+The branch review recorded **53 findings** with **13 P2** and **40 P3** reports. The IDs preserve report order. RG-14 and RG-48 describe the same profile-settings freeze with different setups. RG-15 and RG-38 exercise the same fallback loop at different positions. Keep both reproduction cases for each shared fix.
 
 Status is open. The initial review passed the full F-Droid and Google Play debug unit-test suites, debug lint for both flavors, and the PMD complexity check. Focused tests reproduced the reported behavior. Physical-device picker coverage remained pending at the review baseline.
 
@@ -136,6 +136,8 @@ Keep the preferred and fallback reads bounded. Invalidate cached results on effe
   Omit the tile from the preferred folder, stall an older grant, and keep a readable legacy copy. Reach that copy without waiting indefinitely. Use the same implementation as RG-15. [Tile fallback loop](app/src/main/java/vibro/navigator/brouter/BRouterSegmentsRepository.java#L113)
 - [ ] **RG-39 · P3 · Retry empty overlay chunks caused by temporary read failures**
   Switch sources and fail the initial tile read, then recover while the viewport stays in the same area. Retry with a bounded policy and repopulate the overlay without another source change. [Source reload](app/src/main/java/vibro/navigator/nav/streets/SurroundingStreetOverlayController.java#L130) · [Chunk cache](app/src/main/java/vibro/navigator/nav/streets/SurroundingStreetOverlayCache.java#L57)
+- [ ] **RG-53 · P3 · Keep healthy street sources reachable after successive storage changes**
+  Stall three obsolete overlay loads that ignore interruption, then switch to a healthy source. The controller test confirmed that the healthy load stayed queued and the overlay stayed blank until a retired read finished. Coalesce related storage notifications and keep the newest usable source eligible for work within a bounded read budget. [Overlay worker limit](app/src/main/java/vibro/navigator/nav/streets/SurroundingStreetLoadExecutor.java#L45) · [Storage notifications](app/src/main/java/vibro/navigator/android/brouter/AndroidBRouterVolumeChanges.java#L16)
 
 ## Upgrade and backup compatibility
 
