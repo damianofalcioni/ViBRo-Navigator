@@ -10,8 +10,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.List;
+import androidx.core.util.Supplier;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
@@ -40,49 +40,39 @@ final class BRouterProfileParameterSource {
         this.parser = parser;
     }
 
-    @NonNull
+    @Nullable
     List<BRouterProfileParameter> readParameters(
             @NonNull Context context,
-            @NonNull String profileName,
+            @Nullable String profileName,
             @Nullable Uri customProfileUri,
-            @Nullable String customProfileName,
-            @NonNull List<Uri> discoveryTreeUris
+            boolean custom,
+            Supplier<List<Uri>> granted,
+            Supplier<List<Uri>> detected
     ) {
-        String profileFileName = profileName + ".brf";
-        List<BRouterProfileParameter> custom = readCustomProfileParameters(
-                context,
-                profileName,
-                customProfileUri,
-                customProfileName
-        );
-        if (!custom.isEmpty()) {
-            return custom;
+        String name = BRouterProfileNames.clean(profileName);
+        if (name == null) {
+            return null;
         }
-        List<BRouterProfileParameter> external = readExternalProfileParameters(
-                context,
-                profileFileName,
-                discoveryTreeUris
-        );
-        if (!external.isEmpty()) {
-            return external;
+        if (custom) {
+            return customProfileUri == null ? null : parseDocumentProfile(context, customProfileUri);
         }
-        return readBundledProfileParameters(context, profileName);
+        return readNamedParameters(context, name, granted.get(), detected);
     }
 
-    @NonNull
-    private List<BRouterProfileParameter> readCustomProfileParameters(
-            @NonNull Context context,
-            @NonNull String profileName,
-            @Nullable Uri customProfileUri,
-            @Nullable String customProfileName
-    ) {
-        if (customProfileUri == null || customProfileName == null || !profileName.equals(customProfileName)) {
-            return Collections.emptyList();
+    @Nullable
+    private List<BRouterProfileParameter> readNamedParameters(Context context, String name, List<Uri> first,
+                                                              Supplier<List<Uri>> detected) {
+        String fileName = name + ".brf";
+        List<BRouterProfileParameter> parameters = readExternalProfileParameters(context, fileName, first);
+        if (parameters == null) {
+            List<Uri> remaining = detected.get();
+            remaining.removeAll(first);
+            parameters = readExternalProfileParameters(context, fileName, remaining);
         }
-        return parseDocumentProfile(context, customProfileUri);
+        return parameters == null ? readBundledProfileParameters(context, name) : parameters;
     }
 
-    @NonNull
+    @Nullable
     private List<BRouterProfileParameter> readExternalProfileParameters(
             @NonNull Context context,
             @NonNull String profileFileName,
@@ -94,25 +84,25 @@ final class BRouterProfileParameterSource {
                 continue;
             }
             List<BRouterProfileParameter> parameters = parseDocumentProfile(context, childUri);
-            if (!parameters.isEmpty()) {
+            if (parameters != null) {
                 return parameters;
             }
         }
-        return Collections.emptyList();
+        return null;
     }
 
-    @NonNull
+    @Nullable
     private List<BRouterProfileParameter> parseDocumentProfile(@NonNull Context context, @NonNull Uri uri) {
         try {
             String profileText = documentAccess.readText(context, uri);
-            return parser.parse(profileText);
+            return profileText == null ? null : parser.parse(profileText);
         } catch (Exception e) {
             AppLogger.w(TAG, "Failed to read profile parameters from document uri=" + uri, e);
-            return Collections.emptyList();
+            return null;
         }
     }
 
-    @NonNull
+    @Nullable
     private List<BRouterProfileParameter> readBundledProfileParameters(
             @NonNull Context context,
             @NonNull String profileName
@@ -120,22 +110,22 @@ final class BRouterProfileParameterSource {
         try {
             String sourceDir = packageAccess.sourceDir(context, BRouterProfilesRepository.BROUTER_PACKAGE_NAME);
             if (sourceDir == null) {
-                return Collections.emptyList();
+                return null;
             }
             try (ZipFile apk = new ZipFile(sourceDir)) {
                 ZipEntry profilesZipEntry = apk.getEntry(BROUTER_PROFILES_ZIP);
                 if (profilesZipEntry == null) {
-                    return Collections.emptyList();
+                    return null;
                 }
                 return readBundledProfileParameters(apk, profilesZipEntry, profileName);
             }
         } catch (Exception e) {
             AppLogger.w(TAG, "Failed to read bundled profile parameters profile=" + profileName, e);
-            return Collections.emptyList();
+            return null;
         }
     }
 
-    @NonNull
+    @Nullable
     private List<BRouterProfileParameter> readBundledProfileParameters(
             @NonNull ZipFile apk,
             @NonNull ZipEntry profilesZipEntry,
@@ -151,7 +141,7 @@ final class BRouterProfileParameterSource {
                 zip.closeEntry();
             }
         }
-        return Collections.emptyList();
+        return null;
     }
 
     @NonNull

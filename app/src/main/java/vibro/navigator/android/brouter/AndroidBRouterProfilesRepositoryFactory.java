@@ -4,25 +4,39 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.CancellationSignal;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.List;
 import java.util.Collections;
+import androidx.core.util.Supplier;
 
 import vibro.navigator.android.storage.AndroidDocumentAccess;
+import vibro.navigator.android.storage.AndroidDocumentTreeFileAccess;
 import vibro.navigator.android.storage.AndroidStorageVolumes;
 import vibro.navigator.brouter.BRouterProfileDependencies;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 
 public final class AndroidBRouterProfilesRepositoryFactory {
+    private static final ThreadLocal<CancellationSignal> QUERY_CANCELLATION = new ThreadLocal<>();
+
     private AndroidBRouterProfilesRepositoryFactory() {
     }
 
     @NonNull
     public static BRouterProfilesRepository create() {
         return new BRouterProfilesRepository(createDependencies());
+    }
+
+    static <T> T withCancellation(CancellationSignal signal, Supplier<T> lookup) {
+        QUERY_CANCELLATION.set(signal);
+        try {
+            return lookup.get();
+        } finally {
+            QUERY_CANCELLATION.remove();
+        }
     }
 
     @NonNull
@@ -80,21 +94,33 @@ public final class AndroidBRouterProfilesRepositoryFactory {
 
         @Override
         public boolean externalStorageDocumentExists(@NonNull Context context, @NonNull String documentId) {
-            return AndroidDocumentAccess.externalStorageDocumentExists(context, documentId);
+            CancellationSignal signal = QUERY_CANCELLATION.get();
+            if (signal == null) {
+                return AndroidDocumentAccess.externalStorageDocumentExists(context, documentId);
+            }
+            signal.throwIfCanceled();
+            return AndroidDocumentAccess.externalStorageDirectoryPresence(context, documentId, signal)
+                    == AndroidDocumentAccess.DirectoryPresence.PRESENT;
         }
 
         @NonNull
         @Override
         public List<String> childDisplayNames(@NonNull Context context, @NonNull Uri treeUri) {
             Uri directory = AndroidBRouterFolderAccess.dataDirectory(context, treeUri, KIND);
-            return directory == null ? Collections.emptyList() : AndroidDocumentAccess.childDisplayNames(context, directory);
+            List<String> names = directory == null ? Collections.emptyList()
+                    : AndroidDocumentTreeFileAccess.childDisplayNames(context, directory, QUERY_CANCELLATION.get());
+            if (names.isEmpty()) {
+                AndroidBRouterFolderAccess.recheckSharedFolder(context, treeUri);
+            }
+            return names;
         }
 
         @Nullable
         @Override
         public Uri childDocumentUri(@NonNull Context context, @NonNull Uri treeUri, @NonNull String displayName) {
             Uri directory = AndroidBRouterFolderAccess.dataDirectory(context, treeUri, KIND);
-            return directory == null ? null : AndroidDocumentAccess.childDocumentUri(context, directory, displayName);
+            return directory == null ? null : AndroidDocumentTreeFileAccess.childDocumentUri(
+                    context, directory, displayName, QUERY_CANCELLATION.get());
         }
 
         @Nullable

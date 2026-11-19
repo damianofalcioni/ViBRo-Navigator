@@ -43,9 +43,11 @@ final class AndroidBRouterFolderOffers {
         }
     }
 
-    void finish(Completion completion) {
+    void finish(Completion completion, boolean manual) {
         if (completion == Completion.CANCELED) {
             declineCurrent();
+        } else if (manual) {
+            current = null;
         } else {
             forgetCurrent();
         }

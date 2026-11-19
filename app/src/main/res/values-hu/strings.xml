@@ -144,6 +144,7 @@
     <string name="msg_speech_input_unresponsive">A beszédfelismerés nem indult. Kapcsold be a Google alkalmazást vagy Android hangbemenetet.</string>
     <string name="msg_speech_permission_required">Mikrofon engedély szükséges a beszédbemenethez.</string>
     <string name="msg_select_custom_profile">Válasszon egy egyedi BRouter .brf fájlt</string>
+    <string name="msg_brouter_profile_not_ready">Az útvonaltervezési profil nem érhető el. Várja meg a keresést, vagy válasszon egy elérhető profilt.</string>
     <string name="msg_invalid_custom_profile">Válassz érvényes BRouter .brf fájlt</string>
     <string name="msg_profile_parameters_empty">Ez a profil nem fedi ki szerkeszthető paramétereket.</string>
     <string name="msg_profile_parameters_not_localized">Paraméterek dinamikusan kihúzzák a BRouter profilfájlból, így a nevük, leírásuk és opcióik nem kerülnek lefordításra.</string>

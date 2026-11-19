@@ -90,18 +90,41 @@ final class AndroidBRouterPickerLocation {
                                                                      @Nullable String preferredId,
                                                                      CancellationSignal signal,
                                                                      Consumer<AndroidBRouterPickerLocation> progress) {
-        publishDirectFallback(candidates, progress);
-        Uri unverified = null;
+        AndroidBRouterPickerLocation fallback = directDataFallback(context, candidates);
+        if (fallback.confirmed) {
+            progress.accept(fallback);
+        }
         for (Candidate candidate : candidates) {
             DirectoryPresence presence = candidate.presence(context, signal);
-            if (presence == DirectoryPresence.PRESENT) {
+            if (presence == DirectoryPresence.PRESENT && candidate.hasData(context, signal)) {
                 return confirmed(candidate.uri);
             }
-            if (presence == DirectoryPresence.UNKNOWN && (unverified == null || candidate.id.equals(preferredId))) {
-                unverified = candidate.uri;
+            fallback = preferParentFallback(candidate, fallback, presence, preferredId, progress);
+        }
+        return fallback;
+    }
+
+    private static AndroidBRouterPickerLocation directDataFallback(Context context, List<Candidate> candidates) {
+        for (Candidate candidate : candidates) {
+            if (candidate.hasDirectData(context)) {
+                return confirmed(candidate.uri);
             }
         }
-        return new AndroidBRouterPickerLocation(unverified, false);
+        return browse();
+    }
+
+    private static AndroidBRouterPickerLocation preferParentFallback(Candidate candidate, AndroidBRouterPickerLocation current,
+            DirectoryPresence presence, @Nullable String preferredId, Consumer<AndroidBRouterPickerLocation> progress) {
+        if (current.confirmed) {
+            return current;
+        }
+        AndroidBRouterPickerLocation fallback = candidate.preferOver(current, presence);
+        if (fallback.confirmed) {
+            progress.accept(fallback);
+        } else if (presence == DirectoryPresence.UNKNOWN && candidate.id.equals(preferredId)) {
+            return new AndroidBRouterPickerLocation(candidate.uri, false);
+        }
+        return fallback;
     }
 
     private record ChildSearch(Context context, String child, CancellationSignal signal,
@@ -166,6 +189,16 @@ final class AndroidBRouterPickerLocation {
     }
 
     private record Candidate(String id, Uri uri, boolean direct) {
+        boolean hasDirectData(Context context) {
+            return AndroidDocumentAccess.isDirectExternalDirectory(context, id + "/" + AndroidBRouterFolderAccess.Kind.PROFILES.folder)
+                    || AndroidDocumentAccess.isDirectExternalDirectory(context, id + "/" + AndroidBRouterFolderAccess.Kind.SEGMENTS.folder);
+        }
+
+        boolean hasData(Context context, CancellationSignal signal) {
+            return hasChild(context, AndroidBRouterFolderAccess.Kind.PROFILES.folder, signal)
+                    || hasChild(context, AndroidBRouterFolderAccess.Kind.SEGMENTS.folder, signal);
+        }
+
         DirectoryPresence presence(Context context, CancellationSignal signal) {
             signal.throwIfCanceled();
             return direct ? DirectoryPresence.PRESENT

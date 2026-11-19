@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import vibro.navigator.android.brouter.AndroidBRouterSegmentsRepositoryFactory;
+import vibro.navigator.android.brouter.AndroidBRouterStreetGrantChanges;
 import vibro.navigator.android.brouter.AndroidBRouterVolumeChanges;
 import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.brouter.BRouterSegmentSourceSettings;
@@ -20,10 +21,20 @@ final class NavigationServiceStreetOverlay {
     private final SurroundingStreetOverlayController controller;
     @NonNull
     private final Runnable stopObservingSources;
+    private final AndroidBRouterStreetGrantChanges streetGrantChanges;
+    private boolean viewportOpen;
 
     private NavigationServiceStreetOverlay(@NonNull Context context, @NonNull SurroundingStreetOverlayController controller) {
         this.controller = controller;
-        Runnable stopSettingsObserver = BRouterSegmentSourceSettings.observe(context, controller::onSourcesChanged);
+        streetGrantChanges = new AndroidBRouterStreetGrantChanges(context, AndroidElapsedRealtimeClock.INSTANCE,
+                controller::onSourcesChanged);
+        Runnable stopSettingsObserver = BRouterSegmentSourceSettings.observe(context, () -> {
+            streetGrantChanges.reset();
+            if (viewportOpen) {
+                streetGrantChanges.check();
+            }
+            controller.onSourcesChanged();
+        });
         Runnable stopVolumeObserver = AndroidBRouterVolumeChanges.observe(context, controller::onSourcesChanged);
         stopObservingSources = () -> {
             stopSettingsObserver.run();
@@ -47,18 +58,27 @@ final class NavigationServiceStreetOverlay {
     }
 
     void reset() {
+        viewportOpen = false;
+        streetGrantChanges.reset();
         controller.reset();
     }
 
     void onAcceptedLocation(@NonNull NavigationLocation location) {
+        if (viewportOpen) {
+            streetGrantChanges.check();
+        }
         controller.onAcceptedLocation(location);
     }
 
     void onCompassViewport(@NonNull NavCompassState compassState) {
+        viewportOpen = true;
+        streetGrantChanges.check();
         controller.onCompassViewport(compassState);
     }
 
     void clearCompassViewport() {
+        viewportOpen = false;
+        streetGrantChanges.checkOnNextViewport();
         controller.clearCompassViewport();
     }
 

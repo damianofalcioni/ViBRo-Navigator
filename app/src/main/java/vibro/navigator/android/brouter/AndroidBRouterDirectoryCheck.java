@@ -7,10 +7,7 @@ import android.os.CancellationSignal;
 
 import androidx.annotation.Nullable;
 
-import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicReference;
@@ -25,7 +22,6 @@ import static vibro.navigator.android.brouter.AndroidBRouterFolderAccess.Kind.SE
 
 /** Verifies the selected tree and publishes each readable child as soon as it is known. */
 final class AndroidBRouterDirectoryCheck {
-    private static final Set<Uri> ACTIVE = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private static final String RESTRICTED = "Android/data/";
 
     record Directories(Child profiles, Child segments) {
@@ -77,15 +73,8 @@ final class AndroidBRouterDirectoryCheck {
 
     private static void inspectProvider(Context context, Uri tree, String id, CancellationSignal signal,
                                         AtomicReference<Directories> verified, boolean validate) {
-        if (!ACTIVE.add(tree)) {
-            return;
-        }
-        try {
-            if (!validate || isParentFolder(context, tree, id, signal)) {
-                verifyProviderChildren(context, tree, signal, verified);
-            }
-        } finally {
-            ACTIVE.remove(tree);
+        if (!validate || isParentFolder(context, tree, id, signal)) {
+            verifyProviderChildren(context, tree, signal, verified);
         }
     }
 
@@ -144,15 +133,11 @@ final class AndroidBRouterDirectoryCheck {
     }
 
     private static boolean verifyChild(Context context, @Nullable Uri listed, CancellationSignal signal) {
-        if (listed == null || !ACTIVE.add(listed)) {
+        if (listed == null) {
             return false;
         }
-        try {
-            signal.throwIfCanceled();
-            return AndroidDocumentTreeDirectories.canList(context, listed, signal);
-        } finally {
-            ACTIVE.remove(listed);
-        }
+        signal.throwIfCanceled();
+        return AndroidDocumentTreeDirectories.canList(context, listed, signal);
     }
 
     @Nullable

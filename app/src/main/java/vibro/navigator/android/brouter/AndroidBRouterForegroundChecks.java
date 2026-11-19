@@ -151,7 +151,7 @@ final class AndroidBRouterForegroundChecks {
         return setup.canShowDialog() && !hasActivePicker();
     }
 
-    private boolean hasActivePicker() {
+    boolean hasActivePicker() {
         return picker.isPending() || setup.isDialogShowing();
     }
 
@@ -164,7 +164,7 @@ final class AndroidBRouterForegroundChecks {
     }
 
     private void finishOffer(Completion completion) {
-        offers.finish(completion);
+        offers.finish(completion, manualPicker);
         manualPending = completion == Completion.RETRY && manualPicker;
         manualPicker = false;
     }

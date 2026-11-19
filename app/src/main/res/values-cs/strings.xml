@@ -144,6 +144,7 @@
     <string name="msg_speech_input_unresponsive">Rozpoznávání řeči se nespustilo. Povolit aplikaci Google nebo hlasový vstup Android.</string>
     <string name="msg_speech_permission_required">Pro vstup řeči je potřeba oprávnění k mikrofonu.</string>
     <string name="msg_select_custom_profile">Vyberte vlastní soubor BRouter .brf</string>
+    <string name="msg_brouter_profile_not_ready">Profil trasování není dostupný. Počkejte na dokončení hledání nebo vyberte dostupný profil.</string>
     <string name="msg_invalid_custom_profile">Vyberte platný soubor BRouter .brf</string>
     <string name="msg_profile_parameters_empty">Tento profil neumožňuje upravitelné parametry.</string>
     <string name="msg_profile_parameters_not_localized">Parametry jsou dynamicky získávány ze souboru profilu BRouter, takže jejich názvy, popisy a možnosti nejsou přeloženy.</string>

@@ -2,6 +2,7 @@ package vibro.navigator.nav.ui;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Bundle;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -9,6 +10,8 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
 import vibro.navigator.android.brouter.AndroidBRouterFolderAccess;
+import vibro.navigator.android.brouter.AndroidBRouterPickerRequest;
+import vibro.navigator.android.brouter.AndroidBRouterPickerRequest.Completion;
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
 import vibro.navigator.android.brouter.AndroidBRouterSegmentsRepositoryFactory;
 import vibro.navigator.android.brouter.AndroidBRouterSegmentsTreeAccessPrompt;
@@ -50,9 +53,7 @@ final class NavigationCustomButtonController {
     @NonNull
     private final Runnable recreateForThemeChange = this::recreateForThemeChangeIfActive;
     private boolean waitingForSurroundingStreetPermission;
-    private StreetRequest streetRequest = StreetRequest.IDLE;
-
-    private enum StreetRequest { IDLE, PICKER, VALIDATING }
+    private final StreetPicker streetPicker;
 
     NavigationCustomButtonController(
             @NonNull Activity activity,
@@ -62,6 +63,7 @@ final class NavigationCustomButtonController {
         this.activity = activity;
         this.uiScheduler = uiScheduler;
         this.host = host;
+        streetPicker = new StreetPicker();
     }
 
     void toggleSelectedSetting() {
@@ -76,7 +78,7 @@ final class NavigationCustomButtonController {
     }
 
     private boolean streetSettingReady(boolean enabled) {
-        return streetRequest == StreetRequest.IDLE && (!enabled || canEnableStreetSetting());
+        return !streetPicker.request.isPending() && (!enabled || canEnableStreetSetting());
     }
 
     private boolean canEnableStreetSetting() {
@@ -120,23 +122,10 @@ final class NavigationCustomButtonController {
     }
 
     boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode != REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE) {
-            return false;
-        }
-        if (streetRequest != StreetRequest.PICKER) {
-            return true;
-        }
-        if (resultCode != Activity.RESULT_OK) {
-            onStreetFolderSaved(false);
-        } else {
-            streetRequest = StreetRequest.VALIDATING;
-            AndroidBRouterFolderAccess.saveSelection(activity, data, this::onStreetFolderSaved);
-        }
-        return true;
+        return streetPicker.accept(requestCode, resultCode, data);
     }
 
     private void onStreetFolderSaved(boolean saved) {
-        streetRequest = StreetRequest.IDLE;
         if (!isBRouterInstalled()) {
             denySurroundingStreetsBRouterMissing();
         } else if (!saved || !segmentsRepository.hasPersistedSegmentsTreeAccess(activity)) {
@@ -156,9 +145,22 @@ final class NavigationCustomButtonController {
                 activity,
                 REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE,
                 TAG,
-                () -> streetRequest = StreetRequest.PICKER,
-                this::denySurroundingStreetStorage
+                () -> streetPicker.request.begin(REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE),
+                this::denySurroundingStreetStorage,
+                () -> onStreetFolderSaved(true)
         );
+    }
+
+    void restoreState(@Nullable Bundle state) {
+        streetPicker.restore(state);
+    }
+
+    void saveState(Bundle state) {
+        streetPicker.request.save(state);
+    }
+
+    void dispose() {
+        streetPicker.request.stopWatching();
     }
 
     private void denySurroundingStreetsBRouterMissing() {
@@ -212,6 +214,40 @@ final class NavigationCustomButtonController {
     private void recreateForThemeChangeIfActive() {
         if (!activity.isFinishing() && !activity.isDestroyed()) {
             activity.recreate();
+        }
+    }
+
+    private final class StreetPicker {
+        final AndroidBRouterPickerRequest request = new AndroidBRouterPickerRequest(activity, "navigation_custom_street_picker");
+
+        void restore(@Nullable Bundle state) {
+            Completion completion = request.restore(state);
+            if (completion != null) {
+                onStreetFolderSaved(completion == Completion.ADVANCE);
+            }
+            request.watch(result -> onStreetFolderSaved(result == Completion.ADVANCE));
+        }
+
+        boolean accept(int code, int resultCode, @Nullable Intent data) {
+            if (code != REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE) {
+                return false;
+            }
+            if (request.matches(code)) {
+                if (resultCode == Activity.RESULT_OK) {
+                    request.beginValidation();
+                    AndroidBRouterFolderAccess.saveSelection(activity, data, this::finish);
+                } else {
+                    finish(false);
+                }
+            }
+            return true;
+        }
+
+        private void finish(boolean saved) {
+            request.complete(saved ? Completion.ADVANCE : Completion.CANCELED);
+            if (!activity.isDestroyed()) {
+                onStreetFolderSaved(saved);
+            }
         }
     }
 

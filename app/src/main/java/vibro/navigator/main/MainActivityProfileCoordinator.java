@@ -29,6 +29,7 @@ final class MainActivityProfileCoordinator {
     @NonNull
     private final ProfileParameterSettingsController profileParameterSettingsController;
     private final MainActivityStartupCoordinator startup;
+    private boolean resumedOnce;
 
     private MainActivityProfileCoordinator(
             @NonNull MainActivity activity,
@@ -97,7 +98,10 @@ final class MainActivityProfileCoordinator {
     static void refresh(@Nullable MainActivityProfileCoordinator coordinator) {
         if (coordinator != null) {
             coordinator.profilePicker.setResumed(true);
-            coordinator.refresh();
+            if (coordinator.resumedOnce) {
+                coordinator.refreshAfterAccessChange();
+            }
+            coordinator.resumedOnce = true;
             coordinator.startup.onResume();
         }
     }
@@ -112,6 +116,7 @@ final class MainActivityProfileCoordinator {
     static void startup(@Nullable MainActivityProfileCoordinator coordinator, @Nullable Bundle state,
                         @NonNull Runnable onReady) {
         if (coordinator != null) {
+            coordinator.profilePicker.restore(state, coordinator.startup::isBRouterPickerPending);
             coordinator.startup.start(state, onReady);
         }
     }
@@ -123,7 +128,16 @@ final class MainActivityProfileCoordinator {
     static void saveStartupState(@Nullable MainActivityProfileCoordinator coordinator, @NonNull Bundle state) {
         if (coordinator != null) {
             coordinator.startup.saveState(state);
+            coordinator.profilePicker.save(state);
         }
+    }
+
+    boolean isCustomPickerRequested() {
+        return profilePicker.isPickerRequested();
+    }
+
+    void onBRouterPromptClosed() {
+        profilePicker.tryOpenPicker();
     }
 
     static void disposeStartup(@Nullable MainActivityProfileCoordinator coordinator) {

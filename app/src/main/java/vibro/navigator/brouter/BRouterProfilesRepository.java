@@ -20,7 +20,7 @@ public class BRouterProfilesRepository {
     private static final String PREFS = "vibenavigator_brouter";
     private static final String KEY_CUSTOM_PROFILE_URI = "custom_profile_uri";
     private static final String KEY_CUSTOM_PROFILE_NAME = "custom_profile_name";
-    private static final String KEY_PROFILES_TREE_URI = "profiles_tree_uri";
+    static final String KEY_PROFILES_TREE_URI = "profiles_tree_uri";
     private static final String KEY_SELECTED_PROFILE = "selected_profile";
     private static final String TAG = "BRouterProfiles";
 
@@ -129,16 +129,25 @@ public class BRouterProfilesRepository {
             @NonNull Context context,
             @Nullable String profileName
     ) {
-        String cleanName = BRouterProfileNames.clean(profileName);
-        if (cleanName == null) {
-            return Collections.emptyList();
-        }
+        return getProfileParameters(context, profileName, java.util.Objects.equals(profileName, getCustomProfileName(context)));
+    }
+
+    @NonNull
+    public List<BRouterProfileParameter> getProfileParameters(Context context, @Nullable String profileName, boolean custom) {
+        List<BRouterProfileParameter> parameters = readResolvedProfileParameters(context, profileName, custom);
+        return parameters == null ? Collections.emptyList() : parameters;
+    }
+
+    @Nullable
+    public List<BRouterProfileParameter> readResolvedProfileParameters(Context context, @Nullable String profileName,
+                                                                         boolean custom) {
         return parameterSource.readParameters(
                 context,
-                cleanName,
+                profileName,
                 getCustomProfileUri(context),
-                getCustomProfileName(context),
-                resolveProfilesDiscoveryTreeUris(context)
+                custom,
+                () -> grantedProfileTrees(context),
+                () -> detectedProfileTrees(context)
         );
     }
 
@@ -221,17 +230,14 @@ public class BRouterProfilesRepository {
     }
 
     public boolean isBRouterInstalled(@NonNull Context context) {
-        if (dependencies.packageAccess.isInstalled(context, BROUTER_PACKAGE_NAME)) {
-            AppLogger.d(TAG, "BRouter package detected");
-            return true;
-        }
-        AppLogger.w(TAG, "BRouter package not installed");
-        return false;
+        boolean installed = dependencies.packageAccess.isInstalled(context, BROUTER_PACKAGE_NAME);
+        AppLogger.d(TAG, "BRouter installed=" + installed);
+        return installed;
     }
 
     @NonNull
     public List<String> listProfiles(@NonNull Context context) {
-        return listAvailableProfiles(context, listBundledProfiles(context));
+        return listAvailableProfiles(context, listBundledProfiles(context), ignored -> { });
     }
 
     @NonNull
@@ -240,14 +246,24 @@ public class BRouterProfilesRepository {
     }
 
     @NonNull
-    public List<String> listAvailableProfiles(Context context, List<String> bundled) {
-        return profileLister.listProfiles(context, resolveProfilesDiscoveryTreeUris(context), bundled);
+    public List<String> listAvailableProfiles(Context context, List<String> bundled,
+                                              androidx.core.util.Consumer<List<String>> progress) {
+        List<Uri> granted = grantedProfileTrees(context);
+        List<String> available = profileLister.listProfiles(context, granted, bundled, progress);
+        List<Uri> detected = detectedProfileTrees(context);
+        detected.removeAll(granted);
+        return profileLister.listProfiles(context, detected, available, progress);
     }
 
     @NonNull
-    private List<Uri> resolveProfilesDiscoveryTreeUris(@NonNull Context context) {
-        return profileDirectories.resolveProfilesDiscoveryTreeUris(context, BRouterFolderGrant.discoveryTrees(
-                context, getProfilesTreeUri(context), true, dependencies.uriPermissionAccess::hasReadPermission));
+    private List<Uri> detectedProfileTrees(Context context) {
+        return profileDirectories.resolveProfilesDiscoveryTreeUris(context, Collections.emptyList());
+    }
+
+    @NonNull
+    private List<Uri> grantedProfileTrees(Context context) {
+        return BRouterFolderGrant.discoveryTrees(context, getProfilesTreeUri(context), true,
+                dependencies.uriPermissionAccess::hasReadPermission);
     }
 
     @Nullable

@@ -32,14 +32,20 @@ final class AndroidBRouterRouteParameterValues {
             @NonNull BRouterRouteRequest request,
             @Nullable String remoteProfile
     ) {
+        return build(request, remoteProfile, request.profileParameters);
+    }
+
+    @NonNull
+    static AndroidBRouterRouteParameterValues build(BRouterRouteRequest request, @Nullable String remoteProfile,
+                                                    @Nullable String parameters) {
         Map<String, Object> values = new LinkedHashMap<>();
         List<LatLon> points = routePoints(request);
 
         putRoutePoints(values, request, points);
         putNogos(values, request.blockedWaypoints);
         putProfile(values, request, remoteProfile);
-        if (request.profileParameters != null) {
-            values.put("extraParams", request.profileParameters);
+        if (parameters != null && !parameters.isEmpty()) {
+            values.put("extraParams", parameters);
         }
         putRoundTripParams(values, request);
 

@@ -40,6 +40,10 @@ public final class BRouterSegmentDependencies {
         @Nullable
         Uri childDocumentUri(@NonNull Context context, @NonNull Uri treeUri, @NonNull String displayName);
 
+        default String documentIdentity(Uri uri) {
+            return uri.toString();
+        }
+
         @Nullable
         BRouterSegmentReadFile openReadFile(@NonNull Context context, @NonNull Uri documentUri) throws IOException;
     }

@@ -4,7 +4,6 @@ import android.content.Context;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,13 +17,16 @@ final class BRouterSegmentDirectories {
     private final BRouterSegmentDependencies.DocumentAccess documentAccess;
     @NonNull
     private final BRouterSegmentDirectoryCandidates directoryCandidates;
+    private final BRouterStreetProviderRead providerRead;
 
     BRouterSegmentDirectories(
             @NonNull BRouterSegmentDependencies.DocumentAccess documentAccess,
-            @NonNull BRouterSegmentDependencies.StorageVolumeAccess storageVolumeAccess
+            @NonNull BRouterSegmentDependencies.StorageVolumeAccess storageVolumeAccess,
+            BRouterStreetProviderRead providerRead
     ) {
         this.documentAccess = documentAccess;
         this.directoryCandidates = new BRouterSegmentDirectoryCandidates(storageVolumeAccess);
+        this.providerRead = providerRead;
     }
 
     @NonNull
@@ -34,8 +36,10 @@ final class BRouterSegmentDirectories {
     ) {
         List<Uri> out = new ArrayList<>();
         for (String documentId : directoryIds) {
-            if (documentAccess.externalStorageDocumentExists(context, documentId)) {
-                addDiscoveryTreeUri(out, documentAccess.buildExternalStorageTreeUri(documentId));
+            Uri tree = documentAccess.buildExternalStorageTreeUri(documentId);
+            if (Boolean.TRUE.equals(providerRead.run(tree,
+                    () -> documentAccess.externalStorageDocumentExists(context, documentId))) && !out.contains(tree)) {
+                out.add(tree);
             }
         }
         if (out.isEmpty()) {
@@ -49,13 +53,4 @@ final class BRouterSegmentDirectories {
         return directoryCandidates.getSegmentsDocumentIdCandidates(context);
     }
 
-    private void addDiscoveryTreeUri(@NonNull List<Uri> out, @NonNull Uri treeUri) {
-        String candidate = treeUri.toString();
-        for (Uri existing : out) {
-            if (candidate.equals(existing.toString())) {
-                return;
-            }
-        }
-        out.add(treeUri);
-    }
 }

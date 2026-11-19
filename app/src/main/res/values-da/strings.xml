@@ -144,6 +144,7 @@
     <string name="msg_speech_input_unresponsive">Talegenkendelse startede ikke. Aktivér Google-appen eller Android-stemmeinput.</string>
     <string name="msg_speech_permission_required">Mikrofontilladelse er nødvendig for taleinput.</string>
     <string name="msg_select_custom_profile">Vælg en brugerdefineret BRouter .brf-fil</string>
+    <string name="msg_brouter_profile_not_ready">Ruteprofilen er ikke tilgængelig. Vent på søgningen, eller vælg en tilgængelig profil.</string>
     <string name="msg_invalid_custom_profile">Vælg en gyldig BRouter .brf-fil</string>
     <string name="msg_profile_parameters_empty">Denne profil udsætter ikke redigerbare parametre.</string>
     <string name="msg_profile_parameters_not_localized">Parametre udtrækkes dynamisk fra BRouter-profilfilen, så deres navne, beskrivelser og muligheder er ikke oversat.</string>

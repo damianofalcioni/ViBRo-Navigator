@@ -144,6 +144,7 @@
     <string name="msg_speech_input_unresponsive">Rozpoznawanie mowy nie zostało uruchomione. Włącz aplikację Google lub wprowadzanie głosowe Android.</string>
     <string name="msg_speech_permission_required">Zezwolenie na korzystanie z mikrofonu jest wymagane do wprowadzania mowy.</string>
     <string name="msg_select_custom_profile">Wybierz niestandardowy plik BRouter .brf</string>
+    <string name="msg_brouter_profile_not_ready">Profil trasowania jest niedostępny. Poczekaj na zakończenie wyszukiwania lub wybierz dostępny profil.</string>
     <string name="msg_invalid_custom_profile">Wybierz prawidłowy plik BRouter .brf</string>
     <string name="msg_profile_parameters_empty">Ten profil nie udostępnia edytowalnych parametrów.</string>
     <string name="msg_profile_parameters_not_localized">Parametry są dynamicznie pobierane z pliku profilu BRouter, więc ich nazwy, opisy i opcje nie są tłumaczone.</string>

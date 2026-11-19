@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 
+import vibro.navigator.brouter.BRouterSegmentSourceSettings;
 import vibro.navigator.logging.AppLogger;
 
 import org.json.JSONException;
@@ -104,7 +105,9 @@ final class AppDataBackupPreferences {
         SharedPreferences prefs = context.getSharedPreferences(prefsName, Context.MODE_PRIVATE);
         JSONObject out = new JSONObject();
         for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
-            out.put(entry.getKey(), AppDataBackupValueJson.toJson(entry.getValue()));
+            if (!BRouterSegmentSourceSettings.isLocalFolderPreference(prefsName, entry.getKey())) {
+                out.put(entry.getKey(), AppDataBackupValueJson.toJson(entry.getValue()));
+            }
         }
         return out;
     }
@@ -113,13 +116,27 @@ final class AppDataBackupPreferences {
             @NonNull Context context,
             @NonNull AppDataBackupPreferenceFile preferenceFile
     ) {
-        SharedPreferences.Editor editor = context.getSharedPreferences(
-                preferenceFile.prefsName,
-                Context.MODE_PRIVATE
-        ).edit().clear();
+        String prefsName = preferenceFile.prefsName;
+        SharedPreferences prefs = context.getSharedPreferences(prefsName, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = replaceEditor(prefsName, prefs);
         for (AppDataBackupPreferenceValue value : preferenceFile.values) {
-            AppDataBackupValueWriter.put(editor, value);
+            if (!BRouterSegmentSourceSettings.isLocalFolderPreference(prefsName, value.key)) {
+                AppDataBackupValueWriter.put(editor, value);
+            }
         }
         return editor.commit();
+    }
+
+    private static SharedPreferences.Editor replaceEditor(String prefsName, SharedPreferences prefs) {
+        SharedPreferences.Editor editor = prefs.edit();
+        if (!AppDataBackupContract.PREFS_BROUTER.equals(prefsName)) {
+            return editor.clear();
+        }
+        for (String key : prefs.getAll().keySet()) {
+            if (!BRouterSegmentSourceSettings.isLocalFolderPreference(prefsName, key)) {
+                editor.remove(key);
+            }
+        }
+        return editor;
     }
 }

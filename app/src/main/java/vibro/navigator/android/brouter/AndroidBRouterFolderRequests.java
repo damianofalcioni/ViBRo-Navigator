@@ -42,8 +42,8 @@ final class AndroidBRouterFolderRequests {
     void findLocation(Collection<String> excluded, @Nullable AndroidBRouterPickerLocation fallback,
                       Consumer<AndroidBRouterPickerLocation> callback) {
         AtomicReference<AndroidBRouterPickerLocation> confirmed = new AtomicReference<>(fallback);
-        boolean profilesMissing = fallback == null && !profiles.hasPersistedProfilesTreeAccess(activity);
-        boolean segmentsMissing = fallback == null && AppCompassSettings.isSurroundingStreetsEnabled(activity)
+        boolean profilesMissing = !profiles.hasPersistedProfilesTreeAccess(activity);
+        boolean segmentsMissing = AppCompassSettings.isSurroundingStreetsEnabled(activity)
                 && !segments.hasPersistedSegmentsTreeAccess(activity);
         var wanted = profilesMissing == segmentsMissing ? null : profilesMissing
                 ? AndroidBRouterFolderAccess.Kind.PROFILES : AndroidBRouterFolderAccess.Kind.SEGMENTS;

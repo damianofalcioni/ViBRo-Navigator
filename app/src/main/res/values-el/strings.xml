@@ -144,6 +144,7 @@
     <string name="msg_speech_input_unresponsive">Η αναγνώριση ομιλίας δεν ξεκίνησε. Ενεργοποιήστε την εφαρμογή Google ή την εισαγωγή φωνής Android.</string>
     <string name="msg_speech_permission_required">Απαιτείται άδεια μικροφώνου για την εισαγωγή ομιλίας.</string>
     <string name="msg_select_custom_profile">Επιλέξτε ένα προσαρμοσμένο αρχείο BRouter .brf</string>
+    <string name="msg_brouter_profile_not_ready">Το προφίλ δρομολόγησης δεν είναι διαθέσιμο. Περιμένετε να ολοκληρωθεί η αναζήτηση ή επιλέξτε ένα διαθέσιμο προφίλ.</string>
     <string name="msg_invalid_custom_profile">Επιλέξτε ένα έγκυρο αρχείο BRouter .brf</string>
     <string name="msg_profile_parameters_empty">Αυτό το προφίλ δεν εκθέτει επεξεργάσιμες παραμέτρους.</string>
     <string name="msg_profile_parameters_not_localized">Οι παράμετροι εξάγονται δυναμικά από το αρχείο προφίλ BRouter, έτσι τα ονόματα, οι περιγραφές και οι επιλογές τους δεν μεταφράζονται.</string>

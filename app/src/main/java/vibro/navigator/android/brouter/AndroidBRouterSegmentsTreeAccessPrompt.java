@@ -7,6 +7,7 @@ import android.os.CancellationSignal;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 import androidx.annotation.NonNull;
@@ -15,6 +16,7 @@ import androidx.annotation.Nullable;
 import androidx.core.util.Consumer;
 
 import vibro.navigator.R;
+import vibro.navigator.brouter.BRouterFolderGrant;
 
 public final class AndroidBRouterSegmentsTreeAccessPrompt {
     private AndroidBRouterSegmentsTreeAccessPrompt() {
@@ -25,11 +27,18 @@ public final class AndroidBRouterSegmentsTreeAccessPrompt {
             int requestCode,
             @NonNull String logTag,
             @NonNull Runnable beforeLaunch,
-            @NonNull Runnable onCancel
+            @NonNull Runnable onCancel,
+            @NonNull Runnable onAlreadyGranted
     ) {
         AndroidBRouterDeferredPrompt.request(activity, requestCode, true,
                 (signal, progress) -> findLocation(activity, Collections.emptySet(), signal, progress),
-                location -> showNow(activity, location.initialUri, requestCode, logTag, beforeLaunch, onCancel, onCancel));
+                location -> {
+                    if (AndroidBRouterSegmentsRepositoryFactory.create().hasPersistedSegmentsTreeAccess(activity)) {
+                        onAlreadyGranted.run();
+                        return null;
+                    }
+                    return showNow(activity, location.initialUri, requestCode, logTag, beforeLaunch, onCancel, onCancel);
+                });
     }
 
     public static void cancel(Activity activity, int requestCode) {
@@ -40,8 +49,25 @@ public final class AndroidBRouterSegmentsTreeAccessPrompt {
                                            Collection<String> excluded, Consumer<Uri> onResult) {
         AtomicReference<Uri> fallback = new AtomicReference<>();
         AndroidBRouterFolderDiscovery.findWithFallback(
-                signal -> findLocation(activity, excluded, signal, location -> fallback.set(location.confirmedUri()))
+                signal -> findLocation(activity, startupExclusions(activity, excluded), signal,
+                        location -> fallback.set(location.confirmedUri()))
                         .confirmedUri(), fallback::get, onResult);
+    }
+
+    private static Collection<String> startupExclusions(Activity activity, Collection<String> excluded) {
+        var locations = new ArrayList<>(excluded);
+        for (Uri tree : BRouterFolderGrant.parents(activity)) {
+            Uri document = AndroidBRouterProfilesTreeAccessPrompt.parentDocument(tree);
+            if (document != null && isGrantedProfilesOnly(activity, tree)) {
+                locations.add(document.toString());
+            }
+        }
+        return locations;
+    }
+
+    private static boolean isGrantedProfilesOnly(Activity activity, Uri tree) {
+        return AndroidBRouterGrantedDirectories.hasKnownChild(activity, tree, AndroidBRouterFolderAccess.Kind.PROFILES)
+                && !AndroidBRouterFolderAccess.hasPersistedReadPermission(activity, tree, AndroidBRouterFolderAccess.Kind.SEGMENTS);
     }
 
     @NonNull

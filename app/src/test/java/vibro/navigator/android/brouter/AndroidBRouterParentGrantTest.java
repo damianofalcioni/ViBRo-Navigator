@@ -12,6 +12,7 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.OperationCanceledException;
 import android.provider.DocumentsContract;
 
@@ -24,8 +25,12 @@ import org.robolectric.shadows.ShadowContentResolver;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import vibro.navigator.android.storage.AndroidDocumentAccess;
+import vibro.navigator.brouter.BRouterFolderGrant;
+import vibro.navigator.brouter.BRouterSegmentSourceSettings;
+import vibro.navigator.settings.AppCompassSettings;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = Build.VERSION_CODES.R)
@@ -38,6 +43,8 @@ public class AndroidBRouterParentGrantTest {
     private static final String PROFILE_NAME = "shared-parent-test";
     private static final String TILE_NAME = "E15_N45.rd5";
     private static final String LEGACY_PARENT = "primary:Android/data/btools.routingapp/files/brouter";
+    private static final String OPAQUE_AUTHORITY = "test.brouter.documents";
+    private static final String OPAQUE_ROOT = "root";
 
     @Test
     public void onePersistedGrantListsProfilesAndResolvesTilesThroughTheParent() {
@@ -91,6 +98,54 @@ public class AndroidBRouterParentGrantTest {
 
             assertTrue(profiles.hasPersistedProfilesTreeAccess(activity));
             assertFalse(AndroidBRouterSegmentsRepositoryFactory.create().hasPersistedSegmentsTreeAccess(activity));
+        }
+    }
+
+    @Test
+    public void explicitlyRegrantingTheSameStreetFolderNotifiesOverlayObservers() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Uri parent = AndroidDocumentAccess.buildExternalStorageTreeUri(PARENT_ID);
+            ShadowContentResolver.registerProviderInternal(parent.getAuthority(), new ParentProvider());
+            assertTrue(TestBRouterStorage.saveSelection(activity, grant(parent)));
+
+            var changes = new AtomicInteger();
+            Runnable stop = BRouterSegmentSourceSettings.observe(activity, changes::incrementAndGet);
+            try {
+                activity.getContentResolver().releasePersistableUriPermission(parent, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                assertTrue(TestBRouterStorage.saveSelection(activity, grant(parent)));
+                assertEquals(1, changes.get());
+            } finally {
+                stop.run();
+            }
+        }
+    }
+
+    @Test
+    public void reopeningStreetViewportNoticesRevocationAndKeepsAnEarlierGrant() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            AppCompassSettings.setSurroundingStreetsEnabled(activity, true);
+            Uri parent = AndroidDocumentAccess.buildExternalStorageTreeUri(PARENT_ID);
+            Uri fallback = AndroidDocumentAccess.buildExternalStorageTreeUri(SEGMENTS_ID);
+            ShadowContentResolver.registerProviderInternal(parent.getAuthority(), new ParentProvider());
+            activity.getContentResolver().takePersistableUriPermission(fallback, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            var segments = AndroidBRouterSegmentsRepositoryFactory.create();
+            segments.saveSegmentsTreeUri(activity, fallback);
+            assertTrue(TestBRouterStorage.saveSelection(activity, grant(parent)));
+            assertEquals(parent, segments.getGrantedSegmentsTreeUri(activity));
+
+            var changes = new AtomicInteger();
+            var observer = new AndroidBRouterStreetGrantChanges(activity, () -> 0L, changes::incrementAndGet);
+            observer.check();
+            activity.getContentResolver().releasePersistableUriPermission(parent, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            observer.check();
+            assertEquals(0, changes.get());
+
+            observer.checkOnNextViewport();
+            observer.check();
+            assertEquals(1, changes.get());
+            assertEquals(fallback, segments.getGrantedSegmentsTreeUri(activity));
         }
     }
 
@@ -248,7 +303,7 @@ public class AndroidBRouterParentGrantTest {
             TestBRouterStorage.createPrimaryFolder(SEGMENTS);
             Uri streetSource = tree(PARENT_ID);
             assertTrue(TestBRouterStorage.saveSelection(activity, grant(streetSource)));
-            var revisionChanges = new java.util.concurrent.atomic.AtomicInteger();
+            var revisionChanges = new AtomicInteger();
             Runnable stopObserving = vibro.navigator.brouter.BRouterSegmentSourceSettings.observe(
                     activity, revisionChanges::incrementAndGet);
             try {
@@ -284,10 +339,31 @@ public class AndroidBRouterParentGrantTest {
     }
 
     @Test
+    public void recoversNewProviderChildIdsWhenTheParentGrantStillExists() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Uri tree = DocumentsContract.buildTreeDocumentUri(OPAQUE_AUTHORITY, OPAQUE_ROOT);
+            var provider = new ParentProvider();
+            ShadowContentResolver.registerProviderInternal(tree.getAuthority(), provider);
+            assertTrue(TestBRouterStorage.saveSelection(activity, grant(tree)));
+            var profiles = AndroidBRouterProfilesRepositoryFactory.create();
+            assertTrue(profiles.listProfiles(activity).contains(PROFILE_NAME));
+
+            provider.opaqueProfiles = "replacement-profile-dir";
+            provider.opaqueSegments = "replacement-segment-dir";
+            profiles.listProfiles(activity);
+
+            assertEquals(DocumentsContract.buildDocumentUriUsingTree(tree, provider.opaqueSegments),
+                    BRouterFolderGrant.directory(activity, tree, false));
+            assertTrue(profiles.listProfiles(activity).contains(PROFILE_NAME));
+        }
+    }
+
+    @Test
     public void savedOpaqueGrantStatusDoesNotQueryItsProvider() {
         try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
             Activity activity = controller.get();
-            Uri tree = DocumentsContract.buildTreeDocumentUri("test.brouter.documents", "root");
+            Uri tree = DocumentsContract.buildTreeDocumentUri(OPAQUE_AUTHORITY, OPAQUE_ROOT);
             var provider = new ParentProvider();
             ShadowContentResolver.registerProviderInternal(tree.getAuthority(), provider);
             assertTrue(TestBRouterStorage.saveSelection(activity, grant(tree)));
@@ -295,6 +371,30 @@ public class AndroidBRouterParentGrantTest {
             assertTrue(AndroidBRouterProfilesRepositoryFactory.create().hasPersistedProfilesTreeAccess(activity));
             assertTrue(AndroidBRouterSegmentsRepositoryFactory.create().hasPersistedSegmentsTreeAccess(activity));
             assertEquals(queries, provider.queries);
+        }
+    }
+
+    @Test
+    public void emptyErrorCursorDoesNotVerifyDirectoryAccess() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Uri tree = tree(PARENT_ID);
+            ShadowContentResolver.registerProviderInternal(tree.getAuthority(), new ParentProvider() {
+                @Override
+                public Cursor query(Uri uri, String[] projection, String selection, String[] args, String sort) {
+                    if (PARENT_ID.equals(DocumentsContract.getDocumentId(uri))) {
+                        return super.query(uri, projection, selection, args, sort);
+                    }
+                    var cursor = new MatrixCursor(projection);
+                    var extras = new Bundle();
+                    extras.putString(DocumentsContract.EXTRA_ERROR, "Storage temporarily unavailable");
+                    cursor.setExtras(extras);
+                    return cursor;
+                }
+            });
+
+            assertFalse(TestBRouterStorage.saveSelection(activity, grant(tree)));
+            assertTrue(activity.getContentResolver().getPersistedUriPermissions().isEmpty());
         }
     }
 
@@ -313,6 +413,8 @@ public class AndroidBRouterParentGrantTest {
 
     static class ParentProvider extends ContentProvider {
         int queries;
+        String opaqueProfiles = "profile-dir";
+        String opaqueSegments = "segment-dir";
         @Override
         public boolean onCreate() {
             return true;
@@ -323,7 +425,7 @@ public class AndroidBRouterParentGrantTest {
             queries++;
             MatrixCursor rows = new MatrixCursor(new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID,
                     DocumentsContract.Document.COLUMN_DISPLAY_NAME, DocumentsContract.Document.COLUMN_MIME_TYPE});
-            if ("root".equals(DocumentsContract.getTreeDocumentId(uri))) {
+            if (OPAQUE_ROOT.equals(DocumentsContract.getTreeDocumentId(uri))) {
                 return addOpaqueDirectories(uri, rows);
             }
             if (uri.getPathSegments().size() != 5 || !PARENT_ID.equals(DocumentsContract.getTreeDocumentId(uri))) {
@@ -341,12 +443,17 @@ public class AndroidBRouterParentGrantTest {
             return rows;
         }
 
-        private static Cursor addOpaqueDirectories(Uri uri, MatrixCursor rows) {
+        private Cursor addOpaqueDirectories(Uri uri, MatrixCursor rows) {
+            String id = DocumentsContract.getDocumentId(uri);
             if (uri.getPathSegments().size() == 4) {
-                rows.addRow(new Object[]{"root", "brouter", DocumentsContract.Document.MIME_TYPE_DIR});
-            } else {
-                rows.addRow(new Object[]{"profile-dir", PROFILES, DocumentsContract.Document.MIME_TYPE_DIR});
-                rows.addRow(new Object[]{"segment-dir", SEGMENTS, DocumentsContract.Document.MIME_TYPE_DIR});
+                rows.addRow(new Object[]{OPAQUE_ROOT, "brouter", DocumentsContract.Document.MIME_TYPE_DIR});
+            } else if (OPAQUE_ROOT.equals(id)) {
+                rows.addRow(new Object[]{opaqueProfiles, PROFILES, DocumentsContract.Document.MIME_TYPE_DIR});
+                rows.addRow(new Object[]{opaqueSegments, SEGMENTS, DocumentsContract.Document.MIME_TYPE_DIR});
+            } else if (opaqueProfiles.equals(id)) {
+                addFile(rows, id, PROFILE_NAME + ".brf");
+            } else if (opaqueSegments.equals(id)) {
+                addFile(rows, id, TILE_NAME);
             }
             return rows;
         }

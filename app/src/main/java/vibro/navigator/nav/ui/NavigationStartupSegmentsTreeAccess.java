@@ -36,7 +36,7 @@ final class NavigationStartupSegmentsTreeAccess {
     private static final String STATE_OFFERED_FOLDER = "navigation_segments_access_folder";
 
     private enum Step {
-        IDLE, CHECK_FOLDER, WAIT_FOR_PICKER, RETRY_FOLDER, CONTINUE;
+        IDLE, CHECK_FOLDER, OFFER_FOLDER, WAIT_FOR_PICKER, RETRY_FOLDER, CONTINUE;
 
         static Step restored(@Nullable Bundle state, @Nullable Completion completion) {
             if (completion != null) {
@@ -97,7 +97,6 @@ final class NavigationStartupSegmentsTreeAccess {
 
     void onPause() {
         resumed = false;
-        cancelDiscovery();
     }
 
     boolean deferStartup(boolean autoStart, @Nullable List<String> skippedFolders) {
@@ -117,11 +116,12 @@ final class NavigationStartupSegmentsTreeAccess {
     }
 
     private void advance() {
-        if (!canAdvance() || folderDialog != null || discovering) {
+        if (!canAdvance() || discovering) {
             return;
         }
         switch (step) {
             case CHECK_FOLDER -> checkFolder();
+            case OFFER_FOLDER -> showFoundFolder();
             case RETRY_FOLDER -> retryIfStillNeeded();
             case CONTINUE -> {
                 step = Step.IDLE;
@@ -141,7 +141,7 @@ final class NavigationStartupSegmentsTreeAccess {
     }
 
     private boolean canAdvance() {
-        return resumed && !activity.isFinishing();
+        return resumed && folderDialog == null && !activity.isFinishing();
     }
 
     private void checkFolder() {
@@ -152,27 +152,34 @@ final class NavigationStartupSegmentsTreeAccess {
     }
 
     private void onFolderFound(int generation, @Nullable Uri uri) {
-        if (generation != discoveryGeneration || !canAdvance()) {
+        if (generation != discoveryGeneration) {
             return;
         }
         cancelDiscovery();
-        if (!storageNeeds.canOffer(activity, uri)) {
+        offeredFolder = uri;
+        step = Step.OFFER_FOLDER;
+        advance();
+    }
+
+    private void showFoundFolder() {
+        if (!storageNeeds.canOffer(activity, offeredFolder, skippedFolders)) {
             finishCheck();
             return;
         }
-        offeredFolder = uri;
         folderDialog = AndroidBRouterSegmentsTreeAccessPrompt.showNow(
                 activity,
-                uri,
+                offeredFolder,
                 REQUEST_SEGMENTS_TREE,
                 TAG,
                 this::pickerOpened,
-                () -> {
-                    denySurroundingStreetStorage();
-                    finishCheck();
-                },
+                this::declineFolder,
                 this::finishCheck
         );
+    }
+
+    private void declineFolder() {
+        storageNeeds.onDecline(activity, this::denySurroundingStreetStorage);
+        finishCheck();
     }
 
     private void pickerOpened() {
@@ -220,20 +227,16 @@ final class NavigationStartupSegmentsTreeAccess {
 
     private void denySurroundingStreetStorage() {
         AppCompassSettings.setSurroundingStreetsEnabled(activity, false);
-        explainMissingStorage();
-    }
-
-    private void cancelDiscovery() {
-        discoveryGeneration++;
-        discovering = false;
-    }
-
-    private void explainMissingStorage() {
         Toast.makeText(
                 activity,
                 R.string.msg_compass_surrounding_streets_storage_permission_required,
                 Toast.LENGTH_SHORT
         ).show();
+    }
+
+    private void cancelDiscovery() {
+        discoveryGeneration++;
+        discovering = false;
     }
 
     private static final class PendingPicker {
@@ -299,8 +302,14 @@ final class NavigationStartupSegmentsTreeAccess {
                     && !segments.hasPersistedSegmentsTreeAccess(activity);
         }
 
-        boolean canOffer(Activity activity, @Nullable Uri uri) {
-            return uri != null && requiresGrant(activity);
+        boolean canOffer(Activity activity, @Nullable Uri uri, List<String> skippedFolders) {
+            return uri != null && !skippedFolders.contains(uri.toString()) && requiresGrant(activity);
+        }
+
+        void onDecline(Activity activity, Runnable onDeny) {
+            if (requiresGrant(activity)) {
+                onDeny.run();
+            }
         }
     }
 }

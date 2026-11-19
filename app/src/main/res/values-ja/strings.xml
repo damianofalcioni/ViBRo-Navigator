@@ -144,6 +144,7 @@
     <string name="msg_speech_input_unresponsive">音声認識が開始されませんでした。Google アプリまたは Android 音声入力を有効にしてください。</string>
     <string name="msg_speech_permission_required">音声入力にはマイクの許可が必要です。</string>
     <string name="msg_select_custom_profile">カスタム BRouter .brf ファイルを選択してください</string>
+    <string name="msg_brouter_profile_not_ready">ルート設定プロファイルを使用できません。検索が終わるまで待つか、利用可能なプロファイルを選択してください。</string>
     <string name="msg_invalid_custom_profile">有効な BRouter .brf ファイルを選択してください</string>
     <string name="msg_profile_parameters_empty">このプロファイルは編集可能なパラメータを公開していません。</string>
     <string name="msg_profile_parameters_not_localized">パラメータは BRouter プロファイルファイルから動的に抽出されるため、名前、説明、およびオプションは翻訳されません。</string>

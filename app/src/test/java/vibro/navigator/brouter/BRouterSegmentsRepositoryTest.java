@@ -18,6 +18,7 @@ import org.robolectric.RobolectricTestRunner;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
 
 import vibro.navigator.nav.compass.CompassStreetVisibility;
 
@@ -80,6 +81,27 @@ public class BRouterSegmentsRepositoryTest {
             BRouterFolderGrant.save(activity, parent, null, parent.buildUpon().appendPath("segments4").build());
 
             assertEquals(original, loadFixtureStreets(repository, activity));
+        }
+    }
+
+    @Test
+    public void stalledPreferredTileReachesTheHealthyFallback() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Uri legacy = Uri.parse("content://test.legacy/tree/segments4");
+            Uri parent = Uri.parse("content://test.shared/tree/brouter");
+            var documents = new StalledTileCopies(parent);
+            var repository = new BRouterSegmentsRepository(new BRouterSegmentDependencies(
+                    documents, new TestFileAccess(), context -> Collections.emptyList(),
+                    (context, uri) -> legacy.equals(uri) || parent.equals(uri)));
+            repository.saveSegmentsTreeUri(activity, legacy);
+            BRouterFolderGrant.save(activity, parent, null, childFolder(parent));
+            try {
+                assertTrue(loadFixtureStreets(repository, activity) > 0);
+                assertEquals(0L, documents.started.getCount());
+            } finally {
+                documents.release.countDown();
+            }
         }
     }
 
@@ -200,7 +222,7 @@ public class BRouterSegmentsRepositoryTest {
         }
     }
 
-    private static final class TileCopies extends TestDocumentAccess {
+    private static class TileCopies extends TestDocumentAccess {
         private final Uri inaccessibleParent;
 
         TileCopies(Uri inaccessibleParent) {
@@ -216,6 +238,32 @@ public class BRouterSegmentsRepositoryTest {
         public BRouterSegmentReadFile openReadFile(Context context, Uri file) throws IOException {
             if (inaccessibleParent.getAuthority().equals(file.getAuthority())) {
                 throw new IOException("The second source lists the tile but cannot open it");
+            }
+            return new BRouterStreetTestFile();
+        }
+    }
+
+    private static final class StalledTileCopies extends TileCopies {
+        private final String stalledAuthority;
+        final CountDownLatch started = new CountDownLatch(1);
+        final CountDownLatch release = new CountDownLatch(1);
+
+        StalledTileCopies(Uri parent) {
+            super(Uri.EMPTY);
+            stalledAuthority = parent.getAuthority();
+        }
+
+        @Override
+        public BRouterSegmentReadFile openReadFile(Context context, Uri file) throws IOException {
+            if (stalledAuthority.equals(file.getAuthority())) {
+                started.countDown();
+                while (release.getCount() > 0) {
+                    try {
+                        release.await();
+                    } catch (InterruptedException ignored) {
+                        // A remote provider can keep its call outstanding after cancellation.
+                    }
+                }
             }
             return new BRouterStreetTestFile();
         }

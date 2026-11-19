@@ -142,6 +142,7 @@ final class AboutSettingsSwitches {
         configureSingleInstructionModeSwitch();
         configureNavigationCustomButtonSwitch();
         streetPicker.bind(this::onStreetFolderSaved);
+        streetPicker.resumeRequest(TAG, this::denySurroundingStreetsStorage);
     }
 
     void render() {
@@ -161,6 +162,7 @@ final class AboutSettingsSwitches {
                 surroundingStreetsSwitch,
                 storedSurroundingStreetsValue()
         );
+        surroundingStreetsSwitch.setSaveEnabled(false);
         compassInstantZoomSetting.render(
                 compassInstantZoomSwitch,
                 AppCompassSettings.isInstantZoomEnabled(activity)

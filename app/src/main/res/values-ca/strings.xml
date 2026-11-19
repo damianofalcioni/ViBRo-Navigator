@@ -144,6 +144,7 @@
     <string name="msg_speech_input_unresponsive">No s\'ha iniciat el reconeixement de veu. Activa l\'aplicació Google o l\'entrada de veu Android.</string>
     <string name="msg_speech_permission_required">Es necessita permís del micròfon per a la introducció de veu.</string>
     <string name="msg_select_custom_profile">Selecciona un fitxer BRouter .brf personalitzat</string>
+    <string name="msg_brouter_profile_not_ready">El perfil d’encaminament no està disponible. Espera que acabi la cerca o tria’n un de disponible.</string>
     <string name="msg_invalid_custom_profile">Selecciona un fitxer BRouter .brf vàlid</string>
     <string name="msg_profile_parameters_empty">Aquest perfil no exposa paràmetres editables.</string>
     <string name="msg_profile_parameters_not_localized">Els paràmetres s\'extreuen dinàmicament del fitxer de perfil BRouter, per tant els seus noms, descripcions i opcions no estan traduïts.</string>

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.HashSet;
 
 public final class BRouterProfileParameterValues {
     private BRouterProfileParameterValues() {
@@ -51,6 +52,24 @@ public final class BRouterProfileParameterValues {
     public static boolean containsExtraParamsSeparator(@NonNull String value) {
         // BRouter URL-decodes the entire string before splitting on these separators.
         return value.indexOf('?') >= 0 || value.indexOf('&') >= 0 || value.indexOf('=') >= 0;
+    }
+
+    public static String filterExtraParams(String encoded, List<BRouterProfileParameter> parameters) {
+        var allowed = new HashSet<String>();
+        for (BRouterProfileParameter parameter : parameters) {
+            allowed.add(encode(parameter.name));
+        }
+        StringBuilder selected = new StringBuilder();
+        for (String pair : encoded.split("&")) {
+            int separator = pair.indexOf('=');
+            if (separator > 0 && allowed.contains(pair.substring(0, separator))) {
+                if (selected.length() > 0) {
+                    selected.append('&');
+                }
+                selected.append(pair);
+            }
+        }
+        return selected.toString();
     }
 
     private static boolean isUsableExtraParamPart(@Nullable String value) {

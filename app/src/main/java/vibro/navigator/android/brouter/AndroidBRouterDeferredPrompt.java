@@ -92,7 +92,11 @@ final class AndroidBRouterDeferredPrompt implements Application.ActivityLifecycl
         showing = true;
         dialog = show.show(location);
         location = null;
-        dialog.setOnDismissListener(ignored -> dispose());
+        if (dialog == null) {
+            dispose();
+        } else {
+            dialog.setOnDismissListener(ignored -> dispose());
+        }
     }
 
     private void dispose() {

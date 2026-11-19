@@ -144,6 +144,7 @@
     <string name="msg_speech_input_unresponsive">Taligenkänning startade inte. Aktivera Google-appen eller Android röstinmatning.</string>
     <string name="msg_speech_permission_required">Mikrofonbehörighet behövs för talinmatning.</string>
     <string name="msg_select_custom_profile">Välj en anpassad BRouter .brf-fil</string>
+    <string name="msg_brouter_profile_not_ready">Ruttprofilen är inte tillgänglig. Vänta tills sökningen är klar eller välj en tillgänglig profil.</string>
     <string name="msg_invalid_custom_profile">Välj en giltig BRouter .brf-fil</string>
     <string name="msg_profile_parameters_empty">Den här profilen exponerar inga redigerbara parametrar.</string>
     <string name="msg_profile_parameters_not_localized">Parametrar hämtas dynamiskt från BRouter-profilfilen, så deras namn, beskrivningar och alternativ är inte översatta.</string>

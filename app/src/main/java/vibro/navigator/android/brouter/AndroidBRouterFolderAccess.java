@@ -73,7 +73,7 @@ public final class AndroidBRouterFolderAccess {
         if (segments.prefer()) {
             segmentsOrder = selection;
         }
-        BRouterFolderGrant.save(activity, tree, profiles, segments, latest);
+        BRouterFolderGrant.save(activity, tree, profiles, segments, latest, segments.uri() != null);
         return true;
     }
 
@@ -108,13 +108,23 @@ public final class AndroidBRouterFolderAccess {
             return false;
         }
         if (BRouterFolderGrant.parents(context).contains(uri)) {
-            if (BRouterFolderGrant.directory(context, uri, kind == Kind.PROFILES) == null) {
-                AndroidBRouterGrantedDirectories.refreshMissingDirectories(context, uri, id);
+            if (!AndroidBRouterGrantedDirectories.hasKnownChild(context, uri, kind)) {
+                boolean localChild = AndroidDocumentAccess.isExternalStorageDocument(uri)
+                        && AndroidDocumentAccess.canReadExternalDirectory(context, id + "/" + kind.folder);
+                AndroidBRouterGrantedDirectories.refreshMissingDirectories(context, uri, id, localChild);
             }
             return AndroidBRouterGrantedDirectories.hasKnownChild(context, uri, kind);
         }
         // Old grants remain readable wherever Android continues to honor them.
         return !AndroidDocumentAccess.isExternalStorageDocument(uri) || !kind.otherFolder.equalsIgnoreCase(folderName(id));
+    }
+
+    static void recheckSharedFolder(Context context, Uri tree) {
+        String id = treeId(tree);
+        if (id != null && BRouterFolderGrant.parents(context).contains(tree)
+                && AndroidPersistedUriPermissions.hasReadPermission(context, tree)) {
+            AndroidBRouterGrantedDirectories.refreshMissingDirectories(context, tree, id, false);
+        }
     }
 
     private static Child prefer(Child child, boolean preferred) {

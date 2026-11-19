@@ -1,5 +1,7 @@
 package vibro.navigator.android.startup;
 
+import androidx.core.util.Supplier;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
@@ -178,8 +180,11 @@ public final class AndroidFirstRunPermissions {
         storage.setResumed(resumed);
     }
 
-    public void bindBRouterAction(View action, Runnable onPickerFinished) {
+    public Supplier<Boolean> bindBRouterAction(View action, Runnable onPickerFinished,
+                                               Supplier<Boolean> customPickerPending, Runnable onFolderPromptClosed) {
+        storage.coordinatePicker(customPickerPending, onFolderPromptClosed);
         storage.bindManualAction(action, onPickerFinished);
+        return storage::isPickerPending;
     }
 
     public ArrayList<String> skippedSegmentsFolders() {

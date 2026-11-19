@@ -159,7 +159,7 @@ public class AndroidBRouterSegmentsTreeAccessPromptTest {
             Activity activity = controller.get();
             TestBRouterStorage.createPrimaryFolder("segments4");
             Runnable request = () -> AndroidBRouterSegmentsTreeAccessPrompt.show(
-                    activity, 42, "StorageTest", () -> { }, () -> { });
+                    activity, 42, "StorageTest", () -> { }, () -> { }, () -> { });
             request.run();
             request.run();
             controller.pause().stop();
@@ -193,7 +193,7 @@ public class AndroidBRouterSegmentsTreeAccessPromptTest {
     }
 
     private static Intent openPicker(Activity activity) {
-        AndroidBRouterSegmentsTreeAccessPrompt.show(activity, 42, "StorageTest", () -> { }, () -> { });
+        AndroidBRouterSegmentsTreeAccessPrompt.show(activity, 42, "StorageTest", () -> { }, () -> { }, () -> { });
         shadowOf(Looper.getMainLooper()).idleFor(ViewConfiguration.getPressedStateDuration(), TimeUnit.MILLISECONDS);
         ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         shadowOf(Looper.getMainLooper()).idle();

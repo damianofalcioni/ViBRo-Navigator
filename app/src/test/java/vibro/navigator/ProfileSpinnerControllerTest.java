@@ -30,7 +30,6 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowToast;
 import org.robolectric.shadows.ShadowPackageManager;
 
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -85,7 +84,6 @@ public class ProfileSpinnerControllerTest {
         controller.refresh();
         spinner.setSelection(0, false);
         customPickerRequested.set(false);
-        markSelectionUserInitiated(controller);
         spinner.setSelection(0);
         shadowOf(Looper.getMainLooper()).idle();
 
@@ -184,7 +182,7 @@ public class ProfileSpinnerControllerTest {
         controller.refresh();
         shadowOf(Looper.getMainLooper()).idle();
 
-        requestCustomProfile(controller, spinner);
+        requestCustomProfile(spinner);
 
         assertTrue(requested.get());
         assertEquals(1, spinner.getSelectedItemPosition());
@@ -207,7 +205,7 @@ public class ProfileSpinnerControllerTest {
         ProfileSpinnerController controller = new ProfileSpinnerController(activity, spinner, repository, () -> { });
         controller.refresh();
         shadowOf(Looper.getMainLooper()).idle();
-        requestCustomProfile(controller, spinner);
+        requestCustomProfile(spinner);
         assertEquals(0, spinner.getSelectedItemPosition());
         assertEquals(PROFILE_TREKKING, repository.getSelectedProfileKey(activity));
 
@@ -250,7 +248,7 @@ public class ProfileSpinnerControllerTest {
                 () -> requested.set(true));
         controller.refresh();
         shadowOf(Looper.getMainLooper()).idle();
-        requestCustomProfile(controller, spinner);
+        requestCustomProfile(spinner);
         assertTrue(requested.get());
         controller.onCustomProfilePickerCancelled();
         assertEquals(0, spinner.getSelectedItemPosition());
@@ -275,9 +273,7 @@ public class ProfileSpinnerControllerTest {
         assertEquals(PROFILE_TREKKING, repository.getSelectedProfileKey(activity));
     }
 
-    private static void requestCustomProfile(ProfileSpinnerController controller, RepeatSelectSpinner spinner)
-            throws Exception {
-        markSelectionUserInitiated(controller);
+    private static void requestCustomProfile(RepeatSelectSpinner spinner) {
         spinner.setSelection(spinner.getCount() - 1);
         shadowOf(Looper.getMainLooper()).idle();
     }
@@ -354,12 +350,6 @@ public class ProfileSpinnerControllerTest {
         shadowPackageManager.installPackage(packageInfo);
     }
 
-    private static void markSelectionUserInitiated(ProfileSpinnerController controller) throws Exception {
-        Field field = ProfileSpinnerController.class.getDeclaredField("selectionUserInitiated");
-        field.setAccessible(true);
-        field.setBoolean(controller, true);
-    }
-
     private static final class EmptyProfilesRepository extends BRouterProfilesRepository {
         private EmptyProfilesRepository() {
             super(BRouterProfileTestDependencies.create());
@@ -371,7 +361,8 @@ public class ProfileSpinnerControllerTest {
         }
 
         @Override
-        public List<String> listAvailableProfiles(Context context, List<String> bundled) {
+        public List<String> listAvailableProfiles(Context context, List<String> bundled,
+                                                  androidx.core.util.Consumer<List<String>> progress) {
             return Collections.emptyList();
         }
     }
@@ -393,7 +384,8 @@ public class ProfileSpinnerControllerTest {
         }
 
         @Override
-        public List<String> listAvailableProfiles(Context context, List<String> bundled) {
+        public List<String> listAvailableProfiles(Context context, List<String> bundled,
+                                                  androidx.core.util.Consumer<List<String>> progress) {
             return profiles;
         }
     }

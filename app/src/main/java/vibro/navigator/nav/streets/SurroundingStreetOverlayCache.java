@@ -29,6 +29,7 @@ final class SurroundingStreetOverlayCache {
             new LinkedHashMap<>(16, 0.75f, true);
     private int cachedSegments;
     private int cachedPoints;
+    private final ReadRetries readRetries = new ReadRetries();
     private final SurroundingStreetCacheRetention retention = new SurroundingStreetCacheRetention();
     private final SurroundingStreetOverlaySnapshot snapshot = new SurroundingStreetOverlaySnapshot();
 
@@ -37,6 +38,7 @@ final class SurroundingStreetOverlayCache {
         snapshot.clear();
         cachedSegments = 0;
         cachedPoints = 0;
+        readRetries.clear();
         retention.clear();
         resetSpeedBucket();
     }
@@ -71,9 +73,25 @@ final class SurroundingStreetOverlayCache {
     }
 
     void put(@NonNull SurroundingStreetChunkKey key, @NonNull CompassStreetOverlay overlay) {
+        put(key, Entry.from(overlay));
+    }
+
+    void retryAfter(SurroundingStreetChunkKey key, long retryAt) {
+        put(key, new Entry(CompassStreetOverlay.EMPTY, 0, 0, retryAt));
+        readRetries.schedule(retryAt);
+    }
+
+    void expireReadFailures(long now) {
+        readRetries.expire(entries.values(), now);
+    }
+
+    void retryFailedReads(long now, Runnable request) {
+        readRetries.requestIfExpired(entries.values(), now, request);
+    }
+
+    private void put(SurroundingStreetChunkKey key, Entry entry) {
         snapshot.clear();
         removeExisting(key);
-        Entry entry = Entry.from(overlay);
         entries.put(key, entry);
         cachedSegments += entry.segmentCount;
         cachedPoints += entry.pointCount;
@@ -152,17 +170,11 @@ final class SurroundingStreetOverlayCache {
     }
 
     private void trimToBudget() {
-        while (isOverBudget()) {
+        while (entries.size() > MAX_CHUNKS || cachedSegments > MAX_CACHED_SEGMENTS || cachedPoints > MAX_CACHED_POINTS) {
             SurroundingStreetChunkKey key = retention.evictionKey(entries.keySet());
             removeExisting(key);
             retention.recordEviction(key);
         }
-    }
-
-    private boolean isOverBudget() {
-        return entries.size() > MAX_CHUNKS
-                || cachedSegments > MAX_CACHED_SEGMENTS
-                || cachedPoints > MAX_CACHED_POINTS;
     }
 
     @NonNull
@@ -190,16 +202,18 @@ final class SurroundingStreetOverlayCache {
         final CompassStreetOverlay overlay;
         final int segmentCount;
         final int pointCount;
+        final long retryAt;
 
-        private Entry(@NonNull CompassStreetOverlay overlay, int segmentCount, int pointCount) {
+        private Entry(@NonNull CompassStreetOverlay overlay, int segmentCount, int pointCount, long retryAt) {
             this.overlay = overlay;
             this.segmentCount = segmentCount;
             this.pointCount = pointCount;
+            this.retryAt = retryAt;
         }
 
         @NonNull
         static Entry from(@NonNull CompassStreetOverlay overlay) {
-            return new Entry(overlay, overlay.segments.size(), countPoints(overlay));
+            return new Entry(overlay, overlay.segments.size(), countPoints(overlay), 0L);
         }
 
         private static int countPoints(@NonNull CompassStreetOverlay overlay) {
@@ -208,6 +222,46 @@ final class SurroundingStreetOverlayCache {
                 count += segment.points.size();
             }
             return count;
+        }
+    }
+
+    private static final class ReadRetries {
+        private long nextAt = Long.MAX_VALUE;
+
+        void clear() {
+            nextAt = Long.MAX_VALUE;
+        }
+
+        void schedule(long retryAt) {
+            nextAt = Math.min(nextAt, retryAt);
+        }
+
+        void requestIfExpired(Collection<Entry> entries, long now, Runnable request) {
+            if (expire(entries, now)) {
+                request.run();
+            }
+        }
+
+        boolean expire(Collection<Entry> entries, long now) {
+            if (now < nextAt) {
+                return false;
+            }
+            boolean expired = false;
+            clear();
+            var cached = entries.iterator();
+            while (cached.hasNext()) {
+                long retryAt = cached.next().retryAt;
+                if (retryAt == 0L) {
+                    continue;
+                }
+                if (retryAt <= now) {
+                    cached.remove();
+                    expired = true;
+                } else {
+                    schedule(retryAt);
+                }
+            }
+            return expired;
         }
     }
 }

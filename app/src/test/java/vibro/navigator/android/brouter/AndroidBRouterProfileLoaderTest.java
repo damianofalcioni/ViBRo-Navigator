@@ -8,7 +8,6 @@ import android.content.Context;
 import android.os.Looper;
 
 
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -26,6 +25,8 @@ import vibro.navigator.brouter.BRouterProfilesRepository;
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = AndroidBRouterDiscoveryRecoveryTest.RealDiscovery.class)
 public class AndroidBRouterProfileLoaderTest {
+    private static final String BUNDLED = "trekking";
+    private static final String HEALTHY = "healthy-external";
     @Test
     public void profileEnumerationRunsOffTheMainThread() throws InterruptedException {
         try (var activity = Robolectric.buildActivity(Activity.class).setup()) {
@@ -43,13 +44,17 @@ public class AndroidBRouterProfileLoaderTest {
     }
 
     @Test
-    public void bundledProfilesAreAvailableWhenBothExternalWorkersAreStalled() throws InterruptedException {
+    public void healthyDiscoveryRunsWhileTwoAbandonedScansAreStillStalled() throws InterruptedException {
         try (var activity = Robolectric.buildActivity(Activity.class).setup()) {
             var stalled = new StalledRepository();
             var first = new AndroidBRouterProfileLoader(activity.get(), stalled, ignored -> { });
             var second = new AndroidBRouterProfileLoader(activity.get(), stalled, ignored -> { });
             var delivered = new java.util.concurrent.atomic.AtomicReference<List<String>>();
-            var fresh = new AndroidBRouterProfileLoader(activity.get(), stalled, result -> delivered.set(result.profiles()));
+            var fresh = new AndroidBRouterProfileLoader(activity.get(), new RecordingRepository(), result -> {
+                if (result.complete()) {
+                    delivered.set(result.profiles());
+                }
+            });
             try {
                 first.refresh();
                 second.refresh();
@@ -57,12 +62,31 @@ public class AndroidBRouterProfileLoaderTest {
                 org.robolectric.Shadows.shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(1100));
                 fresh.refresh();
                 drainMainUntil(() -> delivered.get() != null);
-                org.junit.Assert.assertEquals(List.of("trekking"), delivered.get());
+                org.junit.Assert.assertEquals(List.of(HEALTHY), delivered.get());
             } finally {
                 stalled.release.countDown();
                 first.dispose();
                 second.dispose();
                 fresh.dispose();
+            }
+        }
+    }
+
+    @Test
+    public void profilesAlreadyDiscoveredSurviveTheNextProviderTimingOut() throws InterruptedException {
+        try (var activity = Robolectric.buildActivity(Activity.class).setup()) {
+            var repository = new StalledRepository();
+            var delivered = new java.util.concurrent.atomic.AtomicReference<List<String>>();
+            var loader = new AndroidBRouterProfileLoader(activity.get(), repository, result -> delivered.set(result.profiles()));
+            try {
+                loader.refresh();
+                drainMainUntil(() -> repository.started.getCount() < 2);
+                org.robolectric.Shadows.shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(1100));
+
+                org.junit.Assert.assertEquals(List.of(BUNDLED, HEALTHY), delivered.get());
+            } finally {
+                repository.release.countDown();
+                loader.dispose();
             }
         }
     }
@@ -86,13 +110,13 @@ public class AndroidBRouterProfileLoaderTest {
         }
     }
 
-    private static void drainMainUntil(java.util.function.BooleanSupplier done) throws InterruptedException {
+    private static void drainMainUntil(androidx.core.util.Supplier<Boolean> done) throws InterruptedException {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
-        while (!done.getAsBoolean() && System.nanoTime() < deadline) {
+        while (!done.get() && System.nanoTime() < deadline) {
             org.robolectric.Shadows.shadowOf(Looper.getMainLooper()).idle();
             Thread.sleep(5);
         }
-        assertTrue(done.getAsBoolean());
+        assertTrue(done.get());
     }
 
     private static final class StalledRepository extends BRouterProfilesRepository {
@@ -105,11 +129,13 @@ public class AndroidBRouterProfileLoaderTest {
 
         @Override
         public List<String> listBundledProfiles(Context context) {
-            return List.of("trekking");
+            return List.of(BUNDLED);
         }
 
         @Override
-        public List<String> listAvailableProfiles(Context context, List<String> bundled) {
+        public List<String> listAvailableProfiles(Context context, List<String> bundled,
+                                                  androidx.core.util.Consumer<List<String>> progress) {
+            progress.accept(List.of(BUNDLED, HEALTHY));
             started.countDown();
             while (release.getCount() != 0) {
                 try {
@@ -131,10 +157,11 @@ public class AndroidBRouterProfileLoaderTest {
         }
 
         @Override
-        public List<String> listAvailableProfiles(Context context, List<String> bundled) {
+        public List<String> listAvailableProfiles(Context context, List<String> bundled,
+                                                  androidx.core.util.Consumer<List<String>> progress) {
             onMainThread.set(Looper.getMainLooper().isCurrentThread());
             enumerated.countDown();
-            return Collections.emptyList();
+            return List.of(HEALTHY);
         }
     }
 }

@@ -144,6 +144,7 @@
     <string name="msg_speech_input_unresponsive">Spraakherkenning is niet gestart. Schakel de Google-app of Android spraakinvoer in.</string>
     <string name="msg_speech_permission_required">Microfoonmachtiging is nodig voor spraakinvoer.</string>
     <string name="msg_select_custom_profile">Selecteer een aangepast BRouter .brf-bestand</string>
+    <string name="msg_brouter_profile_not_ready">Het routeprofiel is niet beschikbaar. Wacht op de zoekresultaten of kies een beschikbaar profiel.</string>
     <string name="msg_invalid_custom_profile">Selecteer een geldig BRouter .brf-bestand</string>
     <string name="msg_profile_parameters_empty">Dit profiel biedt geen bewerkbare parameters.</string>
     <string name="msg_profile_parameters_not_localized">Parameters worden dynamisch uit het BRouter-profielbestand gehaald, dus hun namen, beschrijvingen en opties zijn niet vertaald.</string>

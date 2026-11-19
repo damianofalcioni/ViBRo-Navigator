@@ -40,7 +40,11 @@ final class SurroundingStreetChunkLoader implements SurroundingStreetOverlayRunt
             if (Thread.currentThread().isInterrupted()) {
                 break;
             }
-            result.put(key, loadChunk(key, visibility));
+            try {
+                result.put(key, loadChunk(key, visibility));
+            } catch (SurroundingStreetRepository.ReadUnavailable e) {
+                result.retry(key);
+            }
         }
         return result;
     }
@@ -60,7 +64,7 @@ final class SurroundingStreetChunkLoader implements SurroundingStreetOverlayRunt
                     MAX_STREET_SEGMENTS_PER_CHUNK,
                     visibility
             );
-        } catch (CancellationException e) {
+        } catch (CancellationException | SurroundingStreetRepository.ReadUnavailable e) {
             throw e;
         } catch (RuntimeException e) {
             AppLogger.w(TAG, "Failed to load surrounding street chunk", e);

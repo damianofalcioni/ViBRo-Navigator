@@ -144,6 +144,7 @@
     <string name="msg_speech_input_unresponsive">음성 인식이 시작되지 않았습니다. Google 앱 또는 Android 음성 입력을 활성화하세요.</string>
     <string name="msg_speech_permission_required">음성 입력을 위해 마이크 권한이 필요합니다.</string>
     <string name="msg_select_custom_profile">사용자 지정 BRouter .brf 파일 선택</string>
+    <string name="msg_brouter_profile_not_ready">경로 프로필을 사용할 수 없습니다. 검색이 끝날 때까지 기다리거나 사용 가능한 프로필을 선택하세요.</string>
     <string name="msg_invalid_custom_profile">유효한 BRouter .brf 파일 선택</string>
     <string name="msg_profile_parameters_empty">이 프로필은 편집 가능한 매개변수를 제공하지 않습니다.</string>
     <string name="msg_profile_parameters_not_localized">매개변수는 BRouter 프로필 파일에서 동적으로 추출되므로 이름, 설명 및 옵션은 번역되지 않습니다.</string>

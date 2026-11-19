@@ -24,7 +24,7 @@ final class AndroidBRouterFolderDiscovery {
     private static final ExecutorService WORKER = new ThreadPoolExecutor(
             0, 8, 30, TimeUnit.SECONDS, new SynchronousQueue<>());
     private static final ExecutorService PROFILE_WORKER = new ThreadPoolExecutor(
-            0, 2, 30, TimeUnit.SECONDS, new SynchronousQueue<>());
+            0, 4, 30, TimeUnit.SECONDS, new SynchronousQueue<>());
 
     private static final ExecutorService CHILD_WORKER = new ThreadPoolExecutor(
             0, 4, 30, TimeUnit.SECONDS, new SynchronousQueue<>());
@@ -49,7 +49,7 @@ final class AndroidBRouterFolderDiscovery {
         new Request<>(work, fallback, onResult).start(AndroidBRouterFolderDiscovery::executeProfileLookup);
     }
 
-    static void cancelTask(FutureTask<Void> task, CancellationSignal signal) {
+    static void cancelTask(FutureTask<?> task, CancellationSignal signal) {
         if (task.cancel(true)) {
             // Cancellation can call a remote provider. Keep it off the main thread.
             new Thread(signal::cancel, "BRouter query cancellation").start();

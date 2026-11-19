@@ -7,12 +7,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.compass.CompassStreetOverlay;
@@ -23,35 +19,32 @@ import vibro.navigator.nav.streets.SurroundingStreetRepository;
 public final class BRouterSegmentsRepository implements SurroundingStreetRepository {
     private static final String TAG = "BRouterSegments";
 
-    interface TileReader {
-        boolean read(Uri uri);
-    }
-
     @NonNull
     private final BRouterSegmentDependencies dependencies;
     @NonNull
     private final BRouterSegmentDirectories segmentDirectories;
     @NonNull
-    private final Map<String, Uri> segmentFileUris = new HashMap<>();
-    @NonNull
-    private final Set<String> missingSegmentFiles = new HashSet<>();
+    private final BRouterSegmentTileLookup tileLookup;
     @Nullable
     private List<Uri> detectedTrees;
     private List<Uri> grantedTrees = java.util.Collections.emptyList();
     @Nullable
     private List<String> discoveryDirectoryIds;
     private final BRouterDecodedStreetCache decodedStreetCache = new BRouterDecodedStreetCache();
+    private final BRouterStreetProviderRead providerRead = new BRouterStreetProviderRead();
     private final BRouterStreetFileLoader streetFileLoader;
     @Nullable
     private String sourceRevision;
 
     public BRouterSegmentsRepository(@NonNull BRouterSegmentDependencies dependencies) {
         this.dependencies = dependencies;
+        tileLookup = new BRouterSegmentTileLookup(dependencies.documentAccess, providerRead);
         segmentDirectories = new BRouterSegmentDirectories(
                 dependencies.documentAccess,
-                dependencies.storageVolumeAccess
+                dependencies.storageVolumeAccess,
+                providerRead
         );
-        streetFileLoader = new BRouterStreetFileLoader(this, dependencies, decodedStreetCache);
+        streetFileLoader = new BRouterStreetFileLoader(this, dependencies, decodedStreetCache, providerRead);
     }
 
     @Nullable
@@ -84,46 +77,31 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
             int maxSegments,
             @NonNull CompassStreetVisibility visibility
     ) {
+        providerRead.startLoad();
+        refreshSourceCaches(context);
         BRouterSegmentBounds bounds = BRouterSegmentBounds.around(latitude, longitude, radiusMeters);
         List<CompassStreetSegment> segments = new ArrayList<>();
-        Set<String> fileNames = BRouterSegmentTile.fileNamesForBounds(bounds);
+        var fileNames = BRouterSegmentTile.fileNamesForBounds(bounds);
         for (String fileName : fileNames) {
             if (segments.size() >= maxSegments) {
                 break;
             }
             streetFileLoader.read(context, fileName, bounds, maxSegments, visibility, segments);
         }
+        if (segments.isEmpty() && providerRead.failed()) {
+            throw new SurroundingStreetRepository.ReadUnavailable();
+        }
         return segments.isEmpty() ? CompassStreetOverlay.EMPTY : new CompassStreetOverlay(segments);
     }
 
-    boolean readGrantedTile(@NonNull Context context, @NonNull String fileName, TileReader reader) {
+    boolean readGrantedTile(@NonNull Context context, @NonNull String fileName, BRouterSegmentTileLookup.Reader reader) {
+        providerRead.startLoad();
         refreshSourceCaches(context);
-        if (missingSegmentFiles.contains(fileName)) {
-            return false;
-        }
-        Uri cached = segmentFileUris.get(fileName);
-        if (cached != null && reader.read(cached)) {
-            return true;
-        }
-        segmentFileUris.remove(fileName);
-        return readTrees(context, fileName, reader, cached, grantedTrees, true)
-                || readTrees(context, fileName, reader, cached, detectedTrees(context), grantedTrees.isEmpty());
+        return readTile(context, fileName, reader);
     }
 
-    private boolean readTrees(Context context, String fileName, TileReader reader, @Nullable Uri cached,
-                              List<Uri> trees, boolean preferFirst) {
-        boolean preferred = preferFirst;
-        for (Uri tree : trees) {
-            Uri document = dependencies.documentAccess.childDocumentUri(context, tree, fileName);
-            if (document != null && !document.equals(cached) && reader.read(document)) {
-                if (preferred) {
-                    segmentFileUris.put(fileName, document);
-                }
-                return true;
-            }
-            preferred = false;
-        }
-        return false;
+    boolean readTile(Context context, String fileName, BRouterSegmentTileLookup.Reader reader) {
+        return tileLookup.read(context, fileName, grantedTrees, () -> detectedTrees(context), reader);
     }
 
     private void refreshSourceCaches(@NonNull Context context) {
@@ -139,8 +117,7 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
         detectedTrees = null;
         discoveryDirectoryIds = directories;
         grantedTrees = grants;
-        segmentFileUris.clear();
-        missingSegmentFiles.clear();
+        tileLookup.clear();
         streetFileLoader.clearSources();
         decodedStreetCache.clear();
     }
@@ -148,8 +125,12 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
     @NonNull
     private List<Uri> detectedTrees(@NonNull Context context) {
         if (detectedTrees == null) {
-            detectedTrees = segmentDirectories.resolveSegmentsDiscoveryTreeUris(context, discoveryDirectoryIds);
-            detectedTrees.removeAll(grantedTrees);
+            List<Uri> detected = segmentDirectories.resolveSegmentsDiscoveryTreeUris(context, discoveryDirectoryIds);
+            detected.removeAll(grantedTrees);
+            if (!providerRead.failed()) {
+                detectedTrees = detected;
+            }
+            return detected;
         }
         return detectedTrees;
     }
@@ -163,7 +144,7 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
     }
 
     void recordMissingSegmentFile(@NonNull String fileName) {
-        missingSegmentFiles.add(fileName);
+        tileLookup.recordMissing(fileName);
         AppLogger.d(TAG, "BRouter segment file not found file=" + fileName);
     }
 }

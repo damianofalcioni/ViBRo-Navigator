@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import java.util.ArrayList;
+import androidx.core.util.Supplier;
 
 import vibro.navigator.R;
 import vibro.navigator.android.startup.AndroidFirstRunPermissions;
@@ -28,6 +29,7 @@ final class MainActivityStartupCoordinator {
     private boolean leftForInstall;
     private boolean ready;
     private boolean resumed;
+    private Supplier<Boolean> storagePickerPending = () -> false;
 
     MainActivityStartupCoordinator(MainActivity activity, MainActivityProfileCoordinator profiles) {
         this.activity = activity;
@@ -38,7 +40,8 @@ final class MainActivityStartupCoordinator {
     void start(Bundle state, Runnable onReady) {
         this.onReady = onReady;
         permissions = new AndroidFirstRunPermissions(activity, state, this::complete);
-        permissions.bindBRouterAction(activity.findViewById(R.id.brouterStorageAccessButton), profiles::refreshAfterAccessChange);
+        storagePickerPending = permissions.bindBRouterAction(activity.findViewById(R.id.brouterStorageAccessButton),
+                profiles::refreshAfterAccessChange, profiles::isCustomPickerRequested, profiles::onBRouterPromptClosed);
         if (state != null) {
             installDone = state.getBoolean(STATE_INSTALL_DONE);
             waitingForInstall = state.getBoolean(STATE_INSTALL_WAITING);
@@ -55,6 +58,10 @@ final class MainActivityStartupCoordinator {
             ready = true;
             onReady.run();
         }
+    }
+
+    boolean isBRouterPickerPending() {
+        return storagePickerPending.get();
     }
 
     private void firstRun() {

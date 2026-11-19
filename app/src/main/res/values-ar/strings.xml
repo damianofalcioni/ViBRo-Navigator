@@ -144,6 +144,7 @@
     <string name="msg_speech_input_unresponsive">لم يبدأ التعرف على الكلام. قم بتمكين تطبيق Google أو إدخال الصوت Android.</string>
     <string name="msg_speech_permission_required">يلزم إذن الميكروفون لإدخال الكلام.</string>
     <string name="msg_select_custom_profile">حدد ملف BRouter .brf مخصص</string>
+    <string name="msg_brouter_profile_not_ready">ملف تعريف التوجيه غير متاح. انتظر انتهاء البحث أو اختر ملفًا متاحًا.</string>
     <string name="msg_invalid_custom_profile">حدد ملف BRouter .brf صالح</string>
     <string name="msg_profile_parameters_empty">هذا الملف الشخصي لا يكشف عن معلمات قابلة للتحرير.</string>
     <string name="msg_profile_parameters_not_localized">يتم استخراج المعلمات ديناميكيًا من ملف ملف التعريف BRouter، لذا فإن أسمائها ووصفها وخياراتها غير مترجمة.</string>

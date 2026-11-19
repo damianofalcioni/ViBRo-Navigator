@@ -164,7 +164,7 @@ public final class AndroidDocumentAccess {
 
     @NonNull
     public static List<String> childDisplayNames(@NonNull Context context, @NonNull Uri treeUri) {
-        return AndroidDocumentTreeFileAccess.childDisplayNames(context, treeUri);
+        return AndroidDocumentTreeFileAccess.childDisplayNames(context, treeUri, null);
     }
 
     public static boolean canReadExternalDirectory(Context context, String documentId) {
@@ -177,7 +177,7 @@ public final class AndroidDocumentAccess {
             @NonNull Uri treeUri,
             @NonNull String displayName
     ) {
-        return AndroidDocumentTreeFileAccess.childDocumentUri(context, treeUri, displayName);
+        return AndroidDocumentTreeFileAccess.childDocumentUri(context, treeUri, displayName, null);
     }
 
     @Nullable

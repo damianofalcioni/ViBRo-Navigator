@@ -144,6 +144,7 @@
     <string name="msg_speech_input_unresponsive">Die Spracherkennung wurde nicht gestartet. Aktiviere die Google-App oder die Android-Spracheingabe.</string>
     <string name="msg_speech_permission_required">Für die Spracheingabe wird die Mikrofonberechtigung benötigt.</string>
     <string name="msg_select_custom_profile">Wähle eine eigene BRouter-.brf-Datei aus</string>
+    <string name="msg_brouter_profile_not_ready">Das Routingprofil ist nicht verfügbar. Warte auf das Suchergebnis oder wähle ein verfügbares Profil.</string>
     <string name="msg_invalid_custom_profile">Wähle eine gültige BRouter-.brf-Datei aus</string>
     <string name="msg_profile_parameters_empty">Dieses Profil bietet keine bearbeitbaren Parameter.</string>
     <string name="msg_profile_parameters_not_localized">Die Parameter werden dynamisch aus der BRouter-Profildatei ausgelesen, daher werden ihre Namen, Beschreibungen und Optionen nicht übersetzt.</string>

@@ -47,7 +47,17 @@ public final class AndroidBRouterSegmentsRepositoryFactory {
         public Uri childDocumentUri(@NonNull Context context, @NonNull Uri treeUri, @NonNull String displayName) {
             Uri directory = AndroidBRouterFolderAccess.dataDirectory(context, treeUri,
                     AndroidBRouterFolderAccess.Kind.SEGMENTS);
-            return directory == null ? null : AndroidDocumentAccess.childDocumentUri(context, directory, displayName);
+            Uri file = directory == null ? null : AndroidDocumentAccess.childDocumentUri(context, directory, displayName);
+            if (file == null) {
+                AndroidBRouterFolderAccess.recheckSharedFolder(context, treeUri);
+            }
+            return file;
+        }
+
+        @Override
+        public String documentIdentity(Uri uri) {
+            String id = AndroidDocumentAccess.documentId(uri);
+            return id == null ? uri.toString() : uri.getAuthority() + ":" + id;
         }
 
         @Nullable

@@ -25,7 +25,7 @@ public final class AndroidDocumentTreeDirectories {
                 DocumentsContract.Document.COLUMN_DISPLAY_NAME, DocumentsContract.Document.COLUMN_DOCUMENT_ID,
                 DocumentsContract.Document.COLUMN_MIME_TYPE
         }, null, null, null, signal)) {
-            return cursor == null ? Collections.emptyMap() : readDirectories(tree, cursor);
+            return isReadable(cursor) ? readDirectories(tree, cursor) : Collections.emptyMap();
         } catch (RuntimeException e) {
             AppLogger.d(TAG, "Unable to list BRouter directories: " + e.getClass().getSimpleName());
             return Collections.emptyMap();
@@ -55,10 +55,14 @@ public final class AndroidDocumentTreeDirectories {
         Uri children = DocumentsContract.buildChildDocumentsUriUsingTree(directory, id);
         try (Cursor cursor = context.getContentResolver().query(children,
                 new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID}, null, null, null, signal)) {
-            return cursor != null && cursor.getCount() >= 0;
+            return isReadable(cursor) && cursor.getCount() >= 0;
         } catch (RuntimeException e) {
             AppLogger.d(TAG, "Unable to read BRouter directory: " + e.getClass().getSimpleName());
             return false;
         }
+    }
+
+    private static boolean isReadable(Cursor cursor) {
+        return cursor != null && cursor.getExtras().getString(DocumentsContract.EXTRA_ERROR) == null;
     }
 }

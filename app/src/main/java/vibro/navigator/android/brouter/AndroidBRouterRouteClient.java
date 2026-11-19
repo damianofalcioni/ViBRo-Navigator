@@ -157,8 +157,11 @@ public final class AndroidBRouterRouteClient implements BRouterRouteClient {
     }
 
     @NonNull
-    private Bundle buildRouteParamsForRequest(@NonNull BRouterRouteRequest request) throws BRouterRouteException {
-        return AndroidBRouterRouteParams.build(request, readRemoteProfile(request));
+    private Bundle buildRouteParamsForRequest(@NonNull BRouterRouteRequest request)
+            throws BRouterRouteException, InterruptedException {
+        String profile = readRemoteProfile(request);
+        String parameters = AndroidBRouterRouteProfileParameters.resolve(context, profilesRepository, request, profile);
+        return AndroidBRouterRouteParams.build(request, profile, parameters);
     }
 
     @Nullable

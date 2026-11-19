@@ -29,8 +29,9 @@ final class AboutStreetPicker {
     }
 
     void restore(@Nullable Bundle state) {
-        enableRequested = state != null && state.getBoolean(STATE_ENABLE_REQUESTED, true);
-        acceptCompletion(picker.restore(state));
+        var completion = picker.restore(state);
+        enableRequested = state != null && state.getBoolean(STATE_ENABLE_REQUESTED, picker.isPending() || completion != null);
+        acceptCompletion(completion);
         picker.watch(this::acceptCompletion);
     }
 
@@ -45,6 +46,12 @@ final class AboutStreetPicker {
     void bind(Consumer<Boolean> onResult) {
         this.onResult = onResult;
         deliver();
+    }
+
+    void resumeRequest(String logTag, Runnable onCancel) {
+        if (enableRequested && !picker.isPending()) {
+            request(logTag, onCancel);
+        }
     }
 
     private void deliver() {
@@ -63,7 +70,7 @@ final class AboutStreetPicker {
                     enableRequested = false;
                     onCancel.run();
                 }
-            });
+            }, () -> acceptCompletion(AndroidBRouterPickerRequest.Completion.ADVANCE));
         }
     }
 
@@ -81,7 +88,7 @@ final class AboutStreetPicker {
     }
 
     boolean displayedValue(boolean storedEnabled) {
-        return storedEnabled || (enableRequested && picker.isPending());
+        return storedEnabled || enableRequested;
     }
 
     boolean handleResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -105,10 +112,9 @@ final class AboutStreetPicker {
 
     private void onFolderSaved(boolean saved) {
         picker.complete(saved ? AndroidBRouterPickerRequest.Completion.ADVANCE : AndroidBRouterPickerRequest.Completion.RETRY);
-        if (!activity.isDestroyed() && enableRequested) {
-            enableRequested = false;
-            restoredResult = saved;
-            deliver();
+        if (!activity.isDestroyed()) {
+            acceptCompletion(saved ? AndroidBRouterPickerRequest.Completion.ADVANCE
+                    : AndroidBRouterPickerRequest.Completion.RETRY);
         }
     }
 

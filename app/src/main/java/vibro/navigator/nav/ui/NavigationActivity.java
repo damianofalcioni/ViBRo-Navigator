@@ -149,6 +149,7 @@ public class NavigationActivity extends AndroidLocalizedActivity {
         commands.restoreState(savedInstanceState);
         render(NavStateComposer.waiting(this));
         configureControls();
+        renderer.customButtonUi().restoreState(savedInstanceState);
         gestureHints = new NavigationGestureHints(
                 this, savedInstanceState, uiScheduler, AndroidElapsedRealtimeClock.INSTANCE);
 
@@ -240,6 +241,7 @@ public class NavigationActivity extends AndroidLocalizedActivity {
 
     @Override
     protected void onDestroy() {
+        renderer.customButtonUi().dispose();
         startupSegmentsTreeAccess.clear();
         gestureHints.dismiss();
         backHandler.unregisterPredictiveBackCallbackIfNeeded();
@@ -259,6 +261,7 @@ public class NavigationActivity extends AndroidLocalizedActivity {
         startupSegmentsTreeAccess.saveState(outState);
         gestureHints.saveState(outState);
         commands.saveState(outState);
+        renderer.customButtonUi().saveState(outState);
         super.onSaveInstanceState(outState);
     }
 

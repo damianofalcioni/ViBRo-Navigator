@@ -144,6 +144,7 @@
     <string name="msg_speech_input_unresponsive">El reconocimiento de voz no se inició. Habilite la aplicación Google o la entrada de voz Android.</string>
     <string name="msg_speech_permission_required">Se necesita permiso de micrófono para la entrada de voz.</string>
     <string name="msg_select_custom_profile">Seleccione un archivo BRouter .brf personalizado</string>
+    <string name="msg_brouter_profile_not_ready">El perfil de ruta no está disponible. Espera a que termine la búsqueda o elige un perfil disponible.</string>
     <string name="msg_invalid_custom_profile">Seleccione un archivo BRouter .brf válido</string>
     <string name="msg_profile_parameters_empty">Este perfil no expone parámetros editables.</string>
     <string name="msg_profile_parameters_not_localized">Los parámetros se extraen dinámicamente del archivo de perfil BRouter, por lo que sus nombres, descripciones y opciones no están traducidos.</string>

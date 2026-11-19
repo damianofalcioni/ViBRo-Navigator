@@ -144,6 +144,7 @@
     <string name="msg_speech_input_unresponsive">语音识别未启动。请启用 Google 应用或 Android 语音输入。</string>
     <string name="msg_speech_permission_required">语音输入需要麦克风权限。</string>
     <string name="msg_select_custom_profile">选择自定义 BRouter .brf 文件</string>
+    <string name="msg_brouter_profile_not_ready">路线规划配置不可用。请等待搜索完成，或选择一个可用的配置。</string>
     <string name="msg_invalid_custom_profile">选择有效的 BRouter .brf 文件</string>
     <string name="msg_profile_parameters_empty">此配置文件未公开可编辑参数。</string>
     <string name="msg_profile_parameters_not_localized">参数是从 BRouter 配置文件动态提取的，因此其名称、描述和选项不进行翻译。</string>

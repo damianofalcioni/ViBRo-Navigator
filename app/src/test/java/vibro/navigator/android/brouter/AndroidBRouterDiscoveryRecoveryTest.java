@@ -139,7 +139,6 @@ public class AndroidBRouterDiscoveryRecoveryTest {
             Uri uri = android.provider.DocumentsContract.buildTreeDocumentUri("test.child.documents", "root");
             var started = new CountDownLatch(1);
             var release = new CountDownLatch(1);
-            var checkedSegments = new CountDownLatch(1);
             var provider = new AndroidBRouterParentGrantTest.ParentProvider() {
                 @Override
                 public android.database.Cursor query(Uri document, String[] projection, String selection,
@@ -148,26 +147,33 @@ public class AndroidBRouterDiscoveryRecoveryTest {
                     if ("profile-dir".equals(id)) {
                         waitForRelease(started, release);
                     }
-                    if ("segment-dir".equals(id)) {
-                        checkedSegments.countDown();
-                    }
                     return super.query(document, projection, selection, args, sort);
                 }
             };
             org.robolectric.shadows.ShadowContentResolver.registerProviderInternal(uri.getAuthority(), provider);
-            var accepted = new AtomicReference<Boolean>();
+            var verified = new AtomicReference<>(AndroidBRouterDirectoryCheck.Directories.empty());
+            var completed = new AtomicReference<AndroidBRouterDirectoryCheck.Directories>();
             try {
-                AndroidBRouterFolderAccess.saveSelection(activity,
-                        new Intent().setData(uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION), accepted::set);
+                AndroidBRouterFolderDiscovery.findWithFallback(
+                        signal -> AndroidBRouterDirectoryCheck.verify(activity, uri, signal, verified),
+                        verified::get, completed::set);
                 assertTrue(started.await(5, TimeUnit.SECONDS));
-                assertTrue(checkedSegments.await(5, TimeUnit.SECONDS));
+                awaitVerifiedSegments(verified);
                 shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1100));
-                assertEquals(Boolean.TRUE, accepted.get());
-                assertTrue(AndroidBRouterSegmentsRepositoryFactory.create().hasPersistedSegmentsTreeAccess(activity));
+                assertEquals(verified.get().segments(), completed.get().segments());
             } finally {
                 release.countDown();
             }
         }
+    }
+
+    private static void awaitVerifiedSegments(AtomicReference<AndroidBRouterDirectoryCheck.Directories> verified)
+            throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (verified.get().segments().uri() == null && System.nanoTime() < deadline) {
+            Thread.sleep(5);
+        }
+        assertTrue(verified.get().segments().uri() != null);
     }
 
     @Test

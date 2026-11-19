@@ -145,6 +145,7 @@
     <string name="msg_speech_input_unresponsive">Il riconoscimento vocale non si è avviato. Attiva l’app Google o l’input vocale Android.</string>
     <string name="msg_speech_permission_required">L’autorizzazione per il microfono è necessaria per l’input vocale.</string>
     <string name="msg_select_custom_profile">Seleziona un file BRouter .brf personalizzato</string>
+    <string name="msg_brouter_profile_not_ready">Il profilo di itinerario non è disponibile. Attendi la fine della ricerca o scegli un profilo disponibile.</string>
     <string name="msg_invalid_custom_profile">Seleziona un file BRouter .brf valido</string>
     <string name="msg_profile_parameters_empty">Questo profilo non espone parametri modificabili.</string>
     <string name="msg_profile_parameters_not_localized">I parametri vengono estratti dinamicamente dal file del profilo BRouter, quindi i loro nomi, descrizioni e opzioni non sono tradotti.</string>

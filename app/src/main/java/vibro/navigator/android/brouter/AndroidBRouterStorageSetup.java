@@ -1,5 +1,7 @@
 package vibro.navigator.android.brouter;
 
+import androidx.core.util.Supplier;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -10,7 +12,6 @@ import android.view.ViewConfiguration;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 import vibro.navigator.android.brouter.AndroidBRouterPickerRequest.Completion;
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
@@ -30,6 +31,8 @@ public final class AndroidBRouterStorageSetup {
     private Runnable firstRunOffer;
     private boolean resumed;
     private Runnable stopObservingSources = () -> { };
+    private Supplier<Boolean> customPickerPending = () -> false;
+    private Runnable onFolderPromptClosed = () -> { };
 
     public AndroidBRouterStorageSetup(Activity activity, @Nullable Bundle state) {
         this.activity = activity;
@@ -38,7 +41,7 @@ public final class AndroidBRouterStorageSetup {
         firstRunPicker = new AndroidBRouterPickerRequest(activity, STATE_FIRST_RUN);
         firstRunCompletion = firstRunPicker.restore(state);
         if (firstRunCompletion != null) {
-            foreground.offers().finish(firstRunCompletion);
+            finishFirstRunOffer(firstRunCompletion);
         }
     }
 
@@ -68,7 +71,7 @@ public final class AndroidBRouterStorageSetup {
 
     private void discoverFirstRun(Runnable onCancel) {
         if (canShowDialog()) {
-            requests.findLocation(Collections.emptySet(), AndroidBRouterPickerLocation.browse(),
+            requests.findLocation(foreground.offers().copy(), AndroidBRouterPickerLocation.browse(),
                     location -> {
                         firstRunOffer = () -> showFirstRunFolder(location, onCancel);
                         showFirstRunOffer();
@@ -92,8 +95,20 @@ public final class AndroidBRouterStorageSetup {
     }
 
     public void bindManualAction(View action, Runnable onPickerFinished) {
-        foreground.bindAction(action, onPickerFinished);
+        foreground.bindAction(action, () -> {
+            onPickerFinished.run();
+            onFolderPromptClosed.run();
+        });
         stopObservingSources = BRouterFolderGrant.observe(activity, foreground::sourcesChanged);
+    }
+
+    public void coordinatePicker(Supplier<Boolean> customPickerPending, Runnable onFolderPromptClosed) {
+        this.customPickerPending = customPickerPending;
+        this.onFolderPromptClosed = onFolderPromptClosed;
+    }
+
+    public boolean isPickerPending() {
+        return firstRunPicker.isPending() || foreground.hasActivePicker();
     }
 
     public void setForegroundChecksEnabled(boolean enabled) {
@@ -107,6 +122,7 @@ public final class AndroidBRouterStorageSetup {
     void showFolder(AndroidBRouterPickerLocation location, Runnable beforeLaunch, Runnable onCancel, Runnable onFailure) {
         folderDialog = AndroidBRouterFolderPrompt.show(activity, location.initialUri, REQUEST_FOLDER, TAG,
                 beforeLaunch, onCancel, onFailure);
+        refreshAfterDismiss(() -> { });
     }
 
     private void showFirstRunFolder(AndroidBRouterPickerLocation location, Runnable onCancel) {
@@ -142,16 +158,22 @@ public final class AndroidBRouterStorageSetup {
     }
 
     private void onFirstRunResult(Completion completion, Runnable onAdvance, Runnable onRetry) {
-        foreground.offers().finish(completion);
+        finishFirstRunOffer(completion);
         if (completion == Completion.RETRY) {
             onRetry.run();
         } else {
             onAdvance.run();
         }
+        onFolderPromptClosed.run();
+    }
+
+    private void finishFirstRunOffer(Completion completion) {
+        var offers = foreground.offers();
+        offers.finish(completion == Completion.RETRY ? Completion.CANCELED : completion, false);
     }
 
     boolean canShowDialog() {
-        return !activity.isFinishing() && !activity.isDestroyed();
+        return !activity.isFinishing() && !activity.isDestroyed() && !customPickerPending.get();
     }
 
     public void saveState(Bundle state) {
@@ -173,6 +195,9 @@ public final class AndroidBRouterStorageSetup {
     }
 
     void refreshAfterDismiss(Runnable refresh) {
-        folderDialog.setOnDismissListener(dialog -> refresh.run());
+        folderDialog.setOnDismissListener(dialog -> {
+            onFolderPromptClosed.run();
+            refresh.run();
+        });
     }
 }

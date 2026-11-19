@@ -21,6 +21,7 @@ import vibro.navigator.brouter.BRouterProfileTestDependencies;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
@@ -28,6 +29,7 @@ import static org.robolectric.Shadows.shadowOf;
 @Config(shadows = ProfileSpinnerAsyncTest.QueuedProfiles.class)
 public class ProfileSpinnerAsyncTest {
     private static final String EXTERNAL = "external";
+    private static final String BUNDLED = "trekking";
 
     @After
     public void resetLookups() {
@@ -45,10 +47,30 @@ public class ProfileSpinnerAsyncTest {
             spinner.refresh();
 
             assertEquals(EXTERNAL, repository.getSelectedProfileKey(host));
+            assertNull(spinner.resolveSelectedProfileSelection());
             assertEquals(1, QueuedProfiles.tasks.size());
             finishLookup();
             assertEquals(EXTERNAL, spinner.resolveSelectedProfileSelection().profileName);
             assertEquals(0, QueuedProfiles.tasks.size());
+            spinner.dispose();
+        }
+    }
+
+    @Test
+    public void explicitlyActivatingProvisionalBundledRowCommitsIt() {
+        try (var activity = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity host = activity.get();
+            var repository = new Profiles();
+            repository.saveSelectedProfileKey(host, EXTERNAL);
+            var widget = new RepeatSelectSpinner(host);
+            var spinner = new ProfileSpinnerController(host, widget, repository, () -> { });
+            spinner.refresh();
+
+            widget.setSelection(0);
+            finishLookup();
+
+            assertEquals(BUNDLED, repository.getSelectedProfileKey(host));
+            assertEquals(BUNDLED, spinner.resolveSelectedProfileSelection().profileName);
             spinner.dispose();
         }
     }
@@ -130,12 +152,13 @@ public class ProfileSpinnerAsyncTest {
 
         @Override
         public List<String> listBundledProfiles(Context context) {
-            return List.of("trekking");
+            return List.of(BUNDLED);
         }
 
         @Override
-        public List<String> listAvailableProfiles(Context context, List<String> bundled) {
-            return List.of(EXTERNAL, "trekking");
+        public List<String> listAvailableProfiles(Context context, List<String> bundled,
+                                                  androidx.core.util.Consumer<List<String>> progress) {
+            return List.of(EXTERNAL, BUNDLED);
         }
     }
 }

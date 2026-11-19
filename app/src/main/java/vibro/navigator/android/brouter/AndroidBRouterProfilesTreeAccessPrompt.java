@@ -1,18 +1,22 @@
 package vibro.navigator.android.brouter;
 
 import android.app.Activity;
+import android.content.Context;
 import android.net.Uri;
 import android.os.CancellationSignal;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicReference;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.util.Consumer;
 
 import vibro.navigator.android.storage.AndroidDocumentAccess;
+import vibro.navigator.android.storage.AndroidStorageVolumes;
+import vibro.navigator.brouter.BRouterDirectoryCandidates;
 import vibro.navigator.brouter.BRouterFolderGrant;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 
@@ -23,7 +27,23 @@ public final class AndroidBRouterProfilesTreeAccessPrompt {
     public static void findCustomProfileLocation(Activity activity, BRouterProfilesRepository repository,
                                                  Consumer<Uri> onResult) {
         var app = activity.getApplicationContext();
-        AndroidBRouterFolderDiscovery.find(signal -> repository.getCustomProfilePickerInitialUri(app), null, onResult);
+        AtomicReference<Uri> local = new AtomicReference<>();
+        AndroidBRouterFolderDiscovery.findWithFallback(signal -> {
+            local.set(findLocalProfiles(app));
+            return AndroidBRouterProfilesRepositoryFactory.withCancellation(signal,
+                    () -> repository.getCustomProfilePickerInitialUri(app));
+        }, local::get, onResult);
+    }
+
+    @Nullable
+    private static Uri findLocalProfiles(Context context) {
+        for (String id : BRouterDirectoryCandidates.buildLikelyDocumentIdCandidates(
+                AndroidStorageVolumes.secondaryStorageRootIds(context), AndroidBRouterFolderAccess.Kind.PROFILES.folder)) {
+            if (AndroidDocumentAccess.isDirectExternalDirectory(context, id)) {
+                return AndroidDocumentAccess.buildExternalStorageDocumentUri(id);
+            }
+        }
+        return null;
     }
 
     public static void show(
@@ -81,7 +101,7 @@ public final class AndroidBRouterProfilesTreeAccessPrompt {
     }
 
     @Nullable
-    private static Uri parentDocument(Uri tree) {
+    static Uri parentDocument(Uri tree) {
         if (!AndroidDocumentAccess.isExternalStorageDocument(tree)) {
             return AndroidDocumentAccess.buildTreeDocumentUri(tree);
         }

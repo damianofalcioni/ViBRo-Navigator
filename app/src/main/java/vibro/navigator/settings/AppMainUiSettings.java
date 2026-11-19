@@ -63,6 +63,12 @@ public final class AppMainUiSettings {
     }
 
     @NonNull
+    public static NavigationRoutingMode getRoutingMode(Context context, NavigationRoutingMode fallback) {
+        String saved = prefs(context).getString(KEY_MAIN_UI_ROUTING_MODE, null);
+        return saved == null ? fallback : NavigationRoutingMode.fromSerializedName(saved);
+    }
+
+    @NonNull
     static NavigationRoutingMode getRoutingMode(@NonNull SharedPreferences preferences) {
         return NavigationRoutingMode.fromSerializedName(preferences.getString(KEY_MAIN_UI_ROUTING_MODE, null));
     }

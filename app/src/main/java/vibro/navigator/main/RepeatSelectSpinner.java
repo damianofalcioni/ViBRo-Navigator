@@ -2,14 +2,15 @@ package vibro.navigator.main;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import androidx.core.util.Consumer;
+
 public final class RepeatSelectSpinner extends Spinner {
+    private Consumer<Integer> onDropdownSelection;
 
     public RepeatSelectSpinner(@NonNull Context context) {
         super(context);
@@ -38,28 +39,19 @@ public final class RepeatSelectSpinner extends Spinner {
 
     @Override
     public void setSelection(int position) {
-        boolean sameSelection = position == getSelectedItemPosition();
+        // Spinner's dropdown calls this overload for item activation, even for the current row.
         super.setSelection(position);
-        notifyIfSameSelection(position, sameSelection);
+        if (onDropdownSelection != null) {
+            onDropdownSelection.accept(position);
+        }
     }
 
-    @Override
-    public void setSelection(int position, boolean animate) {
-        boolean sameSelection = position == getSelectedItemPosition();
-        super.setSelection(position, animate);
-        notifyIfSameSelection(position, sameSelection);
+    void onDropdownSelection(Consumer<Integer> listener) {
+        onDropdownSelection = listener;
     }
 
-    private void notifyIfSameSelection(int position, boolean sameSelection) {
-        if (!sameSelection) {
-            return;
-        }
-        AdapterView.OnItemSelectedListener listener = getOnItemSelectedListener();
-        if (listener == null) {
-            return;
-        }
-        View selectedView = getSelectedView();
-        listener.onItemSelected(this, selectedView, position, getSelectedItemId());
+    void renderSelection(int position) {
+        super.setSelection(position);
     }
 }
 

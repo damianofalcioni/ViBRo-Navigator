@@ -71,12 +71,13 @@ public final class BRouterFolderGrant {
     }
 
     public static void save(Context context, Uri parent, @Nullable Uri profiles, @Nullable Uri segments) {
-        save(context, parent, new Child(profiles, false, true), new Child(segments, false, true), true);
+        save(context, parent, new Child(profiles, false, true), new Child(segments, false, true), true, false);
     }
 
     public record Child(@Nullable Uri uri, boolean direct, boolean prefer) { }
 
-    public static void save(Context context, Uri parent, Child profiles, Child segments, boolean latest) {
+    public static void save(Context context, Uri parent, Child profiles, Child segments, boolean latest,
+                             boolean streetAccessConfirmed) {
         List<Uri> parents = parents(context);
         if (!parents.contains(parent)) {
             parents.add(0, parent);
@@ -89,7 +90,7 @@ public final class BRouterFolderGrant {
         putChild(context, edit, parent, profiles, true);
         boolean segmentChanged = putChild(context, edit, parent, segments, false);
         edit.putString(REVISION, UUID.randomUUID().toString());
-        if (segmentChanged) {
+        if (segmentChanged || streetAccessConfirmed) {
             BRouterSegmentSourceSettings.applySourceChange(edit);
         } else {
             edit.apply();
@@ -106,7 +107,8 @@ public final class BRouterFolderGrant {
             return false;
         }
         String key = childKey(parent, profiles);
-        boolean changed = !Objects.equals(child.uri(), directory(context, parent, profiles));
+        boolean changed = !Objects.equals(child.uri(), directory(context, parent, profiles))
+                || child.direct() != isDirect(context, parent, profiles);
         edit.putString(key, child.uri().toString()).putBoolean(key + DIRECT, child.direct());
         if (child.prefer()) {
             changed |= !parent.equals(parentFor(context, profiles));

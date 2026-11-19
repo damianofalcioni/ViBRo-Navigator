@@ -5,8 +5,10 @@ import android.content.Context;
 import androidx.core.util.Consumer;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import vibro.navigator.brouter.BRouterProfilesRepository;
+import vibro.navigator.brouter.BRouterProfileParameter;
 
 /** Reads APK profiles independently of potentially stalled external providers. */
 public final class AndroidBRouterProfileLoader {
@@ -46,12 +48,13 @@ public final class AndroidBRouterProfileLoader {
             return;
         }
         Result available = new Result(bundled, bundled, false);
-        if (!bundled.isEmpty()) {
-            onResult.accept(available);
-        }
+        onResult.accept(available);
+        AtomicReference<Result> partial = new AtomicReference<>(available);
         AndroidBRouterFolderDiscovery.listProfiles(
-                signal -> new Result(repository.listAvailableProfiles(app, bundled), bundled, true),
-                () -> available, this::apply);
+                signal -> AndroidBRouterProfilesRepositoryFactory.withCancellation(signal, () ->
+                        new Result(repository.listAvailableProfiles(app, bundled,
+                                profiles -> partial.set(new Result(profiles, bundled, false))), bundled, true)),
+                partial::get, this::apply);
     }
 
     private void apply(Result result) {
@@ -69,5 +72,12 @@ public final class AndroidBRouterProfileLoader {
 
     public void dispose() {
         disposed = true;
+    }
+
+    public static void loadParameters(Context context, BRouterProfilesRepository repository, String name,
+                                      boolean custom, Consumer<List<BRouterProfileParameter>> result) {
+        Context app = context.getApplicationContext();
+        AndroidBRouterFolderDiscovery.find(signal -> AndroidBRouterProfilesRepositoryFactory.withCancellation(
+                signal, () -> repository.getProfileParameters(app, name, custom)), null, result);
     }
 }

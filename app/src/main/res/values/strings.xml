@@ -160,6 +160,7 @@
     <string name="msg_speech_input_unresponsive">Speech recognition did not start. Enable the Google app or Android voice input.</string>
     <string name="msg_speech_permission_required">Microphone permission is needed for speech input.</string>
     <string name="msg_select_custom_profile">Select a custom BRouter .brf file</string>
+    <string name="msg_brouter_profile_not_ready">Routing profile unavailable. Wait for discovery or choose an available profile.</string>
     <string name="msg_invalid_custom_profile">Select a valid BRouter .brf file</string>
     <string name="msg_profile_parameters_empty">This profile does not expose editable parameters.</string>
     <string name="msg_profile_parameters_not_localized">Parameters are dynamically extracted from the BRouter profile file, so their names, descriptions, and options are not translated.</string>

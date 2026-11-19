@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
+import androidx.core.util.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
@@ -40,10 +41,14 @@ final class BRouterProfileLister {
 
     @NonNull
     List<String> listProfiles(@NonNull Context context, @NonNull List<Uri> discoveryTreeUris,
-                              @NonNull List<String> bundled) {
+                              @NonNull List<String> bundled, Consumer<List<String>> progress) {
         List<String> externalProfiles = new ArrayList<>();
         for (Uri treeUri : discoveryTreeUris) {
+            if (Thread.currentThread().isInterrupted()) {
+                break;
+            }
             externalProfiles.addAll(listProfilesFromTree(context, treeUri));
+            progress.accept(mergeProfileNames(externalProfiles, bundled));
         }
         List<String> out = mergeProfileNames(externalProfiles, bundled);
         AppLogger.i(TAG, "Listed profiles total=" + out.size()

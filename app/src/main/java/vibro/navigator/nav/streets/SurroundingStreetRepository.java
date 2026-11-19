@@ -8,6 +8,8 @@ import vibro.navigator.nav.compass.CompassStreetOverlay;
 import vibro.navigator.nav.compass.CompassStreetVisibility;
 
 public interface SurroundingStreetRepository {
+    final class ReadUnavailable extends RuntimeException { }
+
     @NonNull
     CompassStreetOverlay loadSurroundingStreets(
             @NonNull Context context,

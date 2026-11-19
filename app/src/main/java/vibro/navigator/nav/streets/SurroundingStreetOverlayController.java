@@ -16,6 +16,7 @@ import vibro.navigator.nav.time.ElapsedRealtimeClock;
 public final class SurroundingStreetOverlayController {
     private static final int MAX_DISPLAY_STREET_SEGMENTS = 2_000;
     private static final int MAX_LOAD_CHUNKS_PER_REQUEST = 16;
+    private static final long FAILED_READ_RETRY_MS = 5_000L;
 
     @NonNull
     private final SurroundingStreetOverlayRuntime runtime;
@@ -115,6 +116,7 @@ public final class SurroundingStreetOverlayController {
                 lastSelectionCompassState,
                 compassState
         )) {
+            overlayCache.retryFailedReads(elapsedRealtimeClock.elapsedRealtimeMs(), this::requestOverlayIfNeeded);
             return;
         }
         viewportActive = true;
@@ -169,6 +171,7 @@ public final class SurroundingStreetOverlayController {
         if (inFlight || !isReadyForLoading()) {
             return;
         }
+        overlayCache.expireReadFailures(elapsedRealtimeClock.elapsedRealtimeMs());
         List<SurroundingStreetChunkKey> urgentMissing =
                 overlayCache.missing(activeSelection.displayKeys, MAX_LOAD_CHUNKS_PER_REQUEST);
         if (!urgentMissing.isEmpty()) {
@@ -198,9 +201,7 @@ public final class SurroundingStreetOverlayController {
     }
 
     private boolean isReadyForLoading() {
-        return runtime.isSurroundingStreetsEnabled()
-                && lastAcceptedLocation != null
-                && !activeSelection.isEmpty();
+        return runtime.isSurroundingStreetsEnabled() && lastAcceptedLocation != null && !activeSelection.isEmpty();
     }
 
     private void requestChunks(
@@ -242,7 +243,7 @@ public final class SurroundingStreetOverlayController {
             lastRefreshLocation = requestLocation;
             lastRefreshElapsedMs = requestElapsedMs;
         }
-        loaded.putInto(overlayCache);
+        loaded.putInto(overlayCache, elapsedRealtimeClock.elapsedRealtimeMs() + FAILED_READ_RETRY_MS);
         rebuildSelection();
         stateEmitter.run();
         requestOverlayIfNeeded();

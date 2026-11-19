@@ -7,6 +7,8 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 public final class BRouterSegmentSourceSettings {
@@ -26,6 +28,26 @@ public final class BRouterSegmentSourceSettings {
     @Nullable
     static String getRevision(Context context) {
         return prefs(context).getString(REVISION, null);
+    }
+
+    public static Set<Uri> knownStreetTrees(Context context) {
+        Set<Uri> trees = new HashSet<>();
+        Uri legacy = getTreeUri(context);
+        if (legacy != null) {
+            trees.add(legacy);
+        }
+        for (Uri parent : BRouterFolderGrant.parents(context)) {
+            if (BRouterFolderGrant.directory(context, parent, false) != null) {
+                trees.add(parent);
+            }
+        }
+        return trees;
+    }
+
+    public static boolean isLocalFolderPreference(String preferenceFile, String key) {
+        return PREFS.equals(preferenceFile) && (TREE_URI.equals(key) || REVISION.equals(key)
+                || BRouterProfilesRepository.KEY_PROFILES_TREE_URI.equals(key)
+                || key.startsWith("brouter_")); // Shared parent and child grant records use this prefix.
     }
 
     static void save(Context context, Uri uri) {
