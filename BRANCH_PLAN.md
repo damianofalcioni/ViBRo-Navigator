@@ -1,7 +1,7 @@
 # BRouter branch regression plan
 
 Review baseline is `codex/brouter-folder-picker` at `7db525c2` against local `main` at `1a502328`.
-The branch review recorded **53 findings** with **13 P2** and **40 P3** reports. The IDs preserve report order. RG-14 and RG-48 describe the same profile-settings freeze with different setups. RG-15 and RG-38 exercise the same fallback loop at different positions. Keep both reproduction cases for each shared fix.
+The branch review recorded **54 findings** with **13 P2** and **41 P3** reports. The IDs preserve report order. RG-14 and RG-48 describe the same profile-settings freeze with different setups. RG-15 and RG-38 exercise the same fallback loop at different positions. Keep both reproduction cases for each shared fix.
 
 Status is open. The initial review passed the full F-Droid and Google Play debug unit-test suites, debug lint for both flavors, and the PMD complexity check. Focused tests reproduced the reported behavior. Physical-device picker coverage remained pending at the review baseline.
 
@@ -138,6 +138,8 @@ Keep the preferred and fallback reads bounded. Invalidate cached results on effe
   Switch sources and fail the initial tile read, then recover while the viewport stays in the same area. Retry with a bounded policy and repopulate the overlay without another source change. [Source reload](app/src/main/java/vibro/navigator/nav/streets/SurroundingStreetOverlayController.java#L130) · [Chunk cache](app/src/main/java/vibro/navigator/nav/streets/SurroundingStreetOverlayCache.java#L57)
 - [ ] **RG-53 · P3 · Keep healthy street sources reachable after successive storage changes**
   Stall three obsolete overlay loads that ignore interruption, then switch to a healthy source. The controller test confirmed that the healthy load stayed queued and the overlay stayed blank until a retired read finished. Coalesce related storage notifications and keep the newest usable source eligible for work within a bounded read budget. [Overlay worker limit](app/src/main/java/vibro/navigator/nav/streets/SurroundingStreetLoadExecutor.java#L45) · [Storage notifications](app/src/main/java/vibro/navigator/android/brouter/AndroidBRouterVolumeChanges.java#L16)
+- [ ] **RG-54 · P3 · Reject truncated preferred tiles so readable fallbacks are tried**
+  Keep a readable legacy copy, then select a preferred folder whose tile index points beyond the end of a truncated file. For a degree marked empty, the existing reader returns successfully, so the branch’s multi-source loader skips the fallback and draws no streets. A Robolectric repository test reproduced this and confirmed that an explicit open failure reached the fallback. Validate offsets before reporting an empty success and keep support for valid legacy tiles without a footer. [Default footer handling](app/src/main/java/vibro/navigator/brouter/BRouterRd5IndexReader.java#L100) · [Fallback loop](app/src/main/java/vibro/navigator/brouter/BRouterSegmentsRepository.java#L113)
 
 ## Upgrade and backup compatibility
 
