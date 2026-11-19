@@ -1,7 +1,7 @@
 # BRouter branch regression plan
 
 Review baseline is `codex/brouter-folder-picker` at `7db525c2` against local `main` at `1a502328`.
-The branch review recorded **50 findings** with **13 P2** and **37 P3** reports. The IDs preserve report order. RG-14 and RG-48 describe the same profile-settings freeze with different setups. RG-15 and RG-38 exercise the same fallback loop at different positions. Keep both reproduction cases for each shared fix.
+The branch review recorded **51 findings** with **13 P2** and **38 P3** reports. The IDs preserve report order. RG-14 and RG-48 describe the same profile-settings freeze with different setups. RG-15 and RG-38 exercise the same fallback loop at different positions. Keep both reproduction cases for each shared fix.
 
 Status is open. The initial review passed the full F-Droid and Google Play debug unit-test suites, debug lint for both flavors, and the PMD complexity check. Focused tests reproduced the reported behavior. Physical-device picker coverage remained pending at the review baseline.
 
@@ -104,6 +104,8 @@ Recheck which data is missing when showing or dismissing a prompt. Preserve the 
   Revoke the newest grant while another usable parent remains outside the standard paths. Start manual browsing at that older parent. [Saved folder lookup](app/src/main/java/vibro/navigator/android/brouter/AndroidBRouterProfilesTreeAccessPrompt.java#L74)
 - [ ] **RG-50 · P3 · Retain the dismissal when a different folder is selected**
   Dismiss a street-storage offer, then manually grant a different profiles-only folder. Keep the original dismissal and avoid immediately repeating the unresolved street prompt. [Picker result tracking](app/src/main/java/vibro/navigator/android/brouter/AndroidBRouterForegroundChecks.java#L132) · [Dismissal history](app/src/main/java/vibro/navigator/android/brouter/AndroidBRouterFolderOffers.java#L34)
+- [ ] **RG-51 · P3 · Apply the new trip’s folder dismissals when reusing navigation**
+  Deliver a new trip request that skips the folder being checked or offered for the previous trip. Use the new skip list to discard an outdated discovery result or dismiss an outdated prompt, then continue startup with Surrounding streets still enabled. Two Robolectric probes reproduced the delayed lookup and the already visible prompt. Canceling the old prompt disabled the saved setting. [New navigation intent](app/src/main/java/vibro/navigator/nav/ui/NavigationActivity.java#L183) · [Startup state and skip list](app/src/main/java/vibro/navigator/nav/ui/NavigationStartupSegmentsTreeAccess.java#L103)
 
 ## Profile parameter settings
 
