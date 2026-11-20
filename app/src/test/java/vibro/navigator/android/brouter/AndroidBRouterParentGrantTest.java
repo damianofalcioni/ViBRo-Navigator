@@ -151,7 +151,7 @@ public class AndroidBRouterParentGrantTest {
     }
 
     @Test
-    public void emptyParentIsRejectedAndPartialParentKeepsLegacyProfiles() throws Exception {
+    public void emptyParentIsRejectedAndGrantsWithoutUsableProfilesKeepLegacyProfiles() throws Exception {
         try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
             Activity activity = controller.get();
             var profiles = AndroidBRouterProfilesRepositoryFactory.create();
@@ -168,7 +168,7 @@ public class AndroidBRouterParentGrantTest {
 
             TestBRouterStorage.createPrimaryFolder(PROFILES);
             assertTrue(TestBRouterStorage.saveSelection(activity, grant(parent)));
-            assertFalse(profiles.listProfiles(activity).contains(PROFILE_NAME));
+            assertTrue(profiles.listProfiles(activity).contains(PROFILE_NAME));
         }
     }
 
@@ -203,13 +203,20 @@ public class AndroidBRouterParentGrantTest {
             Activity activity = controller.get();
             var earlier = TestBRouterStorage.createPrimaryDirectory("brouter/profiles2");
             var preferred = TestBRouterStorage.createPrimaryDirectory("Android/media/btools.routingapp/brouter/profiles2");
+            var activeProfile = preferred.toPath().resolve("active-only.brf");
             Files.writeString(earlier.toPath().resolve("old-only.brf"), "assign validForBikes = true");
-            Files.writeString(preferred.toPath().resolve("active-only.brf"), "assign validForBikes = true");
+            Files.writeString(activeProfile, "assign validForBikes = true");
             assertTrue(TestBRouterStorage.saveSelection(activity, grant(tree("primary:brouter"))));
             Uri preferredGrant = tree(PARENT_ID);
             assertTrue(TestBRouterStorage.saveSelection(activity, grant(preferredGrant)));
             var profiles = AndroidBRouterProfilesRepositoryFactory.create();
 
+            assertEquals(List.of("active-only"), profiles.listProfiles(activity));
+
+            Files.delete(activeProfile);
+            assertEquals(List.of("old-only"), profiles.listProfiles(activity));
+
+            Files.writeString(activeProfile, "assign validForBikes = true");
             assertEquals(List.of("active-only"), profiles.listProfiles(activity));
 
             activity.getContentResolver().releasePersistableUriPermission(

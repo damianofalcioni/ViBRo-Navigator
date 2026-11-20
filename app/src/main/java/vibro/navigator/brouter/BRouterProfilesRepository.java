@@ -36,31 +36,12 @@ public class BRouterProfilesRepository {
     private final BRouterProfileParameterStore parameterStore;
 
     public BRouterProfilesRepository(@NonNull BRouterProfileDependencies dependencies) {
-        this(
-                dependencies,
-                new BRouterProfileDirectories(dependencies.documentAccess, dependencies.storageVolumeAccess),
-                new BRouterProfileLister(dependencies.documentAccess, dependencies.packageAccess),
-                new BRouterProfileParameterSource(
-                        dependencies.documentAccess,
-                        dependencies.packageAccess,
-                        new BRouterProfileParameterParser()
-                ),
-                new BRouterProfileParameterStore(PREFS)
-        );
-    }
-
-    BRouterProfilesRepository(
-            @NonNull BRouterProfileDependencies dependencies,
-            @NonNull BRouterProfileDirectories profileDirectories,
-            @NonNull BRouterProfileLister profileLister,
-            @NonNull BRouterProfileParameterSource parameterSource,
-            @NonNull BRouterProfileParameterStore parameterStore
-    ) {
         this.dependencies = dependencies;
-        this.profileDirectories = profileDirectories;
-        this.profileLister = profileLister;
-        this.parameterSource = parameterSource;
-        this.parameterStore = parameterStore;
+        profileDirectories = new BRouterProfileDirectories(dependencies.documentAccess, dependencies.storageVolumeAccess);
+        profileLister = new BRouterProfileLister(dependencies, profileDirectories);
+        parameterSource = new BRouterProfileParameterSource(
+                dependencies.documentAccess, dependencies.packageAccess, new BRouterProfileParameterParser());
+        parameterStore = new BRouterProfileParameterStore(PREFS);
     }
 
     @Nullable
@@ -139,7 +120,7 @@ public class BRouterProfilesRepository {
                 profileName,
                 getCustomProfileUri(context),
                 custom,
-                () -> namedProfileTrees(context)
+                () -> profileLister.namedProfileTrees(context, getProfilesTreeUri(context))
         );
         return parameters == null ? Collections.emptyList() : parameters;
     }
@@ -241,16 +222,7 @@ public class BRouterProfilesRepository {
     @NonNull
     public List<String> listAvailableProfiles(Context context, List<String> bundled,
                                               androidx.core.util.Consumer<List<String>> progress) {
-        return profileLister.listProfiles(context, namedProfileTrees(context), bundled, progress);
-    }
-
-    @NonNull
-    private List<Uri> namedProfileTrees(Context context) {
-        Uri granted = getGrantedProfilesTreeUri(context);
-        // Named requests go to the BRouter service, which uses one configured profiles directory.
-        // An earlier grant is used only if the preferred profile grant is unavailable.
-        return granted == null ? profileDirectories.resolveProfilesDiscoveryTreeUris(context, Collections.emptyList())
-                : Collections.singletonList(granted);
+        return profileLister.listProfiles(context, getProfilesTreeUri(context), bundled, progress);
     }
 
     @Nullable

@@ -161,7 +161,7 @@ public final class BRouterFolderGrant {
         return granted;
     }
 
-    private static LinkedHashSet<Uri> sourceCandidates(Context context, @Nullable Uri legacy, boolean profiles) {
+    static LinkedHashSet<Uri> sourceCandidates(Context context, @Nullable Uri legacy, boolean profiles) {
         var candidates = new LinkedHashSet<Uri>();
         addParent(candidates, parentFor(context, profiles));
         candidates.addAll(parents(context));

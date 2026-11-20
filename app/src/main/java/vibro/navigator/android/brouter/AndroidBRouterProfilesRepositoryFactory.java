@@ -157,7 +157,8 @@ public final class AndroidBRouterProfilesRepositoryFactory {
         private static boolean needsDirectoryRecovery(Context context, Uri tree, @Nullable Uri directory,
                                                       @Nullable List<String> names) {
             if (names == null) {
-                return AndroidPersistedUriPermissions.hasReadPermission(context, tree);
+                return AndroidPersistedUriPermissions.hasReadPermission(context, tree)
+                        && !isMissingDirectGrant(context, tree, directory);
             }
             if (!names.isEmpty() || directory == null || tree.equals(directory)
                     || BRouterFolderGrant.isDirect(context, tree, true)) {
@@ -166,6 +167,16 @@ public final class AndroidBRouterProfilesRepositoryFactory {
             // A provider can return an empty listing for an obsolete child document ID.
             Uri listed = AndroidDocumentTreeDirectories.childDirectories(context, tree, cancellation()).get(PROFILES.folder);
             return !directory.equals(listed);
+        }
+
+        private static boolean isMissingDirectGrant(Context context, Uri tree, @Nullable Uri directory) {
+            CancellationSignal signal = cancellation();
+            if (signal == null || !tree.equals(directory) || !AndroidDocumentAccess.isExternalStorageDocument(tree)) {
+                return false;
+            }
+            String id = AndroidDocumentAccess.treeDocumentId(tree);
+            return id != null && AndroidDocumentAccess.externalStorageDirectoryPresence(context, id, signal)
+                    == AndroidDocumentAccess.DirectoryPresence.MISSING;
         }
 
         @Nullable
