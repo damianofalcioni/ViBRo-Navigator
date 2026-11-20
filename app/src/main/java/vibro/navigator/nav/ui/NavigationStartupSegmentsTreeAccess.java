@@ -275,7 +275,7 @@ final class NavigationStartupSegmentsTreeAccess {
                     Consumer<Completion> onCompletion) {
             if (resultCode == Activity.RESULT_OK) {
                 picker.beginValidation();
-                AndroidBRouterFolderAccess.saveSelection(activity, data, saved ->
+                AndroidBRouterFolderAccess.saveStreetSelection(activity, data, saved ->
                         finish(needs.requiresGrant(activity) ? Completion.RETRY : Completion.ADVANCE, onCompletion));
                 return;
             }

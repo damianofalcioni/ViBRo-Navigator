@@ -74,8 +74,12 @@ final class AndroidBRouterFolderRequests {
             return;
         }
         picker.beginValidation();
-        AndroidBRouterFolderAccess.saveSelection(activity, data,
-                saved -> finishValidation(picker, onCompletion, saved));
+        Consumer<Boolean> onSaved = saved -> finishValidation(picker, onCompletion, saved);
+        if (profiles.hasPersistedProfilesTreeAccess(activity)) {
+            AndroidBRouterFolderAccess.saveStreetSelection(activity, data, onSaved);
+        } else {
+            AndroidBRouterFolderAccess.saveSelection(activity, data, onSaved);
+        }
     }
 
     private void finishValidation(AndroidBRouterPickerRequest picker, Consumer<Completion> onCompletion, boolean saved) {

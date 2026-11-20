@@ -71,6 +71,7 @@ public class MainActivityLegacyProfileStorageRobolectricTest {
     }
 
     @Test
+    @Config(sdk = {Build.VERSION_CODES.M, Build.VERSION_CODES.N_MR1, Build.VERSION_CODES.O, Build.VERSION_CODES.P})
     public void startupUsesAllowPermissionAndRefreshesExternalProfilesOnGrant() {
         try (ActivityController<MainActivity> controller = Robolectric.buildActivity(MainActivity.class).setup()) {
             MainActivity activity = controller.get();

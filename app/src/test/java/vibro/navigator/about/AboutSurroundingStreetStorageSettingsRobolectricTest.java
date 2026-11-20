@@ -11,6 +11,7 @@ import android.app.AlertDialog;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.content.pm.PackageInfo;
 import android.os.Build;
 import android.widget.Switch;
@@ -18,7 +19,10 @@ import android.widget.Switch;
 import androidx.test.core.app.ApplicationProvider;
 
 import vibro.navigator.R;
+import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
+import vibro.navigator.android.brouter.AndroidBRouterSegmentsRepositoryFactory;
 import vibro.navigator.android.brouter.TestBRouterStorage;
+import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.settings.AppCompassSettings;
@@ -33,6 +37,9 @@ import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowActivity.PermissionsRequest;
 import org.robolectric.shadows.ShadowPackageManager;
 import org.robolectric.shadows.ShadowToast;
+
+import java.nio.file.Files;
+import java.util.List;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 26)
@@ -120,6 +127,29 @@ public class AboutSurroundingStreetStorageSettingsRobolectricTest {
         assertEquals(AboutSettingsSwitches.REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE, started.requestCode);
         assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, started.intent.getAction());
         assertFalse(AppCompassSettings.isSurroundingStreetsEnabled(activity));
+    }
+
+    @Test
+    @Config(sdk = Build.VERSION_CODES.R)
+    public void enablingStreetsPreservesAnExistingProfilesSource() throws Exception {
+        installBRouterPackage();
+        var oldDirectory = TestBRouterStorage.createPrimaryDirectory("existing-profiles");
+        Files.createFile(oldDirectory.toPath().resolve("existing-profile.brf"));
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS);
+        var tileParentProfiles = TestBRouterStorage.createPrimaryDirectory(
+                "Android/media/btools.routingapp/brouter/profiles2");
+        Files.createFile(tileParentProfiles.toPath().resolve("incidental-profile.brf"));
+        AboutActivity activity = activity();
+        var profiles = AndroidBRouterProfilesRepositoryFactory.create();
+        Uri oldTree = AndroidDocumentAccess.buildExternalStorageTreeUri("primary:existing-profiles");
+        activity.getContentResolver().takePersistableUriPermission(oldTree, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        profiles.saveProfilesTreeUri(activity, oldTree);
+
+        enableStreets(activity);
+
+        assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(activity));
+        assertTrue(AndroidBRouterSegmentsRepositoryFactory.create().hasPersistedSegmentsTreeAccess(activity));
+        assertEquals(List.of("existing-profile"), profiles.listProfiles(activity));
     }
 
     @Test

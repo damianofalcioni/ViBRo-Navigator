@@ -15,6 +15,7 @@ import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.android.storage.AndroidPersistedUriPermissions;
 import vibro.navigator.brouter.BRouterFolderGrant;
 import vibro.navigator.brouter.BRouterFolderGrant.Child;
+import vibro.navigator.brouter.BRouterFolderGrant.SelectionKind;
 
 /** Rechecks incomplete parents and keeps status checks independent of document-provider calls. */
 final class AndroidBRouterGrantedDirectories {
@@ -65,7 +66,7 @@ final class AndroidBRouterGrantedDirectories {
             Child profiles = changedChild(context, tree, before.profiles(), directories.profiles(), true);
             Child segments = changedChild(context, tree, before.segments(), directories.segments(), false);
             if (profiles.uri() != null || segments.uri() != null) {
-                BRouterFolderGrant.save(context, tree, profiles, segments, false, false);
+                BRouterFolderGrant.save(context, tree, profiles, segments, false, SelectionKind.RECHECK);
             }
         } finally {
             REFRESHING.remove(tree);
@@ -74,7 +75,8 @@ final class AndroidBRouterGrantedDirectories {
 
     private static Child changedChild(Context context, Uri tree, Child before, Child child, boolean profiles) {
         Child current = storedChild(context, tree, profiles);
-        if (child.uri() == null || child.equals(current) || !before.equals(current)) {
+        if (child.uri() == null || child.equals(current) || !before.equals(current)
+                || (profiles && BRouterFolderGrant.isStreetOnly(context, tree))) {
             return new Child(null, false, false);
         }
         Uri preferred = BRouterFolderGrant.parentFor(context, profiles);

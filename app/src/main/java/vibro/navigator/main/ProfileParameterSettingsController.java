@@ -115,7 +115,7 @@ final class ProfileParameterSettingsController {
         form.view().findViewById(R.id.profileParameterSaveButton).setOnClickListener(v ->
                 saveAndClose(dialog, profileName, parameters, form));
         form.view().findViewById(R.id.profileParameterResetButton).setOnClickListener(v ->
-                confirmReset(profileName, form));
+                confirmReset(profileName, parameters, form));
         dialog.show();
     }
 
@@ -125,7 +125,7 @@ final class ProfileParameterSettingsController {
             @NonNull List<BRouterProfileParameter> parameters,
             @NonNull ProfileParameterForm form
     ) {
-        Map<String, String> values = form.collectValues(activity);
+        Map<String, String> values = form.collectChanges(activity);
         if (values == null) {
             return;
         }
@@ -134,18 +134,17 @@ final class ProfileParameterSettingsController {
         dialog.dismiss();
     }
 
-    private void confirmReset(@NonNull String profileName, @NonNull ProfileParameterForm form) {
+    private void confirmReset(String profileName, List<BRouterProfileParameter> parameters, ProfileParameterForm form) {
         new AlertDialog.Builder(activity)
                 .setTitle(R.string.title_profile_parameters_reset_confirm)
                 .setMessage(R.string.msg_profile_parameters_reset_confirm)
                 .setNegativeButton(R.string.action_cancel, null)
-                .setPositiveButton(android.R.string.ok, (dialog, which) -> reset(profileName, form))
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> reset(profileName, parameters, form))
                 .show();
     }
 
-    private void reset(@NonNull String profileName, @NonNull ProfileParameterForm form) {
-        profilesRepository.resetProfileParameterValues(activity, profileName);
-        form.resetToDefaults();
+    private void reset(String profileName, List<BRouterProfileParameter> parameters, ProfileParameterForm form) {
+        profilesRepository.saveProfileParameterValues(activity, profileName, parameters, form.resetToDefaults());
         Toast.makeText(activity, R.string.msg_profile_parameters_reset, Toast.LENGTH_SHORT).show();
         AppLogger.i(TAG, "Reset profile parameters profile=" + profileName);
     }

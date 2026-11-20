@@ -1,6 +1,7 @@
 package vibro.navigator.android.brouter;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
@@ -89,6 +90,23 @@ public class AndroidBRouterGrantOrderingTest {
             assertEquals(Boolean.TRUE, accepted.get());
             assertEquals(earlier, BRouterFolderGrant.parentFor(activity, false));
             assertEquals(later, BRouterFolderGrant.parentFor(activity, true));
+        }
+    }
+
+    @Test
+    public void streetOnlyGrantStaysScopedUntilTheParentIsSelectedForSharedAccess() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Uri parent = createParent("tiles");
+            var saved = new AtomicReference<Boolean>();
+            AndroidBRouterFolderAccess.saveStreetSelection(activity, grant(parent), saved::set);
+            assertEquals(Boolean.TRUE, saved.get());
+
+            AndroidBRouterFolderAccess.recheckSharedFolder(activity, parent);
+            assertNull(BRouterFolderGrant.directory(activity, parent, true));
+
+            assertTrue(TestBRouterStorage.saveSelection(activity, grant(parent)));
+            assertTrue(AndroidBRouterProfilesRepositoryFactory.create().hasPersistedProfilesTreeAccess(activity));
         }
     }
 

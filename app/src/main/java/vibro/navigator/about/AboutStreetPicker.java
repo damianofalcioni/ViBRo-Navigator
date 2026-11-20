@@ -107,7 +107,7 @@ final class AboutStreetPicker {
             return;
         }
         picker.beginValidation();
-        AndroidBRouterFolderAccess.saveSelection(activity, data, this::onFolderSaved);
+        AndroidBRouterFolderAccess.saveStreetSelection(activity, data, this::onFolderSaved);
     }
 
     private void onFolderSaved(boolean saved) {

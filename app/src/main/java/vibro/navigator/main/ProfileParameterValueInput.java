@@ -94,7 +94,7 @@ final class BooleanParameterInput implements ProfileParameterValueInput {
 
     @Override
     public void setValue(@NonNull String value) {
-        input.setChecked("1".equals(value) || "true".equalsIgnoreCase(value));
+        input.setChecked(BRouterProfileParameterValues.isBooleanEnabled(value));
     }
 
     @Override

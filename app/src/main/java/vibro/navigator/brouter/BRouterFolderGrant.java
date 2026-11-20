@@ -18,6 +18,7 @@ public final class BRouterFolderGrant {
     private static final String PARENTS = "brouter_granted_parents";
     private static final String REVISION = "brouter_folder_revision";
     private static final String DIRECT = ".direct";
+    private static final String STREET_ONLY = "brouter_street_only.";
 
     private BRouterFolderGrant() { }
 
@@ -71,18 +72,41 @@ public final class BRouterFolderGrant {
     }
 
     public static void save(Context context, Uri parent, @Nullable Uri profiles, @Nullable Uri segments) {
-        save(context, parent, new Child(profiles, false, true), new Child(segments, false, true), true, false);
+        save(context, parent, new Child(profiles, false, true), new Child(segments, false, true),
+                true, SelectionKind.SHARED);
     }
 
     public record Child(@Nullable Uri uri, boolean direct, boolean prefer) { }
 
+    public enum SelectionKind {
+        SHARED, STREETS, RECHECK;
+
+        void updateScope(SharedPreferences.Editor edit, Uri parent, boolean newParent) {
+            if (this == SHARED) {
+                edit.remove(STREET_ONLY + parent);
+            } else if (this == STREETS && newParent) {
+                edit.putBoolean(STREET_ONLY + parent, true);
+            }
+        }
+
+        boolean confirmsStreetAccess(Child segments) {
+            return this != RECHECK && segments.uri() != null;
+        }
+    }
+
+    public static boolean isStreetOnly(Context context, Uri parent) {
+        return prefs(context).getBoolean(STREET_ONLY + parent, false);
+    }
+
     public static void save(Context context, Uri parent, Child profiles, Child segments, boolean latest,
-                             boolean streetAccessConfirmed) {
+                            SelectionKind selectionKind) {
         List<Uri> parents = parents(context);
-        if (!parents.contains(parent)) {
+        boolean newParent = !parents.contains(parent);
+        if (newParent) {
             parents.add(0, parent);
         }
         SharedPreferences.Editor edit = prefs(context).edit();
+        selectionKind.updateScope(edit, parent, newParent);
         edit.putString(PARENTS, android.text.TextUtils.join("\n", parents));
         if (latest) {
             edit.putString(LATEST, parent.toString());
@@ -90,7 +114,7 @@ public final class BRouterFolderGrant {
         putChild(context, edit, parent, profiles, true);
         boolean segmentChanged = putChild(context, edit, parent, segments, false);
         edit.putString(REVISION, UUID.randomUUID().toString());
-        if (segmentChanged || streetAccessConfirmed) {
+        if (segmentChanged || selectionKind.confirmsStreetAccess(segments)) {
             BRouterSegmentSourceSettings.applySourceChange(edit);
         } else {
             edit.apply();

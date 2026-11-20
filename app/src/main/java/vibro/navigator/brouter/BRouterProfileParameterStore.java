@@ -53,18 +53,23 @@ final class BRouterProfileParameterStore {
             @NonNull List<BRouterProfileParameter> parameters,
             @NonNull Map<String, String> values
     ) {
-        Map<String, String> overrides = profileParameterOverrides(parameters, values);
+        if (values.isEmpty()) {
+            return;
+        }
         SharedPreferences prefs = context.getSharedPreferences(prefsName, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
-        removeSavedValues(prefs, editor, profileName);
-        Set<String> names = new HashSet<>(overrides.keySet());
-        for (Map.Entry<String, String> entry : overrides.entrySet()) {
-            editor.putString(profileParamValueKey(profileName, entry.getKey()), entry.getValue());
+        String namesKey = profileParamNamesKey(profileName);
+        Set<String> names = new HashSet<>(prefs.getStringSet(namesKey, Collections.emptySet()));
+        for (BRouterProfileParameter parameter : parameters) {
+            String value = values.get(parameter.name);
+            if (value != null) {
+                saveValue(editor, profileName, parameter, value, names);
+            }
         }
-        editor.putStringSet(profileParamNamesKey(profileName), names);
+        editor.putStringSet(namesKey, names);
         editor.apply();
         AppLogger.i(TAG, "Saved profile parameter overrides profile=" + profileName
-                + " count=" + overrides.size());
+                + " count=" + names.size());
     }
 
     void reset(@NonNull Context context, @NonNull String profileName) {
@@ -75,19 +80,24 @@ final class BRouterProfileParameterStore {
         AppLogger.i(TAG, "Reset profile parameter overrides profile=" + profileName);
     }
 
-    @NonNull
-    private static Map<String, String> profileParameterOverrides(
-            @NonNull List<BRouterProfileParameter> parameters,
-            @NonNull Map<String, String> values
-    ) {
-        Map<String, String> overrides = new HashMap<>();
-        for (BRouterProfileParameter parameter : parameters) {
-            String value = values.get(parameter.name);
-            if (value != null && !value.equals(parameter.defaultValue)) {
-                overrides.put(parameter.name, value);
-            }
+    private static void saveValue(SharedPreferences.Editor editor, String profileName,
+                                  BRouterProfileParameter parameter, String value, Set<String> names) {
+        String key = profileParamValueKey(profileName, parameter.name);
+        if (isDefault(parameter, value)) {
+            editor.remove(key);
+            names.remove(parameter.name);
+        } else {
+            editor.putString(key, value);
+            names.add(parameter.name);
         }
-        return overrides;
+    }
+
+    private static boolean isDefault(BRouterProfileParameter parameter, String value) {
+        if (parameter.valueType == BRouterProfileParameter.ValueType.BOOLEAN) {
+            return BRouterProfileParameterValues.isBooleanEnabled(value)
+                    == BRouterProfileParameterValues.isBooleanEnabled(parameter.defaultValue);
+        }
+        return value.equals(parameter.defaultValue);
     }
 
     private static void removeSavedValues(

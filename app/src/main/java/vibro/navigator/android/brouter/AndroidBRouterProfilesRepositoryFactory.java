@@ -78,8 +78,11 @@ public final class AndroidBRouterProfilesRepositoryFactory {
     }
 
     private static boolean hasProfilesReadPermission(Context context, @Nullable Uri tree) {
+        if (tree == null || BRouterFolderGrant.isStreetOnly(context, tree)) {
+            return false;
+        }
         boolean granted = AndroidBRouterFolderAccess.hasPersistedReadPermission(context, tree, PROFILES);
-        if (!granted && tree != null && BRouterFolderGrant.directory(context, tree, true) != null
+        if (!granted && BRouterFolderGrant.directory(context, tree, true) != null
                 && AndroidPersistedUriPermissions.hasReadPermission(context, tree)
                 && AndroidBRouterFolderAccess.isVolumeAvailable(context, tree, AndroidBRouterFolderAccess.treeId(tree))) {
             reportIncomplete();

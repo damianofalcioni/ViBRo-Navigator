@@ -62,21 +62,28 @@ final class ProfileParameterForm {
     }
 
     @Nullable
-    Map<String, String> collectValues(@NonNull Context context) {
+    Map<String, String> collectChanges(@NonNull Context context) {
         Map<String, String> values = new HashMap<>();
         for (Row row : rows) {
             if (!row.input.validate(context)) {
                 return null;
             }
-            values.put(row.parameter.name, row.input.value());
+            String value = row.input.value();
+            if (!value.equals(row.initialValue)) {
+                values.put(row.parameter.name, value);
+            }
         }
         return values;
     }
 
-    void resetToDefaults() {
+    Map<String, String> resetToDefaults() {
+        Map<String, String> defaults = new HashMap<>();
         for (Row row : rows) {
             row.input.setValue(row.parameter.defaultValue);
+            row.initialValue = row.input.value();
+            defaults.put(row.parameter.name, row.parameter.defaultValue);
         }
+        return defaults;
     }
 
     private static final class Row {
@@ -86,6 +93,8 @@ final class ProfileParameterForm {
         final LinearLayout view;
         @NonNull
         final ProfileParameterValueInput input;
+        @NonNull
+        String initialValue;
 
         private Row(
                 @NonNull BRouterProfileParameter parameter,
@@ -95,6 +104,7 @@ final class ProfileParameterForm {
             this.parameter = parameter;
             this.view = view;
             this.input = input;
+            initialValue = input.value();
         }
 
         @NonNull

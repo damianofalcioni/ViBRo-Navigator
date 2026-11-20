@@ -55,6 +55,10 @@ public final class BRouterProfileParameterValues {
         return value.indexOf('?') >= 0 || value.indexOf('&') >= 0 || value.indexOf('=') >= 0;
     }
 
+    public static boolean isBooleanEnabled(@NonNull String value) {
+        return "1".equals(value) || "true".equalsIgnoreCase(value);
+    }
+
     public static String filterExtraParams(String encoded, Set<String> parameterNames) {
         var allowed = new HashSet<String>();
         for (String name : parameterNames) {

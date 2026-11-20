@@ -235,7 +235,7 @@ final class NavigationCustomButtonController {
             if (request.matches(code)) {
                 if (resultCode == Activity.RESULT_OK) {
                     request.beginValidation();
-                    AndroidBRouterFolderAccess.saveSelection(activity, data, this::finish);
+                    AndroidBRouterFolderAccess.saveStreetSelection(activity, data, this::finish);
                 } else {
                     finish(false);
                 }

@@ -30,6 +30,8 @@ import vibro.navigator.geo.LatLon;
 @RunWith(RobolectricTestRunner.class)
 public class AndroidBRouterCustomProfileOverridesTest {
     private static final String PROFILE = "trekking";
+    private static final String ALLOW_STEPS = "allow_steps";
+    private static final String ALLOW_FERRIES = "allow_ferries";
     private static final String UNANNOTATED = """
             ---context:global
             assign allow_steps = true
@@ -47,13 +49,13 @@ public class AndroidBRouterCustomProfileOverridesTest {
         var parameters = repository.getProfileParameters(app, PROFILE, false);
         assertEquals(2, parameters.size());
         repository.saveProfileParameterValues(app, PROFILE, parameters,
-                Map.of("allow_steps", "0", "allow_ferries", "0"));
+                Map.of(ALLOW_STEPS, "0", ALLOW_FERRIES, "0"));
 
         Path custom = Files.writeString(directory.resolve(PROFILE + ".brf"), UNANNOTATED);
         repository.saveCustomProfile(app, Uri.fromFile(custom.toFile()), PROFILE);
         var customParameters = repository.getProfileParameters(app, PROFILE, true);
         assertEquals(1, customParameters.size());
-        assertEquals("allow_steps", customParameters.get(0).name);
+        assertEquals(ALLOW_STEPS, customParameters.get(0).name);
         assertEquals("Allow steps", customParameters.get(0).description);
         assertEquals("true", customParameters.get(0).defaultValue);
 
@@ -63,6 +65,9 @@ public class AndroidBRouterCustomProfileOverridesTest {
         var bundle = AndroidBRouterRouteParams.build(request, repository.getCustomProfileText(app, PROFILE));
         assertEquals(UNANNOTATED, bundle.getString("remoteProfile"));
         assertEquals("allow_steps=0", bundle.getString("extraParams"));
+
+        repository.saveProfileParameterValues(app, PROFILE, customParameters, Map.of(ALLOW_STEPS, "1"));
+        assertEquals(Map.of(ALLOW_FERRIES, "0"), repository.getProfileParameterValueOverrides(app, PROFILE));
     }
 
     private static void installBundledProfile(Context app, Path apkPath) throws Exception {
