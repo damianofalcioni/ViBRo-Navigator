@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.core.util.Consumer;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import vibro.navigator.brouter.BRouterProfilesRepository;
@@ -51,9 +52,14 @@ public final class AndroidBRouterProfileLoader {
         onResult.accept(available);
         AtomicReference<Result> partial = new AtomicReference<>(available);
         AndroidBRouterFolderDiscovery.listProfiles(
-                signal -> AndroidBRouterProfilesRepositoryFactory.withCancellation(signal, () ->
-                        new Result(repository.listAvailableProfiles(app, bundled,
-                                profiles -> partial.set(new Result(profiles, bundled, false))), bundled, true)),
+                signal -> {
+                    AtomicBoolean incomplete = new AtomicBoolean();
+                    List<String> profiles = AndroidBRouterProfilesRepositoryFactory.withCancellation(signal,
+                            () -> repository.listAvailableProfiles(app, bundled,
+                                    found -> partial.set(new Result(found, bundled, false))),
+                            () -> incomplete.set(true));
+                    return new Result(profiles, bundled, !incomplete.get());
+                },
                 partial::get, this::apply);
     }
 

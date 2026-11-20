@@ -6,6 +6,8 @@ import android.net.Uri;
 import android.os.CancellationSignal;
 import android.provider.DocumentsContract;
 
+import androidx.annotation.Nullable;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +20,7 @@ public final class AndroidDocumentTreeDirectories {
 
     private AndroidDocumentTreeDirectories() { }
 
-    public static Map<String, Uri> childDirectories(Context context, Uri tree, CancellationSignal signal) {
+    public static Map<String, Uri> childDirectories(Context context, Uri tree, @Nullable CancellationSignal signal) {
         String id = AndroidDocumentAccess.treeDocumentId(tree);
         Uri children = DocumentsContract.buildChildDocumentsUriUsingTree(tree, id);
         try (Cursor cursor = context.getContentResolver().query(children, new String[]{

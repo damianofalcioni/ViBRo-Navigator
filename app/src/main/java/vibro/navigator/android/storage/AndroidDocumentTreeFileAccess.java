@@ -25,10 +25,16 @@ public final class AndroidDocumentTreeFileAccess {
     }
 
     @NonNull
-    public static List<String> childDisplayNames(Context context, Uri treeUri, @Nullable CancellationSignal signal) {
+    static List<String> childDisplayNames(Context context, Uri treeUri, @Nullable CancellationSignal signal) {
+        List<String> names = tryListChildDisplayNames(context, treeUri, signal);
+        return names == null ? Collections.emptyList() : names;
+    }
+
+    @Nullable
+    public static List<String> tryListChildDisplayNames(Context context, Uri treeUri, @Nullable CancellationSignal signal) {
         String directoryId = AndroidDocumentAccess.directoryDocumentId(treeUri);
         if (directoryId == null) {
-            return Collections.emptyList();
+            return null;
         }
         if (AndroidDocumentAccess.isExternalStorageDocument(treeUri)) {
             List<String> directNames = AndroidExternalStorageDocumentFiles.childDisplayNames(context, directoryId);
@@ -39,22 +45,27 @@ public final class AndroidDocumentTreeFileAccess {
         return queryDisplayNames(context, treeUri, directoryId, signal);
     }
 
+    @Nullable
     private static List<String> queryDisplayNames(Context context, Uri treeUri, String directoryId,
-                                                  @Nullable CancellationSignal signal) {
+                                                   @Nullable CancellationSignal signal) {
         Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, directoryId);
         try (Cursor cursor = queryChildren(context, childrenUri, signal)) {
-            return cursor == null ? Collections.emptyList() : readDisplayNames(cursor);
+            if (cursor == null || cursor.getExtras().getString(DocumentsContract.EXTRA_ERROR) != null) {
+                return null;
+            }
+            return readDisplayNames(cursor);
         } catch (Exception e) {
             checkCanceled(signal);
             AppLogger.w(TAG, "Failed to list document tree children uri=" + treeUri, e);
-            return Collections.emptyList();
+            return null;
         }
     }
 
+    @Nullable
     private static List<String> readDisplayNames(Cursor cursor) {
         int nameColumn = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME);
         if (nameColumn < 0) {
-            return Collections.emptyList();
+            return null;
         }
         List<String> names = new ArrayList<>();
         while (cursor.moveToNext()) {

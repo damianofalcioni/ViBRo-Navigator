@@ -14,13 +14,17 @@ import java.util.Collections;
 import androidx.core.util.Supplier;
 
 import vibro.navigator.android.storage.AndroidDocumentAccess;
+import vibro.navigator.android.storage.AndroidDocumentTreeDirectories;
 import vibro.navigator.android.storage.AndroidDocumentTreeFileAccess;
+import vibro.navigator.android.storage.AndroidPersistedUriPermissions;
 import vibro.navigator.android.storage.AndroidStorageVolumes;
+import vibro.navigator.brouter.BRouterFolderGrant;
 import vibro.navigator.brouter.BRouterProfileDependencies;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 
 public final class AndroidBRouterProfilesRepositoryFactory {
-    private static final ThreadLocal<CancellationSignal> QUERY_CANCELLATION = new ThreadLocal<>();
+    private static final ThreadLocal<ProfileQuery> ACTIVE_QUERY = new ThreadLocal<>();
+    private static final AndroidBRouterFolderAccess.Kind PROFILES = AndroidBRouterFolderAccess.Kind.PROFILES;
 
     private AndroidBRouterProfilesRepositoryFactory() {
     }
@@ -31,13 +35,37 @@ public final class AndroidBRouterProfilesRepositoryFactory {
     }
 
     static <T> T withCancellation(CancellationSignal signal, Supplier<T> lookup) {
-        QUERY_CANCELLATION.set(signal);
+        return withCancellation(signal, lookup, () -> { });
+    }
+
+    static <T> T withCancellation(CancellationSignal signal, Supplier<T> lookup, Runnable onIncomplete) {
+        ProfileQuery previous = ACTIVE_QUERY.get();
+        ACTIVE_QUERY.set(new ProfileQuery(signal, onIncomplete));
         try {
             return lookup.get();
         } finally {
-            QUERY_CANCELLATION.remove();
+            if (previous == null) {
+                ACTIVE_QUERY.remove();
+            } else {
+                ACTIVE_QUERY.set(previous);
+            }
         }
     }
+
+    @Nullable
+    private static CancellationSignal cancellation() {
+        ProfileQuery query = ACTIVE_QUERY.get();
+        return query == null ? null : query.signal();
+    }
+
+    private static void reportIncomplete() {
+        ProfileQuery query = ACTIVE_QUERY.get();
+        if (query != null) {
+            query.onIncomplete().run();
+        }
+    }
+
+    private record ProfileQuery(CancellationSignal signal, Runnable onIncomplete) { }
 
     @NonNull
     private static BRouterProfileDependencies createDependencies() {
@@ -45,14 +73,21 @@ public final class AndroidBRouterProfilesRepositoryFactory {
                 new AndroidDocuments(),
                 AndroidStorageVolumes::secondaryStorageRootIds,
                 new AndroidPackagesAccess(),
-                (context, uri) -> AndroidBRouterFolderAccess.hasPersistedReadPermission(
-                        context, uri, AndroidBRouterFolderAccess.Kind.PROFILES)
+                AndroidBRouterProfilesRepositoryFactory::hasProfilesReadPermission
         );
     }
 
-    private static final class AndroidDocuments implements BRouterProfileDependencies.DocumentAccess {
-        private static final AndroidBRouterFolderAccess.Kind KIND = AndroidBRouterFolderAccess.Kind.PROFILES;
+    private static boolean hasProfilesReadPermission(Context context, @Nullable Uri tree) {
+        boolean granted = AndroidBRouterFolderAccess.hasPersistedReadPermission(context, tree, PROFILES);
+        if (!granted && tree != null && BRouterFolderGrant.directory(context, tree, true) != null
+                && AndroidPersistedUriPermissions.hasReadPermission(context, tree)
+                && AndroidBRouterFolderAccess.isVolumeAvailable(context, tree, AndroidBRouterFolderAccess.treeId(tree))) {
+            reportIncomplete();
+        }
+        return granted;
+    }
 
+    private static final class AndroidDocuments implements BRouterProfileDependencies.DocumentAccess {
         @Nullable
         @Override
         public Uri buildTreeDocumentUri(@NonNull Uri treeUri) {
@@ -62,7 +97,7 @@ public final class AndroidBRouterProfilesRepositoryFactory {
         @Nullable
         @Override
         public Uri profilePickerDirectory(@NonNull Context context, @NonNull Uri treeUri) {
-            Uri directory = AndroidBRouterFolderAccess.dataDirectory(context, treeUri, KIND);
+            Uri directory = AndroidBRouterFolderAccess.dataDirectory(context, treeUri, PROFILES);
             if (directory == null || !directory.equals(treeUri)) {
                 return directory;
             }
@@ -94,7 +129,7 @@ public final class AndroidBRouterProfilesRepositoryFactory {
 
         @Override
         public boolean externalStorageDocumentExists(@NonNull Context context, @NonNull String documentId) {
-            CancellationSignal signal = QUERY_CANCELLATION.get();
+            CancellationSignal signal = cancellation();
             if (signal == null) {
                 return AndroidDocumentAccess.externalStorageDocumentExists(context, documentId);
             }
@@ -106,21 +141,36 @@ public final class AndroidBRouterProfilesRepositoryFactory {
         @NonNull
         @Override
         public List<String> childDisplayNames(@NonNull Context context, @NonNull Uri treeUri) {
-            Uri directory = AndroidBRouterFolderAccess.dataDirectory(context, treeUri, KIND);
-            List<String> names = directory == null ? Collections.emptyList()
-                    : AndroidDocumentTreeFileAccess.childDisplayNames(context, directory, QUERY_CANCELLATION.get());
-            if (names.isEmpty()) {
+            Uri directory = AndroidBRouterFolderAccess.dataDirectory(context, treeUri, PROFILES);
+            List<String> names = directory == null ? null
+                    : AndroidDocumentTreeFileAccess.tryListChildDisplayNames(context, directory, cancellation());
+            if (needsDirectoryRecovery(context, treeUri, directory, names)) {
+                reportIncomplete();
                 AndroidBRouterFolderAccess.recheckSharedFolder(context, treeUri);
             }
-            return names;
+            return names == null ? Collections.emptyList() : names;
+        }
+
+        private static boolean needsDirectoryRecovery(Context context, Uri tree, @Nullable Uri directory,
+                                                      @Nullable List<String> names) {
+            if (names == null) {
+                return AndroidPersistedUriPermissions.hasReadPermission(context, tree);
+            }
+            if (!names.isEmpty() || directory == null || tree.equals(directory)
+                    || BRouterFolderGrant.isDirect(context, tree, true)) {
+                return false;
+            }
+            // A provider can return an empty listing for an obsolete child document ID.
+            Uri listed = AndroidDocumentTreeDirectories.childDirectories(context, tree, cancellation()).get(PROFILES.folder);
+            return !directory.equals(listed);
         }
 
         @Nullable
         @Override
         public Uri childDocumentUri(@NonNull Context context, @NonNull Uri treeUri, @NonNull String displayName) {
-            Uri directory = AndroidBRouterFolderAccess.dataDirectory(context, treeUri, KIND);
+            Uri directory = AndroidBRouterFolderAccess.dataDirectory(context, treeUri, PROFILES);
             return directory == null ? null : AndroidDocumentTreeFileAccess.childDocumentUri(
-                    context, directory, displayName, QUERY_CANCELLATION.get());
+                    context, directory, displayName, cancellation());
         }
 
         @Nullable

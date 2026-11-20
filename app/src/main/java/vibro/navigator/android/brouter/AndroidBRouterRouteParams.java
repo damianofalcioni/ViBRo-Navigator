@@ -14,13 +14,8 @@ final class AndroidBRouterRouteParams {
     }
 
     @NonNull
-    static Bundle build(@NonNull BRouterRouteRequest request) {
-        return build(request, null, request.profileParameters);
-    }
-
-    @NonNull
-    static Bundle build(@NonNull BRouterRouteRequest request, @Nullable String remoteProfile, @Nullable String parameters) {
-        AndroidBRouterRouteParameterValues values = AndroidBRouterRouteParameterValues.build(request, remoteProfile, parameters);
+    static Bundle build(@NonNull BRouterRouteRequest request, @Nullable String remoteProfile) {
+        AndroidBRouterRouteParameterValues values = AndroidBRouterRouteParameterValues.build(request, remoteProfile);
         Bundle bundle = new Bundle();
         for (Map.Entry<String, Object> entry : values.entries()) {
             putValue(bundle, entry);

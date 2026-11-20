@@ -134,14 +134,7 @@ public class BRouterProfilesRepository {
 
     @NonNull
     public List<BRouterProfileParameter> getProfileParameters(Context context, @Nullable String profileName, boolean custom) {
-        List<BRouterProfileParameter> parameters = readResolvedProfileParameters(context, profileName, custom);
-        return parameters == null ? Collections.emptyList() : parameters;
-    }
-
-    @Nullable
-    public List<BRouterProfileParameter> readResolvedProfileParameters(Context context, @Nullable String profileName,
-                                                                         boolean custom) {
-        return parameterSource.readParameters(
+        List<BRouterProfileParameter> parameters = parameterSource.readParameters(
                 context,
                 profileName,
                 getCustomProfileUri(context),
@@ -149,6 +142,7 @@ public class BRouterProfilesRepository {
                 () -> grantedProfileTrees(context),
                 () -> detectedProfileTrees(context)
         );
+        return parameters == null ? Collections.emptyList() : parameters;
     }
 
     @NonNull
