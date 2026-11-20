@@ -50,6 +50,7 @@ import vibro.navigator.settings.AppCompassSettings;
 public class NavigationActivityStartupStorageRobolectricTest {
     private static final String SEGMENTS_FOLDER = "segments4";
     private static final String STORAGE_AUTHORITY = "com.android.externalstorage.documents";
+    private static final String PRIMARY_PARENT_ID = "primary:Android/media/btools.routingapp/brouter";
 
     @Before
     public void setUp() {
@@ -159,7 +160,7 @@ public class NavigationActivityStartupStorageRobolectricTest {
             assertNull(shadowOf(activity).getNextStartedActivityForResult());
 
             Intent grant = new Intent().setData(DocumentsContract.buildTreeDocumentUri(
-                    STORAGE_AUTHORITY, "primary:Android/media/btools.routingapp/brouter"))
+                    STORAGE_AUTHORITY, PRIMARY_PARENT_ID))
                     .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             activity.onActivityResult(requestCode, Activity.RESULT_OK, grant);
 
@@ -172,7 +173,7 @@ public class NavigationActivityStartupStorageRobolectricTest {
     @Test
     public void mainScreenDismissalSkipsPromptAndKeepsSurroundingStreetsEnabled() {
         TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
-        Intent intent = navigationIntentSkipping("primary:Android/media/btools.routingapp/brouter");
+        Intent intent = navigationIntentSkipping(PRIMARY_PARENT_ID);
         try (var controller = Robolectric.buildActivity(TestNavigationActivity.class, intent).create().start()) {
             TestNavigationActivity activity = controller.get();
             assertNull(shadowOf(activity).getLastRequestedPermission());
@@ -215,6 +216,49 @@ public class NavigationActivityStartupStorageRobolectricTest {
         assertFalse(AppCompassSettings.isSurroundingStreetsEnabled(activity));
         assertEquals(NavigationStartupCoordinator.REQUEST_PERMISSIONS,
                 shadowOf(activity).getLastRequestedPermission().requestCode);
+    }
+
+    @Test
+    public void dismissingOpenPromptKeepsStreetsEnabledWhenGrantArrives() {
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
+        try (var controller = Robolectric.buildActivity(TestNavigationActivity.class, navigationIntent()).setup()) {
+            var activity = controller.get();
+            var prompt = ShadowAlertDialog.getLatestAlertDialog();
+            assertTrue(prompt.isShowing());
+            savePrimaryParent(activity);
+
+            prompt.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+            shadowOf(Looper.getMainLooper()).idle();
+
+            assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(activity));
+            assertEquals(NavigationStartupCoordinator.REQUEST_PERMISSIONS,
+                    shadowOf(activity).getLastRequestedPermission().requestCode);
+        }
+    }
+
+    @Test
+    public void knownProfilesOnlyParentDoesNotPromptAtStartup() {
+        TestBRouterStorage.createPrimaryFolder("profiles2");
+        savePrimaryParent(ApplicationProvider.getApplicationContext());
+        try (var controller = Robolectric.buildActivity(TestNavigationActivity.class, navigationIntent()).setup()) {
+            var activity = controller.get();
+            assertNull(ShadowAlertDialog.getLatestAlertDialog());
+            assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(activity));
+            assertEquals(NavigationStartupCoordinator.REQUEST_PERMISSIONS,
+                    shadowOf(activity).getLastRequestedPermission().requestCode);
+        }
+    }
+
+    private static void savePrimaryParent(Context context) {
+        Uri parent = DocumentsContract.buildTreeDocumentUri(STORAGE_AUTHORITY, PRIMARY_PARENT_ID);
+        context.getContentResolver().takePersistableUriPermission(parent, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        Uri profiles = DocumentsContract.buildDocumentUriUsingTree(parent,
+                DocumentsContract.getTreeDocumentId(parent) + "/profiles2");
+        Uri segments = DocumentsContract.buildDocumentUriUsingTree(parent,
+                DocumentsContract.getTreeDocumentId(parent) + "/" + SEGMENTS_FOLDER);
+        boolean hasStreets = vibro.navigator.android.storage.AndroidDocumentAccess.canReadExternalDirectory(
+                context, DocumentsContract.getDocumentId(segments));
+        vibro.navigator.brouter.BRouterFolderGrant.save(context, parent, profiles, hasStreets ? segments : null);
     }
 
     @Test
@@ -276,7 +320,7 @@ public class NavigationActivityStartupStorageRobolectricTest {
             controller.pause();
             rejectFolder(activity, request);
             Uri parent = DocumentsContract.buildTreeDocumentUri(
-                    STORAGE_AUTHORITY, "primary:Android/media/btools.routingapp/brouter");
+                    STORAGE_AUTHORITY, PRIMARY_PARENT_ID);
             var granted = new java.util.concurrent.atomic.AtomicBoolean();
             vibro.navigator.android.brouter.AndroidBRouterFolderAccess.saveSelection(activity, treeResult(parent),
                     granted::set);

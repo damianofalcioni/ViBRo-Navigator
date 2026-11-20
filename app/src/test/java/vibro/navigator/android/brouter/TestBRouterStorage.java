@@ -19,6 +19,7 @@ import androidx.test.core.app.ApplicationProvider;
 import org.robolectric.shadows.ShadowContentResolver;
 
 import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 
@@ -70,6 +71,54 @@ public final class TestBRouterStorage {
         Uri document = DocumentsContract.buildDocumentUriUsingTree(tree, DocumentsContract.getTreeDocumentId(tree));
         ShadowContentResolver.registerProviderInternal(document.getAuthority(),
                 new DirectoryProvider(document, canQuery));
+    }
+
+    public static AtomicBoolean registerTileDirectories(Uri parent, String first, String fallback, String fileName) {
+        var provider = new TileDirectories(first, fallback, fileName);
+        ShadowContentResolver.registerProviderInternal(parent.getAuthority(), provider);
+        return provider.aliasQueried;
+    }
+
+    private static final class TileDirectories extends ContentProvider {
+        private final String first;
+        private final String fallback;
+        private final String fileName;
+        final AtomicBoolean aliasQueried = new AtomicBoolean();
+
+        TileDirectories(String first, String fallback, String fileName) {
+            this.first = first;
+            this.fallback = fallback;
+            this.fileName = fileName;
+        }
+
+        @Override public boolean onCreate() { return true; }
+        @Override public String getType(Uri uri) { return null; }
+        @Override public Uri insert(Uri uri, ContentValues values) { throw new UnsupportedOperationException(); }
+        @Override public int update(Uri uri, ContentValues values, String where, String[] args) { throw new UnsupportedOperationException(); }
+        @Override public int delete(Uri uri, String where, String[] args) { throw new UnsupportedOperationException(); }
+
+        @Override
+        public Cursor query(Uri uri, String[] projection, String where, String[] args, String order) {
+            String id = DocumentsContract.getDocumentId(uri);
+            MatrixCursor rows = new MatrixCursor(new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+                    DocumentsContract.Document.COLUMN_DISPLAY_NAME, DocumentsContract.Document.COLUMN_MIME_TYPE});
+            if (!first.equals(id) && !fallback.equals(id)) {
+                return rows;
+            }
+            if ("children".equals(uri.getLastPathSegment())) {
+                addTileRow(uri, id, rows);
+            } else {
+                rows.addRow(new Object[]{id, "segments4", DocumentsContract.Document.MIME_TYPE_DIR});
+            }
+            return rows;
+        }
+
+        private void addTileRow(Uri uri, String id, MatrixCursor rows) {
+            if (first.equals(DocumentsContract.getTreeDocumentId(uri))) {
+                aliasQueried.set(true);
+            }
+            rows.addRow(new Object[]{id + "/" + fileName, fileName, "application/octet-stream"});
+        }
     }
 
     private static final class DirectoryProvider extends ContentProvider {

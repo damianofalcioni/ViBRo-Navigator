@@ -339,6 +339,31 @@ public class AndroidBRouterParentGrantTest {
     }
 
     @Test
+    public void profilesRecoverThroughProviderAfterDirectDirectoryDisappears() throws Exception {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            String relativeParent = "recovery/brouter";
+            String parentId = "primary:" + relativeParent;
+            File local = TestBRouterStorage.createPrimaryDirectory(relativeParent + "/" + PROFILES);
+            Uri parent = tree(parentId);
+            ShadowContentResolver.registerProviderInternal(parent.getAuthority(), new ParentProvider(parentId));
+            assertTrue(TestBRouterStorage.saveSelection(activity, grant(parent)));
+            assertTrue(BRouterFolderGrant.isDirect(activity, parent, true));
+
+            Files.delete(local.toPath());
+            var profiles = AndroidBRouterProfilesRepositoryFactory.create();
+            assertEquals(AndroidDocumentAccess.DirectoryPresence.MISSING,
+                    AndroidDocumentAccess.directDirectoryPresence(activity, parentId + "/" + PROFILES));
+
+            profiles.listProfiles(activity);
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertFalse(BRouterFolderGrant.isDirect(activity, parent, true));
+            assertTrue(profiles.listProfiles(activity).contains(PROFILE_NAME));
+            assertEquals(parent, activity.getContentResolver().getPersistedUriPermissions().get(0).getUri());
+        }
+    }
+
+    @Test
     public void recoversNewProviderChildIdsWhenTheParentGrantStillExists() {
         try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
             Activity activity = controller.get();
@@ -415,6 +440,16 @@ public class AndroidBRouterParentGrantTest {
         int queries;
         String opaqueProfiles = "profile-dir";
         String opaqueSegments = "segment-dir";
+        private final String externalParent;
+
+        ParentProvider() {
+            this(PARENT_ID);
+        }
+
+        ParentProvider(String externalParent) {
+            this.externalParent = externalParent;
+        }
+
         @Override
         public boolean onCreate() {
             return true;
@@ -428,16 +463,18 @@ public class AndroidBRouterParentGrantTest {
             if (OPAQUE_ROOT.equals(DocumentsContract.getTreeDocumentId(uri))) {
                 return addOpaqueDirectories(uri, rows);
             }
-            if (uri.getPathSegments().size() != 5 || !PARENT_ID.equals(DocumentsContract.getTreeDocumentId(uri))) {
+            if (uri.getPathSegments().size() != 5 || !externalParent.equals(DocumentsContract.getTreeDocumentId(uri))) {
                 return rows;
             }
             String id = DocumentsContract.getDocumentId(uri);
-            if (PARENT_ID.equals(id)) {
-                rows.addRow(new Object[]{PROFILES_ID, PROFILES, DocumentsContract.Document.MIME_TYPE_DIR});
-                rows.addRow(new Object[]{SEGMENTS_ID, SEGMENTS, DocumentsContract.Document.MIME_TYPE_DIR});
-            } else if (PROFILES_ID.equals(id)) {
+            String profiles = externalParent + "/" + PROFILES;
+            String segments = externalParent + "/" + SEGMENTS;
+            if (externalParent.equals(id)) {
+                rows.addRow(new Object[]{profiles, PROFILES, DocumentsContract.Document.MIME_TYPE_DIR});
+                rows.addRow(new Object[]{segments, SEGMENTS, DocumentsContract.Document.MIME_TYPE_DIR});
+            } else if (profiles.equals(id)) {
                 addFile(rows, id, PROFILE_NAME + ".brf");
-            } else if (SEGMENTS_ID.equals(id)) {
+            } else if (segments.equals(id)) {
                 addFile(rows, id, TILE_NAME);
             }
             return rows;

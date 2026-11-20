@@ -4,11 +4,14 @@ import static org.junit.Assert.*;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.net.Uri;
+import android.os.Looper;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.Spinner;
 
@@ -21,10 +24,17 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.Implementation;
+import org.robolectric.annotation.Implements;
 import org.robolectric.shadows.ShadowActivity;
+import org.robolectric.shadows.ShadowAlertDialog;
+
+import java.util.ArrayDeque;
 
 import vibro.navigator.R;
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
+import vibro.navigator.android.brouter.AndroidBRouterStorageSetup;
+import vibro.navigator.android.brouter.TestBRouterStorage;
 import vibro.navigator.android.storage.AndroidOutputBrowserActivity;
 import vibro.navigator.android.storage.AndroidOutputStorageBrowser;
 import vibro.navigator.android.storage.TestDownloadsProvider;
@@ -53,6 +63,80 @@ public class MainActivityCustomProfileTaskTest {
         metadata.put("mime_type", "application/octet-stream");
         profile = TestDownloadsProvider.install(context).insert(
                 Uri.parse("content://media/external_primary/downloads"), metadata);
+    }
+
+    @Test
+    public void customActionWaitsForTheOpenAutomaticFolderPrompt() {
+        verifyPickerOrder(null);
+    }
+
+    @Test
+    @Config(shadows = QueuedFolderQueries.class)
+    public void racingLookupsOpenOnlyTheCustomPickerInEitherCompletionOrder() {
+        verifyPickerOrder(true);
+        verifyPickerOrder(false);
+    }
+
+    private void verifyPickerOrder(Boolean customFirst) {
+        TestBRouterStorage.createPrimaryFolder("profiles2");
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            var setup = new AndroidBRouterStorageSetup(activity, null);
+            var picker = new MainActivityProfilePicker(activity, profiles);
+            picker.restore(null, setup::isPickerPending);
+            setup.coordinatePicker(picker::isPickerRequested, picker::tryOpenPicker);
+            setup.bindManualAction(new View(activity), () -> { });
+            setup.setResumed(true);
+            try {
+                setup.setForegroundChecksEnabled(true);
+                picker.startCustomProfilePicker();
+                assertNull(shadowOf(activity).getNextStartedActivity());
+                completeFolderLookups(customFirst);
+                shadowOf(Looper.getMainLooper()).idle();
+                Intent launched = shadowOf(activity).getNextStartedActivity();
+                assertNotNull(launched);
+                assertEquals(AndroidOutputBrowserActivity.class.getName(), launched.getComponent().getClassName());
+                assertNull(shadowOf(activity).getNextStartedActivity());
+            } finally {
+                QueuedFolderQueries.tasks.clear();
+                setup.dispose();
+            }
+        }
+    }
+
+    private static void completeFolderLookups(Boolean customFirst) {
+        if (customFirst == null) {
+            var prompt = ShadowAlertDialog.getLatestAlertDialog();
+            assertTrue(prompt.isShowing());
+            prompt.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+            return;
+        }
+        assertEquals(2, QueuedFolderQueries.tasks.size());
+        var automatic = QueuedFolderQueries.tasks.removeFirst();
+        var custom = QueuedFolderQueries.tasks.removeFirst();
+        if (customFirst) {
+            custom.run();
+            automatic.run();
+        } else {
+            automatic.run();
+            custom.run();
+        }
+        assertNull(ShadowAlertDialog.getLatestAlertDialog());
+    }
+
+    @Implements(className = "vibro.navigator.android.brouter.AndroidBRouterFolderDiscovery", isInAndroidSdk = false)
+    public static class QueuedFolderQueries {
+        private static final ArrayDeque<Runnable> tasks = new ArrayDeque<>();
+
+        @Implementation
+        protected static void execute(Runnable work) {
+            tasks.add(work);
+        }
+
+        @Implementation
+        protected static void postResult(Runnable callback) {
+            callback.run();
+        }
     }
 
     @Test
