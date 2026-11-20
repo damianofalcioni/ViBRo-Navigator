@@ -161,6 +161,7 @@
     <string name="msg_brouter_storage_access_prompt">Selecione a pasta do BRouter em %1$s para permitir que o ViBRo leia os perfis e os dados de rotas.</string>
     <string name="msg_brouter_folder_required">Selecione uma pasta brouter que contenha profiles2, segments4 ou ambas.</string>
     <string name="msg_brouter_segments_folder_required">Selecione a pasta brouter que contém segments4.</string>
+    <string name="msg_brouter_direct_tiles_hint">Se os ficheiros .rd5 estiverem numa pasta separada, pode selecionar essa pasta.</string>
     <string name="action_browse">Procurar</string>
     <string name="msg_brouter_storage_folder_missing">Procure e selecione a pasta %1$s. Se ainda não existir, conclua a configuração do armazenamento no BRouter.</string>
     <string name="msg_symbol_test_notification_sent">enviada.</string>

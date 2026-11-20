@@ -161,6 +161,7 @@
     <string name="msg_brouter_storage_access_prompt">%1$s にある BRouter フォルダを選択して、ViBRo がプロファイルと経路データを読み取れるようにします。</string>
     <string name="msg_brouter_folder_required">profiles2、segments4、またはその両方が入っている brouter フォルダを選択してください。</string>
     <string name="msg_brouter_segments_folder_required">segments4 が入っている brouter フォルダを選択してください。</string>
+    <string name="msg_brouter_direct_tiles_hint">.rd5 ファイルが別のフォルダにある場合は、そのフォルダを選択できます。</string>
     <string name="action_browse">参照</string>
     <string name="msg_brouter_storage_folder_missing">参照して %1$s フォルダを選択してください。まだ存在しない場合は、BRouter でストレージの設定を完了してください。</string>
     <string name="msg_symbol_test_notification_sent">シンボルテスト通知が送信されました。</string>

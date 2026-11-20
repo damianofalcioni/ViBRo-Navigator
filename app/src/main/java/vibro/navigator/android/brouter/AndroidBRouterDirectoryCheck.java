@@ -25,6 +25,10 @@ final class AndroidBRouterDirectoryCheck {
     private static final String RESTRICTED = "Android/data/";
 
     record Directories(Child profiles, Child segments) {
+        boolean hasData() {
+            return profiles.uri() != null || segments.uri() != null;
+        }
+
         static Directories empty() {
             return new Directories(child(null, false), child(null, false));
         }

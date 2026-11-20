@@ -161,6 +161,7 @@
     <string name="msg_brouter_storage_access_prompt">Επιλέξτε τον φάκελο του BRouter στη θέση %1$s για να μπορεί το ViBRo να διαβάζει τα προφίλ και τα δεδομένα δρομολόγησης.</string>
     <string name="msg_brouter_folder_required">Επιλέξτε έναν φάκελο brouter που περιέχει profiles2, segments4 ή και τους δύο φακέλους.</string>
     <string name="msg_brouter_segments_folder_required">Επιλέξτε τον φάκελο brouter που περιέχει τον φάκελο segments4.</string>
+    <string name="msg_brouter_direct_tiles_hint">Αν τα αρχεία .rd5 βρίσκονται σε ξεχωριστό φάκελο, μπορείτε να επιλέξετε αυτόν τον φάκελο.</string>
     <string name="action_browse">Περιήγηση</string>
     <string name="msg_brouter_storage_folder_missing">Περιηγηθείτε για να επιλέξετε τον φάκελο %1$s. Αν δεν υπάρχει ακόμη, ολοκληρώστε τη ρύθμιση του χώρου αποθήκευσης στο BRouter.</string>
     <string name="msg_symbol_test_notification_sent">Στάλθηκε ειδοποίηση δοκιμής συμβόλου.</string>

@@ -99,7 +99,7 @@ final class MainActivityProfileCoordinator {
         if (coordinator != null) {
             coordinator.profilePicker.setResumed(true);
             if (coordinator.resumedOnce) {
-                coordinator.refreshAfterAccessChange();
+                coordinator.profileSpinnerController.refreshOnResume();
             }
             coordinator.resumedOnce = true;
             coordinator.startup.onResume();

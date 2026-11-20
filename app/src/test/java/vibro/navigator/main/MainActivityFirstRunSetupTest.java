@@ -398,7 +398,8 @@ public class MainActivityFirstRunSetupTest {
 
     private static void assertMissingFolderCanBeSkipped(MainActivity activity, String folderName) {
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
-        assertEquals(activity.getString(R.string.msg_brouter_storage_folder_missing, folderName),
+        assertEquals(activity.getString(R.string.msg_brouter_storage_folder_missing, folderName)
+                        + "\n\n" + activity.getString(R.string.msg_brouter_direct_tiles_hint),
                 String.valueOf(shadowOf(dialog).getMessage()));
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
         idle();

@@ -79,6 +79,10 @@ final class ProfileSpinnerController {
         loader.refreshAfterAccessChange();
     }
 
+    void refreshOnResume() {
+        loader.refreshOnResume();
+    }
+
     private void updateOptions(AndroidBRouterProfileLoader.Result result) {
         lastResult = result;
         String customProfile = profilesRepository.getCustomProfileUri(context) == null

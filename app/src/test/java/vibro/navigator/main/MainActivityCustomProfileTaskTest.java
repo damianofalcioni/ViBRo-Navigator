@@ -71,6 +71,32 @@ public class MainActivityCustomProfileTaskTest {
     }
 
     @Test
+    public void customPickerReopensAfterTheFilesTaskDisappearsWithoutAResult() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            var picker = new MainActivityProfilePicker(activity, profiles);
+            picker.startCustomProfilePicker();
+            Intent launch = shadowOf(activity).getNextStartedActivity();
+            assertNotNull(launch);
+            picker.startCustomProfilePicker();
+            assertNull(shadowOf(activity).getNextStartedActivity());
+
+            picker.setResumed(false);
+            try (var files = Robolectric.buildActivity(AndroidOutputBrowserActivity.class, launch).setup()) {
+                assertNotNull(shadowOf(files.get()).getNextStartedActivityForResult());
+                files.get().finishAndRemoveTask();
+            }
+            picker.setResumed(true);
+            assertFalse(picker.isPickerRequested());
+
+            picker.startCustomProfilePicker();
+            Intent reopened = shadowOf(activity).getNextStartedActivity();
+            assertNotNull(reopened);
+            assertEquals(AndroidOutputBrowserActivity.class.getName(), reopened.getComponent().getClassName());
+        }
+    }
+
+    @Test
     @Config(shadows = QueuedFolderQueries.class)
     public void racingLookupsOpenOnlyTheCustomPickerInEitherCompletionOrder() {
         verifyPickerOrder(true);

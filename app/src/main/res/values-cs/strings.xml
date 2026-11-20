@@ -161,6 +161,7 @@
     <string name="msg_brouter_storage_access_prompt">Vyberte složku BRouteru v umístění %1$s, aby ViBRo mohl číst profily a data tras.</string>
     <string name="msg_brouter_folder_required">Vyberte složku brouter obsahující profiles2, segments4 nebo obě složky.</string>
     <string name="msg_brouter_segments_folder_required">Vyberte složku brouter obsahující segments4.</string>
+    <string name="msg_brouter_direct_tiles_hint">Pokud jsou soubory .rd5 v samostatné složce, můžete vybrat tuto složku.</string>
     <string name="action_browse">Procházet</string>
     <string name="msg_brouter_storage_folder_missing">Vyhledejte a vyberte složku %1$s. Pokud ještě neexistuje, dokončete nastavení úložiště v BRouteru.</string>
     <string name="msg_symbol_test_notification_sent">.</string>

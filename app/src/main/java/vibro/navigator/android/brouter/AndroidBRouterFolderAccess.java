@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.CancellationSignal;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.MainThread;
@@ -53,16 +54,40 @@ public final class AndroidBRouterFolderAccess {
         long selection = SELECTION_ORDER.incrementAndGet();
         AtomicReference<Directories> verified = new AtomicReference<>(Directories.empty());
         AndroidBRouterFolderDiscovery.findWithFallback(
-                signal -> AndroidBRouterDirectoryCheck.verify(activity, uri, signal, verified), verified::get,
+                signal -> verifySelection(activity, uri, signal, verified),
+                () -> new Selection(verified.get(), false),
                 grant -> onResult.accept(saveVerifiedSelection(activity, data, uri, selection, grant)));
     }
 
+    private static Selection verifySelection(Context context, Uri tree, CancellationSignal signal,
+                                             AtomicReference<Directories> verified) {
+        Directories parent = AndroidBRouterDirectoryCheck.verify(context, tree, signal, verified);
+        boolean directTiles = parent != null && !parent.hasData()
+                && AndroidBRouterTileDirectory.hasTiles(context, tree, signal);
+        return new Selection(parent, directTiles);
+    }
+
+    private record Selection(@Nullable Directories parent, boolean directTiles) {
+        boolean usable() {
+            return directTiles || (parent != null && parent.hasData());
+        }
+    }
+
     private static boolean saveVerifiedSelection(Activity activity, Intent data, Uri tree, long selection,
-                                                 @Nullable Directories grant) {
-        if (grant == null || grant.profiles().uri() == null && grant.segments().uri() == null
+                                                 @Nullable Selection grant) {
+        if (grant == null || !grant.usable()
                 || !AndroidDocumentAccess.persistReadPermission(activity, data, tree)) {
             return false;
         }
+        if (grant.directTiles()) {
+            AndroidBRouterTileDirectory.save(activity, tree, selection);
+        } else {
+            saveParent(activity, tree, selection, grant.parent());
+        }
+        return true;
+    }
+
+    private static void saveParent(Context context, Uri tree, long selection, Directories grant) {
         Child profiles = prefer(grant.profiles(), selection >= profilesOrder);
         Child segments = prefer(grant.segments(), selection >= segmentsOrder);
         boolean latest = selection >= lastSavedSelection;
@@ -73,8 +98,7 @@ public final class AndroidBRouterFolderAccess {
         if (segments.prefer()) {
             segmentsOrder = selection;
         }
-        BRouterFolderGrant.save(activity, tree, profiles, segments, latest, segments.uri() != null);
-        return true;
+        BRouterFolderGrant.save(context, tree, profiles, segments, latest, segments.uri() != null);
     }
 
     @Nullable

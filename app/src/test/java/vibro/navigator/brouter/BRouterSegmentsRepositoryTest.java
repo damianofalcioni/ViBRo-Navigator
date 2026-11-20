@@ -18,13 +18,16 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import vibro.navigator.nav.compass.CompassStreetVisibility;
+import vibro.navigator.android.brouter.AndroidBRouterFolderAccess;
 import vibro.navigator.android.brouter.AndroidBRouterSegmentsRepositoryFactory;
 import vibro.navigator.android.brouter.TestBRouterStorage;
 import vibro.navigator.android.storage.AndroidDocumentAccess;
@@ -73,6 +76,40 @@ public class BRouterSegmentsRepositoryTest {
         repository.loadSurroundingStreets(activity, 48.2d, 16.3d, 80d, 10, CompassStreetVisibility.all());
 
         assertEquals(treeUri, testDependencies.documentAccess.firstChildTreeUri);
+    }
+
+    @Test
+    public void explicitSecondaryTileFolderWorksAlongsideTheSharedParent() throws Exception {
+        String parentPath = "Android/media/btools.routingapp/brouter";
+        String tilesPath = "Android/media/btools.routingapp/Offline Tiles";
+        TestBRouterStorage.createPrimaryDirectory(parentPath + "/segments4");
+        var tiles = TestBRouterStorage.createPrimaryDirectory(tilesPath);
+        var fixture = new BRouterStreetTestFile();
+        byte[] tile = new byte[(int) fixture.length()];
+        fixture.readFully(0L, tile, 0, tile.length);
+        String fileName = BRouterSegmentTile.fileNameFor(48.18773, 16.38148);
+        Files.write(tiles.toPath().resolve(fileName), tile);
+
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Uri parent = AndroidDocumentAccess.buildExternalStorageTreeUri("primary:" + parentPath);
+            Uri secondary = AndroidDocumentAccess.buildExternalStorageTreeUri("primary:" + tilesPath);
+            var repository = AndroidBRouterSegmentsRepositoryFactory.create();
+            assertTrue(selectDirectory(activity, parent));
+            assertEquals(0, loadFixtureStreets(repository, activity));
+
+            assertTrue(selectDirectory(activity, secondary));
+            assertEquals(parent, BRouterFolderGrant.parentFor(activity, false));
+            assertEquals(secondary, repository.getSegmentsTreeUri(activity));
+            assertTrue(loadFixtureStreets(repository, activity) > 0);
+        }
+    }
+
+    private static boolean selectDirectory(Activity activity, Uri tree) {
+        var saved = new AtomicReference<Boolean>();
+        AndroidBRouterFolderAccess.saveSelection(activity,
+                new Intent().setData(tree).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION), saved::set);
+        return Boolean.TRUE.equals(saved.get());
     }
 
     @Test
@@ -188,7 +225,7 @@ public class BRouterSegmentsRepositoryTest {
             assertTrue(repository.readGrantedTile(activity, tile,
                     uri -> earlier.getAuthority().equals(uri.getAuthority())));
 
-            var source = new java.util.concurrent.atomic.AtomicReference<String>();
+            var source = new AtomicReference<String>();
             assertTrue(repository.readGrantedTile(activity, tile, uri -> {
                 source.set(uri.getAuthority());
                 return true;

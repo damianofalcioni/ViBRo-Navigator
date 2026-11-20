@@ -162,6 +162,7 @@
     <string name="msg_brouter_storage_access_prompt">Seleziona la cartella di BRouter in %1$s per consentire a ViBRo di leggere i profili e i dati di percorso.</string>
     <string name="msg_brouter_folder_required">Seleziona una cartella brouter che contenga profiles2, segments4 o entrambe.</string>
     <string name="msg_brouter_segments_folder_required">Seleziona la cartella brouter che contiene segments4.</string>
+    <string name="msg_brouter_direct_tiles_hint">Se i file .rd5 si trovano in una cartella separata, puoi selezionare quella cartella.</string>
     <string name="action_browse">Sfoglia</string>
     <string name="msg_brouter_storage_folder_missing">Sfoglia le cartelle per selezionare %1$s. Se non esiste ancora, completa la configurazione dell’archiviazione in BRouter.</string>
     <string name="msg_symbol_test_notification_sent">Notifica di prova dei simboli inviata.</string>

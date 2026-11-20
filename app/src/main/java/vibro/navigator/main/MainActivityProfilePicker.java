@@ -37,6 +37,7 @@ final class MainActivityProfilePicker {
     private boolean findingPickerLocation;
     private boolean pickerRequested;
     private boolean pickerOpen;
+    private boolean launchingPicker;
     private boolean resumed = true;
     private Runnable deferredPicker;
     private Supplier<Boolean> storagePickerPending = () -> false;
@@ -59,7 +60,7 @@ final class MainActivityProfilePicker {
     }
 
     void startCustomProfilePicker() {
-        if (pickerOpen) {
+        if (hasOpenPicker()) {
             return;
         }
         pickerRequested = true;
@@ -70,6 +71,8 @@ final class MainActivityProfilePicker {
         this.resumed = resumed;
         if (resumed) {
             tryOpenPicker();
+        } else {
+            launchingPicker = false;
         }
     }
 
@@ -85,7 +88,14 @@ final class MainActivityProfilePicker {
     }
 
     boolean isPickerRequested() {
-        return pickerRequested || pickerOpen;
+        return pickerRequested || hasOpenPicker();
+    }
+
+    private boolean hasOpenPicker() {
+        if (pickerOpen && !launchingPicker) {
+            pickerOpen = AndroidOutputStorageBrowser.hasPickerTask(activity, REQ_PICK_CUSTOM_PROFILE);
+        }
+        return pickerOpen;
     }
 
     void tryOpenPicker() {
@@ -117,9 +127,11 @@ final class MainActivityProfilePicker {
         AppLogger.i(TAG, "Launching custom profile document picker initialUri=" + safe(initialUri));
         try {
             pickerOpen = true;
+            launchingPicker = true;
             AndroidOutputStorageBrowser.openForResult(activity, intent, REQ_PICK_CUSTOM_PROFILE);
         } catch (ActivityNotFoundException | SecurityException e) {
             pickerOpen = false;
+            launchingPicker = false;
             AppLogger.w(TAG, "Could not open custom profile picker", e);
             Toast.makeText(activity, R.string.msg_output_viewer_unavailable, Toast.LENGTH_SHORT).show();
             requireProfileSpinnerController().onCustomProfilePickerCancelled();
@@ -146,6 +158,7 @@ final class MainActivityProfilePicker {
 
     private void handleCustomProfilePickerResult(int resultCode, @Nullable Intent data) {
         pickerOpen = false;
+        launchingPicker = false;
         ProfileSpinnerController controller = requireProfileSpinnerController();
         if (resultCode != Activity.RESULT_OK || data == null) {
             controller.onCustomProfilePickerCancelled();

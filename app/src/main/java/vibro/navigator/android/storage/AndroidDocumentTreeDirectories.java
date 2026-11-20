@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import vibro.navigator.logging.AppLogger;
 
@@ -66,5 +67,47 @@ public final class AndroidDocumentTreeDirectories {
 
     private static boolean isReadable(Cursor cursor) {
         return cursor != null && cursor.getExtras().getString(DocumentsContract.EXTRA_ERROR) == null;
+    }
+
+    /** Checks real files through either direct storage or the temporary tree permission. */
+    public static boolean hasFileMatching(Context context, Uri tree, String id, Pattern name, CancellationSignal signal) {
+        if (AndroidDocumentAccess.isExternalStorageDocument(tree) && hasMatchingLocalFile(context, id, name)) {
+            return true;
+        }
+        Uri children = DocumentsContract.buildChildDocumentsUriUsingTree(tree, id);
+        try (Cursor cursor = context.getContentResolver().query(children, new String[]{
+                DocumentsContract.Document.COLUMN_DISPLAY_NAME, DocumentsContract.Document.COLUMN_MIME_TYPE
+        }, null, null, null, signal)) {
+            return isReadable(cursor) && hasMatchingDocument(cursor, name);
+        } catch (RuntimeException e) {
+            AppLogger.d(TAG, "Unable to check document tree files: " + e.getClass().getSimpleName());
+            return false;
+        }
+    }
+
+    private static boolean hasMatchingLocalFile(Context context, String id, Pattern name) {
+        var names = AndroidExternalStorageDocumentFiles.childDisplayNames(context, id);
+        if (names != null) {
+            for (String file : names) {
+                if (name.matcher(file).matches()
+                        && AndroidExternalStorageDocumentFiles.childFileUri(context, id, file) != null) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasMatchingDocument(Cursor cursor, Pattern name) {
+        int displayName = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME);
+        int mimeType = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_MIME_TYPE);
+        while (cursor.moveToNext()) {
+            String file = cursor.getString(displayName);
+            if (file != null && name.matcher(file).matches()
+                    && !DocumentsContract.Document.MIME_TYPE_DIR.equals(cursor.getString(mimeType))) {
+                return true;
+            }
+        }
+        return false;
     }
 }

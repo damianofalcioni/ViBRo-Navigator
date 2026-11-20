@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.HashSet;
+import java.util.Set;
 
 public final class BRouterProfileParameterValues {
     private BRouterProfileParameterValues() {
@@ -54,10 +55,10 @@ public final class BRouterProfileParameterValues {
         return value.indexOf('?') >= 0 || value.indexOf('&') >= 0 || value.indexOf('=') >= 0;
     }
 
-    public static String filterExtraParams(String encoded, List<BRouterProfileParameter> parameters) {
+    public static String filterExtraParams(String encoded, Set<String> parameterNames) {
         var allowed = new HashSet<String>();
-        for (BRouterProfileParameter parameter : parameters) {
-            allowed.add(encode(parameter.name));
+        for (String name : parameterNames) {
+            allowed.add(encode(name));
         }
         StringBuilder selected = new StringBuilder();
         for (String pair : encoded.split("&")) {

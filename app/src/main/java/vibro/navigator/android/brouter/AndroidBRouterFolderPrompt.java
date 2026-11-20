@@ -2,6 +2,7 @@ package vibro.navigator.android.brouter;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.net.Uri;
 
 import androidx.annotation.Nullable;
@@ -22,12 +23,16 @@ final class AndroidBRouterFolderPrompt {
         }
         return new AlertDialog.Builder(activity)
                 .setTitle(R.string.title_brouter_storage_access)
-                .setMessage(activity.getString(R.string.msg_brouter_storage_access_prompt,
-                        AndroidBRouterStorageInstructions.folderPath(initialUri, folder)))
+                .setMessage(withTileFolderHint(activity, activity.getString(R.string.msg_brouter_storage_access_prompt,
+                        AndroidBRouterStorageInstructions.folderPath(initialUri, folder))))
                 .setPositiveButton(R.string.action_continue, (dialog, which) -> AndroidBRouterTreePicker.launch(
                         activity, initialUri, requestCode, logTag, beforeLaunch, onLaunchFailure))
                 .setNegativeButton(R.string.action_cancel, (dialog, which) -> onCancel.run())
                 .setOnCancelListener(dialog -> onCancel.run())
                 .show();
+    }
+
+    static String withTileFolderHint(Context context, String message) {
+        return message + "\n\n" + context.getString(R.string.msg_brouter_direct_tiles_hint);
     }
 }

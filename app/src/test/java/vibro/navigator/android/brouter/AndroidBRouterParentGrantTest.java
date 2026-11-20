@@ -25,6 +25,7 @@ import org.robolectric.shadows.ShadowContentResolver;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import vibro.navigator.android.storage.AndroidDocumentAccess;
@@ -167,7 +168,53 @@ public class AndroidBRouterParentGrantTest {
 
             TestBRouterStorage.createPrimaryFolder(PROFILES);
             assertTrue(TestBRouterStorage.saveSelection(activity, grant(parent)));
-            assertTrue(profiles.listProfiles(activity).contains(PROFILE_NAME));
+            assertFalse(profiles.listProfiles(activity).contains(PROFILE_NAME));
+        }
+    }
+
+    @Test
+    public void secondaryTileFolderCanBeVerifiedThroughTheDocumentsProvider() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Uri tiles = DocumentsContract.buildTreeDocumentUri(OPAQUE_AUTHORITY, "offline-tiles");
+            ShadowContentResolver.registerProviderInternal(OPAQUE_AUTHORITY, new ParentProvider() {
+                @Override
+                public Cursor query(Uri uri, String[] projection, String selection, String[] args, String sort) {
+                    var rows = new MatrixCursor(new String[]{DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+                            DocumentsContract.Document.COLUMN_MIME_TYPE});
+                    if (uri.getPathSegments().size() == 4) {
+                        rows.addRow(new Object[]{"Offline tiles", DocumentsContract.Document.MIME_TYPE_DIR});
+                    } else {
+                        rows.addRow(new Object[]{TILE_NAME, "application/octet-stream"});
+                    }
+                    return rows;
+                }
+            });
+
+            assertTrue(TestBRouterStorage.saveSelection(activity, grant(tiles)));
+            assertEquals(tiles, AndroidBRouterSegmentsRepositoryFactory.create().getGrantedSegmentsTreeUri(activity));
+            assertFalse(AndroidBRouterProfilesRepositoryFactory.create().hasPersistedProfilesTreeAccess(activity));
+        }
+    }
+
+    @Test
+    public void namedProfilesUseThePreferredGrantUntilAccessIsLost() throws Exception {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            var earlier = TestBRouterStorage.createPrimaryDirectory("brouter/profiles2");
+            var preferred = TestBRouterStorage.createPrimaryDirectory("Android/media/btools.routingapp/brouter/profiles2");
+            Files.writeString(earlier.toPath().resolve("old-only.brf"), "assign validForBikes = true");
+            Files.writeString(preferred.toPath().resolve("active-only.brf"), "assign validForBikes = true");
+            assertTrue(TestBRouterStorage.saveSelection(activity, grant(tree("primary:brouter"))));
+            Uri preferredGrant = tree(PARENT_ID);
+            assertTrue(TestBRouterStorage.saveSelection(activity, grant(preferredGrant)));
+            var profiles = AndroidBRouterProfilesRepositoryFactory.create();
+
+            assertEquals(List.of("active-only"), profiles.listProfiles(activity));
+
+            activity.getContentResolver().releasePersistableUriPermission(
+                    preferredGrant, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            assertEquals(List.of("old-only"), profiles.listProfiles(activity));
         }
     }
 

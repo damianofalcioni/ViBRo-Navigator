@@ -62,7 +62,8 @@ final class AndroidBRouterRouteParameterValues {
             // BRouter resolves named profiles in its own configured folder.
             return encoded;
         }
-        return BRouterProfileParameterValues.filterExtraParams(encoded, new BRouterProfileParameterParser().parse(remoteProfile));
+        return BRouterProfileParameterValues.filterExtraParams(
+                encoded, new BRouterProfileParameterParser().overridableNames(remoteProfile));
     }
 
     @NonNull

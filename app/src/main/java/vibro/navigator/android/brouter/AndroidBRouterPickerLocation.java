@@ -227,7 +227,8 @@ final class AndroidBRouterPickerLocation {
             @NonNull Runnable onCancel
     ) {
         return new AlertDialog.Builder(activity)
-                .setMessage(activity.getString(R.string.msg_brouter_storage_folder_missing, folderName))
+                .setMessage(AndroidBRouterFolderPrompt.withTileFolderHint(activity,
+                        activity.getString(R.string.msg_brouter_storage_folder_missing, folderName)))
                 .setPositiveButton(R.string.action_browse, (dialog, which) -> onBrowse.run())
                 .setNegativeButton(R.string.action_cancel, (dialog, which) -> onCancel.run())
                 .setOnCancelListener(dialog -> onCancel.run())

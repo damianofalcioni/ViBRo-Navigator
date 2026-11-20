@@ -249,7 +249,8 @@ public class AndroidBRouterProfilesStorageAccessTest {
         AndroidBRouterProfilesStorageAccess.request(activity, repository, 42, "StorageTest", () -> { }, () -> { });
         idlePrompt();
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
-        assertEquals(activity.getString(R.string.msg_brouter_storage_folder_missing, "brouter"),
+        assertEquals(activity.getString(R.string.msg_brouter_storage_folder_missing, "brouter")
+                        + "\n\n" + activity.getString(R.string.msg_brouter_direct_tiles_hint),
                 String.valueOf(shadowOf(dialog).getMessage()));
         assertEquals(activity.getString(R.string.action_browse), dialog.getButton(AlertDialog.BUTTON_POSITIVE).getText());
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();

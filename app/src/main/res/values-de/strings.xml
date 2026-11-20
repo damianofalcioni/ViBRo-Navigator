@@ -161,6 +161,7 @@
     <string name="msg_brouter_storage_access_prompt">Wähle den BRouter-Ordner unter %1$s aus, damit ViBRo Profile und Routingdaten lesen kann.</string>
     <string name="msg_brouter_folder_required">Wähle einen brouter-Ordner, der profiles2, segments4 oder beide enthält.</string>
     <string name="msg_brouter_segments_folder_required">Wähle den brouter-Ordner aus, der segments4 enthält.</string>
+    <string name="msg_brouter_direct_tiles_hint">Wenn deine .rd5-Dateien in einem separaten Ordner liegen, kannst du diesen auswählen.</string>
     <string name="action_browse">Durchsuchen</string>
     <string name="msg_brouter_storage_folder_missing">Suche den Ordner %1$s und wähle ihn aus. Falls er noch nicht existiert, schließe die Speichereinrichtung in BRouter ab.</string>
     <string name="msg_symbol_test_notification_sent">Symbol-Testbenachrichtigung gesendet.</string>

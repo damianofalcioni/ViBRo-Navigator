@@ -10,6 +10,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import androidx.core.util.Supplier;
 import java.util.zip.ZipEntry;
@@ -46,30 +48,59 @@ final class BRouterProfileParameterSource {
             @Nullable String profileName,
             @Nullable Uri customProfileUri,
             boolean custom,
-            Supplier<List<Uri>> granted,
-            Supplier<List<Uri>> detected
+            Supplier<List<Uri>> namedTrees
     ) {
         String name = BRouterProfileNames.clean(profileName);
         if (name == null) {
             return null;
         }
         if (custom) {
-            return customProfileUri == null ? null : parseDocumentProfile(context, customProfileUri);
+            return customProfileUri == null ? null : readCustomParameters(context, name, customProfileUri);
         }
-        return readNamedParameters(context, name, granted.get(), detected);
+        List<BRouterProfileParameter> external = readExternalProfileParameters(context, name + ".brf", namedTrees.get());
+        return external == null ? readBundledProfileParameters(context, name) : external;
     }
 
     @Nullable
-    private List<BRouterProfileParameter> readNamedParameters(Context context, String name, List<Uri> first,
-                                                              Supplier<List<Uri>> detected) {
-        String fileName = name + ".brf";
-        List<BRouterProfileParameter> parameters = readExternalProfileParameters(context, fileName, first);
-        if (parameters == null) {
-            List<Uri> remaining = detected.get();
-            remaining.removeAll(first);
-            parameters = readExternalProfileParameters(context, fileName, remaining);
+    private List<BRouterProfileParameter> readCustomParameters(Context context, String name, Uri uri) {
+        String profileText = readProfileText(context, uri);
+        if (profileText == null) {
+            return null;
         }
-        return parameters == null ? readBundledProfileParameters(context, name) : parameters;
+        var parameters = new ArrayList<>(parser.parse(profileText));
+        List<BRouterProfileParameter> bundled = readBundledProfileParameters(context, name);
+        if (bundled != null && !bundled.isEmpty()) {
+            applyBundledMetadata(parameters, bundled, profileText);
+        }
+        return parameters;
+    }
+
+    private void applyBundledMetadata(List<BRouterProfileParameter> parameters, List<BRouterProfileParameter> bundled,
+                                      String profileText) {
+        var assignments = parser.globalAssignments(profileText);
+        var annotated = new HashSet<String>();
+        for (BRouterProfileParameter parameter : parameters) {
+            annotated.add(parameter.name);
+        }
+        for (BRouterProfileParameter metadata : bundled) {
+            String value = assignments.get(metadata.name);
+            if (value != null && !annotated.contains(metadata.name) && isLiteral(value)) {
+                parameters.add(new BRouterProfileParameter(
+                        metadata.name, metadata.description, value, metadata.valueType, metadata.options));
+            }
+        }
+    }
+
+    private static boolean isLiteral(String value) {
+        if ("true".equals(value) || "false".equals(value)) {
+            return true;
+        }
+        try {
+            Float.parseFloat(value);
+            return true;
+        } catch (NumberFormatException ignored) {
+            return false;
+        }
     }
 
     @Nullable
@@ -93,9 +124,14 @@ final class BRouterProfileParameterSource {
 
     @Nullable
     private List<BRouterProfileParameter> parseDocumentProfile(@NonNull Context context, @NonNull Uri uri) {
+        String profileText = readProfileText(context, uri);
+        return profileText == null ? null : parser.parse(profileText);
+    }
+
+    @Nullable
+    private String readProfileText(Context context, Uri uri) {
         try {
-            String profileText = documentAccess.readText(context, uri);
-            return profileText == null ? null : parser.parse(profileText);
+            return documentAccess.readText(context, uri);
         } catch (Exception e) {
             AppLogger.w(TAG, "Failed to read profile parameters from document uri=" + uri, e);
             return null;

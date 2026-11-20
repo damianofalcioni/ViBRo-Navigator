@@ -161,6 +161,7 @@
     <string name="msg_brouter_storage_access_prompt">Selecciona la carpeta del BRouter a %1$s perquè ViBRo pugui llegir els perfils i les dades de rutes.</string>
     <string name="msg_brouter_folder_required">Selecciona una carpeta brouter que contingui profiles2, segments4 o totes dues.</string>
     <string name="msg_brouter_segments_folder_required">Selecciona la carpeta brouter que conté segments4.</string>
+    <string name="msg_brouter_direct_tiles_hint">Si els fitxers .rd5 són en una carpeta a part, pots seleccionar aquesta carpeta.</string>
     <string name="action_browse">Navega</string>
     <string name="msg_brouter_storage_folder_missing">Navega per seleccionar la carpeta %1$s. Si encara no existeix, completa la configuració de l’emmagatzematge a BRouter.</string>
     <string name="msg_symbol_test_notification_sent">enviada.</string>

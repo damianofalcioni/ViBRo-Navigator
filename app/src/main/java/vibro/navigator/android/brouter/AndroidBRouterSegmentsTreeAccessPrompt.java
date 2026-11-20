@@ -99,7 +99,8 @@ public final class AndroidBRouterSegmentsTreeAccessPrompt {
                                         String logTag, Runnable beforeLaunch, Runnable onSkip) {
         return new AlertDialog.Builder(activity)
                 .setTitle(R.string.title_brouter_storage_access)
-                .setMessage(R.string.msg_brouter_segments_folder_required)
+                .setMessage(AndroidBRouterFolderPrompt.withTileFolderHint(activity,
+                        activity.getString(R.string.msg_brouter_segments_folder_required)))
                 .setPositiveButton(R.string.action_browse, (dialog, which) ->
                         AndroidBRouterTreePicker.launch(activity, initialUri, requestCode, logTag, beforeLaunch, onSkip))
                 .setNegativeButton(R.string.action_cancel, (dialog, which) -> onSkip.run())

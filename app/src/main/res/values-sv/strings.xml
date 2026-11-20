@@ -161,6 +161,7 @@
     <string name="msg_brouter_storage_access_prompt">Välj BRouter-mappen på %1$s så att ViBRo kan läsa profiler och ruttdata.</string>
     <string name="msg_brouter_folder_required">Välj en brouter-mapp som innehåller profiles2, segments4 eller båda.</string>
     <string name="msg_brouter_segments_folder_required">Välj mappen brouter som innehåller segments4.</string>
+    <string name="msg_brouter_direct_tiles_hint">Om dina .rd5-filer finns i en separat mapp kan du välja den.</string>
     <string name="action_browse">Bläddra</string>
     <string name="msg_brouter_storage_folder_missing">Bläddra till mappen %1$s och välj den. Om den inte finns ännu, slutför lagringsinställningarna i BRouter.</string>
     <string name="msg_symbol_test_notification_sent">Symboltestmeddelande skickat.</string>

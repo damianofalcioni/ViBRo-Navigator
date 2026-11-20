@@ -1,6 +1,7 @@
 package vibro.navigator.android.storage;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -19,6 +20,7 @@ public final class AndroidOutputStorageBrowser {
     private static final String EXTRA_RETURN_TO = "vibro.navigator.storage.RETURN_TO";
     private static final String EXTRA_REQUEST_CODE = "vibro.navigator.storage.REQUEST_CODE";
     private static final String EXTRA_RESULT_CODE = "vibro.navigator.storage.RESULT_CODE";
+    private static final String PICKER_TASK_ACTION = "vibro.navigator.storage.PICKER_TASK.";
 
     private AndroidOutputStorageBrowser() { }
 
@@ -40,7 +42,27 @@ public final class AndroidOutputStorageBrowser {
         Intent returnTo = new Intent(activity, activity.getClass())
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP)
                 .putExtra(EXTRA_REQUEST_CODE, requestCode);
-        activity.startActivity(hostIntent(activity).putExtra(EXTRA_PICKER, picker).putExtra(EXTRA_RETURN_TO, returnTo));
+        activity.startActivity(hostIntent(activity).setAction(PICKER_TASK_ACTION + requestCode)
+                .putExtra(EXTRA_PICKER, picker).putExtra(EXTRA_RETURN_TO, returnTo));
+    }
+
+    public static boolean hasPickerTask(Context context, int requestCode) {
+        ActivityManager manager = context.getSystemService(ActivityManager.class);
+        if (manager == null) {
+            return false;
+        }
+        String action = PICKER_TASK_ACTION + requestCode;
+        try {
+            for (ActivityManager.AppTask task : manager.getAppTasks()) {
+                var info = task.getTaskInfo();
+                if (info != null && info.baseIntent != null && action.equals(info.baseIntent.getAction())) {
+                    return true;
+                }
+            }
+        } catch (IllegalArgumentException | SecurityException ignored) {
+            // The task may have been removed while inspecting Recents.
+        }
+        return false;
     }
 
     private static Intent hostIntent(Activity activity) {

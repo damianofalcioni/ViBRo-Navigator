@@ -2,6 +2,7 @@ package vibro.navigator.main;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Looper;
 import android.view.MotionEvent;
@@ -135,6 +136,51 @@ public class ProfileSpinnerAsyncTest {
             assertTrue(recreated.resolveSelectedProfileSelection().customProfile);
             assertEquals("local", recreated.resolveSelectedProfileSelection().profileName);
             recreated.dispose();
+        }
+    }
+
+    @Test
+    public void routineResumeKeepsTheVerifiedExternalProfileUsableDuringRefresh() {
+        try (var activity = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity host = activity.get();
+            var repository = new Profiles();
+            repository.saveSelectedProfileKey(host, EXTERNAL);
+            var spinner = controller(host, repository);
+            spinner.refresh();
+            finishLookup();
+
+            spinner.refreshOnResume();
+
+            assertEquals(1, QueuedProfiles.tasks.size());
+            assertEquals(EXTERNAL, spinner.resolveSelectedProfileSelection().profileName);
+            finishLookup();
+            assertEquals(EXTERNAL, spinner.resolveSelectedProfileSelection().profileName);
+            spinner.dispose();
+        }
+    }
+
+    @Test
+    public void resumingAfterRevocationInvalidatesTheVerifiedProfileBeforeRechecking() {
+        try (var activity = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity host = activity.get();
+            var repository = new Profiles();
+            var grant = Uri.parse("content://example/tree/profiles2");
+            host.getContentResolver().takePersistableUriPermission(grant, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            repository.saveProfilesTreeUri(host, grant);
+            repository.saveSelectedProfileKey(host, EXTERNAL);
+            var spinner = controller(host, repository);
+            spinner.refresh();
+            finishLookup();
+            assertEquals(EXTERNAL, spinner.resolveSelectedProfileSelection().profileName);
+
+            host.getContentResolver().releasePersistableUriPermission(grant, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            repository.available = List.of(BUNDLED);
+            spinner.refreshOnResume();
+
+            assertNull(spinner.resolveSelectedProfileSelection());
+            finishLookup();
+            assertEquals(BUNDLED, spinner.resolveSelectedProfileSelection().profileName);
+            spinner.dispose();
         }
     }
 

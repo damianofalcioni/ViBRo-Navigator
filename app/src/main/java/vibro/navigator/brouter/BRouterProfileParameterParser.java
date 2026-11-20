@@ -5,7 +5,10 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public final class BRouterProfileParameterParser {
 
@@ -26,6 +29,35 @@ public final class BRouterProfileParameterParser {
             }
         }
         return out;
+    }
+
+    public Set<String> overridableNames(String profileText) {
+        return globalAssignments(profileText).keySet();
+    }
+
+    Map<String, String> globalAssignments(String profileText) {
+        String[] tokens = profileText.replaceAll("(?m)#.*", "").trim().split("\\s+");
+        Map<String, String> assignments = new LinkedHashMap<>();
+        boolean global = true;
+        for (int i = 0; i < tokens.length; i++) {
+            String token = tokens[i];
+            if (token.startsWith("---context:")) {
+                global = "---context:global".equals(token);
+            } else if (global && ASSIGN.equals(token)) {
+                recordAssignment(tokens, i + 1, assignments);
+            }
+        }
+        return assignments;
+    }
+
+    private static void recordAssignment(String[] tokens, int name, Map<String, String> assignments) {
+        if (name + 1 >= tokens.length || TURN_INSTRUCTION_MODE.equals(tokens[name])) {
+            return;
+        }
+        int value = "=".equals(tokens[name + 1]) ? name + 2 : name + 1;
+        if (value < tokens.length && !assignments.containsKey(tokens[name])) {
+            assignments.put(tokens[name], tokens[value]);
+        }
     }
 
     @Nullable

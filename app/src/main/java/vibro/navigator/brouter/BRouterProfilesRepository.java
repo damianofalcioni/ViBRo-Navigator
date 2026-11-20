@@ -139,8 +139,7 @@ public class BRouterProfilesRepository {
                 profileName,
                 getCustomProfileUri(context),
                 custom,
-                () -> grantedProfileTrees(context),
-                () -> detectedProfileTrees(context)
+                () -> namedProfileTrees(context)
         );
         return parameters == null ? Collections.emptyList() : parameters;
     }
@@ -242,22 +241,16 @@ public class BRouterProfilesRepository {
     @NonNull
     public List<String> listAvailableProfiles(Context context, List<String> bundled,
                                               androidx.core.util.Consumer<List<String>> progress) {
-        List<Uri> granted = grantedProfileTrees(context);
-        List<String> available = profileLister.listProfiles(context, granted, bundled, progress);
-        List<Uri> detected = detectedProfileTrees(context);
-        detected.removeAll(granted);
-        return profileLister.listProfiles(context, detected, available, progress);
+        return profileLister.listProfiles(context, namedProfileTrees(context), bundled, progress);
     }
 
     @NonNull
-    private List<Uri> detectedProfileTrees(Context context) {
-        return profileDirectories.resolveProfilesDiscoveryTreeUris(context, Collections.emptyList());
-    }
-
-    @NonNull
-    private List<Uri> grantedProfileTrees(Context context) {
-        return BRouterFolderGrant.discoveryTrees(context, getProfilesTreeUri(context), true,
-                dependencies.uriPermissionAccess::hasReadPermission);
+    private List<Uri> namedProfileTrees(Context context) {
+        Uri granted = getGrantedProfilesTreeUri(context);
+        // Named requests go to the BRouter service, which uses one configured profiles directory.
+        // An earlier grant is used only if the preferred profile grant is unavailable.
+        return granted == null ? profileDirectories.resolveProfilesDiscoveryTreeUris(context, Collections.emptyList())
+                : Collections.singletonList(granted);
     }
 
     @Nullable

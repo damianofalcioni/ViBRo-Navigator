@@ -161,6 +161,7 @@
     <string name="msg_brouter_storage_access_prompt">Sélectionnez le dossier BRouter à l’emplacement %1$s pour permettre à ViBRo de lire les profils et les données de routage.</string>
     <string name="msg_brouter_folder_required">Sélectionnez un dossier brouter contenant profiles2, segments4 ou les deux.</string>
     <string name="msg_brouter_segments_folder_required">Sélectionnez le dossier brouter contenant segments4.</string>
+    <string name="msg_brouter_direct_tiles_hint">Si vos fichiers .rd5 se trouvent dans un dossier séparé, vous pouvez sélectionner ce dossier.</string>
     <string name="action_browse">Parcourir</string>
     <string name="msg_brouter_storage_folder_missing">Parcourez le stockage pour sélectionner le dossier %1$s. S’il n’existe pas encore, terminez la configuration du stockage dans BRouter.</string>
     <string name="msg_symbol_test_notification_sent">envoyée.</string>
