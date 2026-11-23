@@ -595,6 +595,7 @@
     <string name="simulation_position_hint">Breedtegraad, lengtegraad</string>
     <string name="simulation_config_help">Instellingen gelden vanaf de volgende navigatiestart. Laat de positie leeg om de apparaatlocatie te gebruiken. Snelheid 0 houdt de positie vast.</string>
     <string name="simulation_info">Probeer navigatie zonder te bewegen. Beschikbaar in beide versies. Gesimuleerde posities volgen de gekozen route en stoppen bij gepauzeerde navigatie. Schakel dit uit voordat je echte navigatie start.</string>
+    <string name="nav_simulation_started">De navigatie wordt gesimuleerd omdat de simulatiemodus actief is.</string>
     <string name="simulation_invalid_speed">Voer een snelheid in van 0 tot 300 km/h (0–186,41 mph).</string>
     <string name="simulation_invalid_position">Voer een geldige breedtegraad en lengtegraad in met decimale punten.</string>
     <string name="simulation_save">Opslaan</string>

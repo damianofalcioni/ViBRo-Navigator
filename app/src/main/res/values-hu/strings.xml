@@ -595,6 +595,7 @@
     <string name="simulation_position_hint">Szélesség, hosszúság</string>
     <string name="simulation_config_help">A beállítások a navigáció következő indításakor érvényesülnek. Üres pozíciónál az eszköz helyzetét használja. A 0 sebesség helyben tartja a pozíciót.</string>
     <string name="simulation_info">Próbálja ki a navigációt mozgás nélkül. Mindkét változatban elérhető. A szimulált pozíciók a kiválasztott útvonalat követik, és a navigáció szüneteltetésekor megállnak. Valós navigáció indítása előtt kapcsolja ki.</string>
+    <string name="nav_simulation_started">A navigáció szimulált, mert a szimulációs mód aktív.</string>
     <string name="simulation_invalid_speed">Adjon meg 0 és 300 km/h (0–186,41 mph) közötti sebességet.</string>
     <string name="simulation_invalid_position">Adjon meg érvényes szélességet és hosszúságot tizedesponttal.</string>
     <string name="simulation_save">Mentés</string>

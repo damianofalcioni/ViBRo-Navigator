@@ -9,6 +9,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.car.app.CarContext;
 
+import vibro.navigator.R;
+import vibro.navigator.android.language.AndroidAppLanguage;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.model.NavState;
@@ -32,6 +34,7 @@ final class ViBRoCarNavigationController {
     private final Host host;
     @NonNull
     private final ViBRoCarNavigationActions actions;
+    private final ViBRoCarSimulationDisplay simulationDisplay;
     private NavigationServiceBinder navBinder;
     private boolean bound;
     private boolean autoDrive;
@@ -40,7 +43,7 @@ final class ViBRoCarNavigationController {
     private final NavigationService.Listener navListener = new NavigationService.Listener() {
         @Override
         public void onState(@NonNull NavState state) {
-            host.updateCurrentState(state);
+            host.updateCurrentState(projectedState(state));
         }
 
         @Override
@@ -77,6 +80,8 @@ final class ViBRoCarNavigationController {
         this.carContext = carContext;
         this.host = host;
         actions = new ViBRoCarNavigationActions(host, () -> navBinder);
+        simulationDisplay = new ViBRoCarSimulationDisplay(
+                () -> AndroidAppLanguage.getString(carContext, R.string.label_simulation));
     }
 
     boolean ensureIntegrationEnabled() {
@@ -184,6 +189,13 @@ void addBlockedWaypoint() {
 
     private void clearCurrentState() {
         host.updateCurrentState(null);
+    }
+
+    private NavState projectedState(NavState state) {
+        if (navBinder == null || !navBinder.isSimulationActive()) {
+            return state;
+        }
+        return simulationDisplay.label(state);
     }
 
     private boolean isIntegrationEnabled() {

@@ -213,3 +213,14 @@ Do not redo the completed template/metadata/intent integration merely because a 
 
 - No ADB device was connected during build verification. The manual review checklist now includes missing-map recovery and retry. Head-unit and smartband verification and Play release prep remain pending.
 - On 2026-11-23, the user requested installation. Installed the verified Google Play debug APK from `cc534481` on the connected Huawei PRA-LX1 with `adb install -r app/build/outputs/apk/gplay/debug/app-gplay-debug.apk`. ADB confirmed `vibro.navigator.debug` version `1.0.0` / code `1000000`.
+
+## Simulation start notice (2026-11-23)
+
+- The user asked to remove the simulation text from the phone instruction and GPS status and show a message when simulated navigation starts. The service records one notice per successful simulated start, and the resumed phone screen consumes it in a localized dialog. Android Auto still labels projected guidance through its adapter.
+- Full verification passed in 13m14s. F-Droid passed 2,304 tests and Google Play passed 2,408, with zero failures, errors or skips. Both lints and PMD reported zero issues, and all four APKs built. The Android Gradle plugin still emits its `Configuration.setVisible(boolean)` deprecation warning. Evidence: local ignored `build/simulation-notice-validation.log`. No Gradle command remains active.
+
+  ```powershell
+  .\gradlew.bat :app:complexityCheck testFdroidDebugUnitTest testGplayDebugUnitTest lintFdroidDebug lintGplayDebug assembleFdroidDebug assembleGplayDebug assembleFdroidRelease assembleGplayRelease --continue --console=plain
+  ```
+
+- Robolectric covered the shared phone dialog in both flavors, including deferred display until resume, regular instruction and GPS text, repeat suppression, a fresh simulated start, and ordinary navigation. The Google Play tests also cover the projected label and preserved guidance metadata. No phone was connected for a manual check.

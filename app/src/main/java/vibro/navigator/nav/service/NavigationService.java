@@ -120,7 +120,7 @@ public class NavigationService extends AndroidLocalizedService {
             },
             this::pauseNavigation,
             this::resumeNavigation
-    ), () -> locationHandler.simulation().enable(this::startNavigation));
+    ), locationHandler.simulation(), this::startNavigation);
     private final NavigationServiceCommandHandler commandHandler = new NavigationServiceCommandHandler(
             this::readNavRequest,
             this::startNavigation,
@@ -192,6 +192,7 @@ public class NavigationService extends AndroidLocalizedService {
             return;
         }
 
+        locationHandler.simulation().onNavigationStarted();
         AppExitDiagnostics.navigationStarted(this);
 
         setGnssStatusDisplayActive(uiVisibility.canDispatchStateToUi());
@@ -310,7 +311,6 @@ public class NavigationService extends AndroidLocalizedService {
                 orientationCue
         );
         s = runtime().attachStreetOverlay(s);
-        s = locationHandler.simulation().label(s);
         stateBroadcaster.dispatchStructural(s, orientationCue);
     }
 

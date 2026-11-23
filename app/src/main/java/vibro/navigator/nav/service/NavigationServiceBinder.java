@@ -74,18 +74,24 @@ public final class NavigationServiceBinder extends Binder {
     }
 
     private final Host host;
-    private final Runnable autoDrive;
+    private final NavigationServiceSimulation simulation;
+    private final Runnable restartNavigation;
 
-    public NavigationServiceBinder(@NonNull Host host) {
-        this(host, () -> { });
-    }
-
-    public NavigationServiceBinder(Host host, Runnable autoDrive) {
+    NavigationServiceBinder(Host host, NavigationServiceSimulation simulation, Runnable restartNavigation) {
         this.host = host;
-        this.autoDrive = autoDrive;
+        this.simulation = simulation;
+        this.restartNavigation = restartNavigation;
     }
 
-    public void enableSimulation() { autoDrive.run(); }
+    public void enableSimulation() { simulation.enable(restartNavigation); }
+
+    public boolean isSimulationActive() {
+        return host.isNavigationStarted() && simulation.source().isEnabled();
+    }
+
+    public boolean consumeSimulationStartNotice() {
+        return simulation.consumeStartNotice();
+    }
 
     public void registerListener(@NonNull NavigationService.Listener listener) {
         host.registerListener(listener);

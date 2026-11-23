@@ -611,6 +611,7 @@
     <string name="simulation_position_hint">خط العرض، خط الطول</string>
     <string name="simulation_config_help">تُطبق الإعدادات عند بدء التنقل التالي. اترك الموقع فارغًا لاستخدام موقع الجهاز. السرعة 0 تُبقي الموقع ثابتًا.</string>
     <string name="simulation_info">جرّب التنقل دون حركة. متاح في كلا الإصدارين. تتبع المواقع المحاكية المسار المحدد وتتوقف عند إيقاف التنقل مؤقتًا. عطّل هذا الخيار قبل بدء التنقل الفعلي.</string>
+    <string name="nav_simulation_started">تتم محاكاة الملاحة لأن وضع المحاكاة مفعّل.</string>
     <string name="simulation_invalid_speed">أدخل سرعة من 0 إلى 300 كم/س (0–186.41 ميل/س).</string>
     <string name="simulation_invalid_position">أدخل خط عرض وخط طول صالحين باستخدام النقطة العشرية والفاصلة الإنجليزية.</string>
     <string name="simulation_save">حفظ</string>

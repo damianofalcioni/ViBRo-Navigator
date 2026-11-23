@@ -17,17 +17,15 @@ final class NavigationActivityBackHandler {
     private static final String TAG = "NavigationActivity";
 
     private final Activity activity;
-    private final NavigationLifecyclePolicy lifecyclePolicy;
+    private final NavigationLifecyclePolicy lifecyclePolicy = new NavigationLifecyclePolicy();
     private final Runnable legacyBackFallback;
     private OnBackInvokedCallback backInvokedCallback;
 
     NavigationActivityBackHandler(
             @NonNull Activity activity,
-            @NonNull NavigationLifecyclePolicy lifecyclePolicy,
             @NonNull Runnable legacyBackFallback
     ) {
         this.activity = activity;
-        this.lifecyclePolicy = lifecyclePolicy;
         this.legacyBackFallback = legacyBackFallback;
     }
 

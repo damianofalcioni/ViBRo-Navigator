@@ -599,6 +599,7 @@
     <string name="simulation_position_hint">Latitud, longitud</string>
     <string name="simulation_config_help">Els ajustos s’apliquen quan es torna a iniciar la navegació. Deixa la posició buida per utilitzar la del dispositiu. La velocitat 0 manté la posició.</string>
     <string name="simulation_info">Prova la navegació sense moure’t. Disponible en totes dues versions. Les posicions simulades segueixen la ruta seleccionada i s’aturen quan es pausa la navegació. Desactiva aquesta opció abans d’iniciar una navegació real.</string>
+    <string name="nav_simulation_started">La navegació és simulada perquè el mode de simulació està activat.</string>
     <string name="simulation_invalid_speed">Introdueix una velocitat entre 0 i 300 km/h (0–186,41 mph).</string>
     <string name="simulation_invalid_position">Introdueix una latitud i longitud vàlides amb punts decimals.</string>
     <string name="simulation_save">Desa</string>

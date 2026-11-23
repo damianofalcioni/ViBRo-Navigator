@@ -589,6 +589,7 @@
     <string name="simulation_position_hint">위도, 경도</string>
     <string name="simulation_config_help">설정은 다음 내비게이션 시작 시 적용됩니다. 위치를 비워 두면 기기 위치를 사용합니다. 속도 0은 위치를 고정합니다.</string>
     <string name="simulation_info">이동하지 않고 내비게이션을 체험합니다. 두 버전 모두에서 사용할 수 있습니다. 시뮬레이션 위치는 선택한 경로를 따르고 내비게이션을 일시 정지하면 멈춥니다. 실제 내비게이션을 시작하기 전에 이 옵션을 끄세요.</string>
+    <string name="nav_simulation_started">시뮬레이션 모드가 활성화되어 경로 안내가 시뮬레이션으로 진행됩니다.</string>
     <string name="simulation_invalid_speed">0~300 km/h (0~186.41 mph) 범위의 속도를 입력하세요.</string>
     <string name="simulation_invalid_position">소수점과 쉼표를 사용하여 유효한 위도, 경도를 입력하세요.</string>
     <string name="simulation_save">저장</string>

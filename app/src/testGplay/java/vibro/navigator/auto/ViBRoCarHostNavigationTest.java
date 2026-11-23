@@ -11,7 +11,6 @@ import org.junit.Test;
 
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.route.VoiceHint;
-import vibro.navigator.nav.simulation.NavigationSimulationDisplay;
 
 public class ViBRoCarHostNavigationTest {
     @Test
@@ -19,7 +18,7 @@ public class ViBRoCarHostNavigationTest {
         RecordingHost host = new RecordingHost();
         ViBRoCarHostNavigation navigation = new ViBRoCarHostNavigation(host, () -> { });
         NavState initial = CarNavigationTestStates.active(false, false);
-        NavState simulated = NavigationSimulationDisplay.label(initial, "Simulation");
+        NavState simulated = new ViBRoCarSimulationDisplay(() -> "Simulation").label(initial);
         navigation.setAutoDriveAction(() -> navigation.update(simulated));
         host.onStart = navigation::onAutoDriveEnabled;
         navigation.update(initial);

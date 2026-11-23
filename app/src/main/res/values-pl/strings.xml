@@ -603,6 +603,7 @@
     <string name="simulation_position_hint">Szerokość, długość geograficzna</string>
     <string name="simulation_config_help">Ustawienia obowiązują od kolejnego uruchomienia nawigacji. Pozostaw pozycję pustą, aby użyć lokalizacji urządzenia. Prędkość 0 zatrzymuje pozycję.</string>
     <string name="simulation_info">Wypróbuj nawigację bez poruszania się. Dostępne w obu wersjach. Symulowane pozycje podążają wybraną trasą i zatrzymują się po wstrzymaniu nawigacji. Wyłącz tę opcję przed rozpoczęciem rzeczywistej nawigacji.</string>
+    <string name="nav_simulation_started">Nawigacja jest symulowana, ponieważ tryb symulacji jest aktywny.</string>
     <string name="simulation_invalid_speed">Wpisz prędkość od 0 do 300 km/h (0–186,41 mph).</string>
     <string name="simulation_invalid_position">Wpisz prawidłową szerokość i długość geograficzną z kropką dziesiętną.</string>
     <string name="simulation_save">Zapisz</string>
