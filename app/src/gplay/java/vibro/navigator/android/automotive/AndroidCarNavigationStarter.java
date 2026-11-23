@@ -10,6 +10,7 @@ import androidx.core.content.ContextCompat;
 import java.util.Collections;
 
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
+import vibro.navigator.android.intent.AndroidInitialRouteResult;
 import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
 import vibro.navigator.android.location.AndroidLocationDiagnostics;
 import vibro.navigator.android.location.AndroidLocationPermissions;
@@ -19,6 +20,7 @@ import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavigationRoutingMode;
 import vibro.navigator.nav.service.NavigationService;
+import vibro.navigator.nav.session.NavigationSessionInitialRoute;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.settings.AppAndroidAutoSettings;
 import vibro.navigator.settings.AppMainUiSettings;
@@ -63,12 +65,13 @@ public final class AndroidCarNavigationStarter {
                 && NotificationManagerCompat.from(context).areNotificationsEnabled();
     }
 
-    public static boolean start(Context context, NavigationRequest request) {
+    public static boolean start(Context context, NavigationRequest request, NavigationSessionInitialRoute.Callback result) {
         if (!canStart(context)) {
             return false;
         }
         Intent intent = new Intent(context, NavigationService.class).setAction(NavigationService.ACTION_START);
         AndroidNavigationRequestIntentContract.putInto(intent, request);
+        AndroidInitialRouteResult.putInto(intent, result);
         try {
             ContextCompat.startForegroundService(context, intent);
             return true;

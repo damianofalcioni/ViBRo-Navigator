@@ -29,6 +29,7 @@ import vibro.navigator.geo.LatLon;
 import vibro.navigator.R;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.model.NavigationRequest;
+import vibro.navigator.nav.session.NavigationSessionInitialRoute;
 import vibro.navigator.poi.Poi;
 
 @RunWith(RobolectricTestRunner.class)
@@ -91,6 +92,37 @@ public class ViBRoCarIncomingNavigationGplayTest {
         incoming.retryPending();
         drain();
         assertEquals(1, access.started.size());
+    }
+
+    @Test
+    public void missingRoutingDataAfterServiceLaunchShowsParkedSetupAndRetriesDestination() {
+        incoming.handle(intent("geo:0,0?q=48.5,16.5"));
+        drain();
+        assertNull(incoming.template());
+
+        access.results.get(0).finished(true);
+        MessageTemplate setup = (MessageTemplate) incoming.template();
+        assertEquals(context.getString(R.string.auto_setup_required), setup.getMessage().toString());
+        retryAction();
+        drain();
+        assertEquals(2, access.started.size());
+        assertEquals(48.5, access.started.get(1).destination.lat, 0);
+        assertEquals(16.5, access.started.get(1).destination.lon, 0);
+        access.results.get(1).finished(false);
+        assertNull(incoming.template());
+    }
+
+    @Test
+    public void oldMissingMapResultCannotReopenSetupAfterReplacementOrCancel() {
+        incoming.handle(intent("geo:0,0?q=48.3,16.3"));
+        drain();
+        incoming.handle(intent("geo:0,0?q=48.4,16.4"));
+        drain();
+        access.results.get(0).finished(true);
+        assertNull(incoming.template());
+        incoming.cancel();
+        access.results.get(1).finished(true);
+        assertNull(incoming.template());
     }
 
     @Test
@@ -211,6 +243,7 @@ public class ViBRoCarIncomingNavigationGplayTest {
 
     private static final class FakeAccess implements ViBRoCarIncomingNavigation.Access {
         private final List<NavigationRequest> started = new ArrayList<>();
+        private final List<NavigationSessionInitialRoute.Callback> results = new ArrayList<>();
         private boolean ready = true;
         private int searches;
         @Override public List<Poi> search(String query) {
@@ -220,9 +253,10 @@ public class ViBRoCarIncomingNavigationGplayTest {
         @Override public NavigationRequest prepare(Poi poi) {
             return new NavigationRequest("car-fast", poi.name, new LatLon(poi.lat, poi.lon), Collections.emptyList());
         }
-        @Override public boolean start(NavigationRequest request) {
+        @Override public boolean start(NavigationRequest request, NavigationSessionInitialRoute.Callback result) {
             if (!ready) { return false; }
             started.add(request);
+            results.add(result);
             return true;
         }
     }

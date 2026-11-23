@@ -29,6 +29,7 @@ A recording may help explain setup, but does not replace test-drive support.
 - Start another navigation app and confirm ViBRo's host stop callback stops tracking, speech, car/phone turn notifications and cluster guidance; it must not restart the old session.
 - Check route calculation/recalculation, pause/resume, confirmed arrival, stop, disconnect/reconnect and integration disabling. No stale turn or ETA should survive those transitions.
 - Exercise `geo:0,0?q=<latitude>,<longitude>` and `google.navigation:q=<latitude>,<longitude>` through initial and new Session intents; verify address selection, cancellation, setup failure/retry and replacement by a newer destination.
+- Request a coordinate route whose BRouter data is missing. When routing completes with a missing-data error, confirm the parked setup prompt appears. Download the data when parked and retry without reentering the destination.
 - Check different head-unit aspect ratios, safe-area changes, night/day contrast, route/street rendering and host map gestures. Directions/ETA/controls must remain host components.
 - Test the required `AUTO_DRIVE` host command, callback before/after route start, host stop and car-session destruction before claiming NF-7 coverage.
 - VI-1: with no route and with missing setup/permissions, verify that every phone handoff tells the driver to use the phone only when safely parked. Check the selected app language as well as English.

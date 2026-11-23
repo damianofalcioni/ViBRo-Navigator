@@ -72,6 +72,34 @@ public class NavigationSimulatorTest {
     }
 
     @Test
+    public void directSimulationCrossesAntimeridianAtConfiguredSpeed() {
+        LatLon origin = new LatLon(0, 179.999);
+        LatLon target = new LatLon(0, -179.999);
+        path = new NavigationSimulationPath(null, target, null, false);
+        start(50f / 3.6f, origin);
+        driver.advance(1000);
+        assertEquals(50.0 / 3.6, distance(origin, last()), 0.01);
+        for (int second = 1; second < 9; second++) { driver.advance(1000); }
+        assertTrue(last().getLongitude() < -179.999);
+        assertEquals(50.0 / 3.6, last().getSpeed(), 0.01);
+        for (int second = 9; second < 19; second++) { driver.advance(1000); }
+        assertEquals(target.lon, last().getLongitude(), 0);
+        assertEquals(0, last().getSpeed(), 0);
+    }
+
+    @Test
+    public void routedSimulationCrossesAntimeridianFromAnInteriorStart() {
+        LatLon origin = new LatLon(0, -179.9998);
+        LatLon target = new LatLon(0, -179.999);
+        path = new NavigationSimulationPath(route(new LatLon(0, 179.999), target), null, null, false);
+        start(10, origin);
+        driver.advance(1000);
+        assertEquals(10, distance(origin, last()), 0.03);
+        assertTrue(last().getLongitude() > origin.lon);
+        assertEquals(10, last().getSpeed(), 0.03);
+    }
+
+    @Test
     public void blankOriginWaitsForPhysicalSeedAndIgnoresLaterPhysicalMovement() {
         start(10, null);
         driver.advance(1000);

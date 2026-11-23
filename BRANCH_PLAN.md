@@ -2,7 +2,7 @@
 
 ## Current state and first actions
 
-- The coverage audit at the end of this plan supersedes earlier implementation-complete statements. It records three open gaps and pre-sync verification. The most recent section records the sync with `main`.
+- The most recent audit-fixes section records the three fixes requested after syncing this branch with `main`. The earlier coverage audit and sync entries are historical.
 - The Google Play appeal follow-up shared November 17, 2026 scopes the vibration restriction to the Android Auto environment. The user chose silent phone notifications while projected so compatible smartbands can still mirror them. `gplay/android/automotive/AndroidAutoConnectionMonitor` observes `CarConnection` from application startup and uses silence until the first connection result. `AndroidNavigationNotificationChannels.guidanceAlert` selects the silent channel for all shared transient navigation alerts and About tests during projection. The three Google Play regression tests cover the initial state, connect and disconnect during the same service session, alerts available for mirroring, and legacy vibration behavior.
 - Verification passed with `.\gradlew.bat testFdroidDebugUnitTest testGplayDebugUnitTest lintFdroidDebug lintGplayDebug assembleFdroidRelease assembleGplayRelease :app:complexityCheck --console=plain`. All 2,161 F-Droid and 2,259 Google Play tests passed with zero failures, errors or skips. PMD found zero violations. Both release APKs built. Both lints reported only the existing locale and Gradle version warnings. The F-Droid lint dependency model contains no Android for Cars or Google Play Services libraries. No Gradle commands remain running.
 - No phone was listed by `adb devices -l`. Verify connect and disconnect mid-route on a head unit and verify actual smartband mirroring before resubmission. The companion app may filter silent notifications or apply its own haptics. Google requested deactivating bundle `1000000` across production and active test tracks and submitting a higher code. Release preparation and Play Console actions remain pending.
@@ -196,4 +196,19 @@ Do not redo the completed template/metadata/intent integration merely because a 
   .\gradlew.bat testFdroidDebugUnitTest testGplayDebugUnitTest lintFdroidDebug lintGplayDebug assembleFdroidDebug assembleGplayDebug assembleFdroidRelease assembleGplayRelease :app:complexityCheck :app:dependencies --configuration fdroidReleaseRuntimeClasspath --console=plain
   ```
 
-- The three audit fixes, manual Android Auto/head-unit checks and Play release work remain open. Keep this handoff plan on the active feature branch until it is ready to merge into `main`.
+- At the sync milestone the three audit fixes, manual Android Auto/head-unit checks and Play release work remained open. Keep this handoff plan on the active feature branch until it is ready to merge into `main`.
+
+## Audit fixes (2026-11-23)
+
+- The user authorized all three audit fixes on the branch synced to `main` at `251fa22c`. Keep the existing no-push, no-merge-into-main and no-publish constraints.
+- Initial car-route recovery uses BRouter's actual missing-tile or missing-directory error. The service reports it through a one-shot request result. Android Auto retains the selected destination across GPS acquisition and route calculation, rejects late results, and opens the existing localized parked setup prompt with Retry and Cancel. BRouter can use its own primary/secondary volumes independently of ViBRo's street-overlay folder grants.
+- Destination attempts use a bounded direct-handoff worker pool so an interrupted but still blocked provider cannot hold the only slot. The nine-second deadline and latest-attempt guard remain. If all slots are occupied, exit loading immediately with the existing retryable timeout.
+- Simulation uses bounded great-circle direct steps. Polyline matching/interpolation and compass projection use wrapped longitude offsets for route segments crossing the antimeridian.
+- Focused regression tests and PMD passed in 48s after correcting the service boundary for the route result and a test fixture API call. Evidence: `build/android-auto-audit-fixes-focused-rerun-20261123.log`.
+- The first full run was interrupted during final review to guard both missing-map reporting and cleanup against an intervening phone request. The final full run passed in 11m58s. F-Droid passed 2,303 tests and Google Play passed 2,406, with zero failures, errors or skips. Both lints reported no issues, PMD found zero violations, and all four APKs built. The F-Droid release runtime report contains no Android for Cars or Google Play Services. `git diff --check` passed. Evidence: local ignored `build/android-auto-audit-fixes-final-20261123.log`. No Gradle invocation remains active.
+
+  ```powershell
+  .\gradlew.bat :app:complexityCheck testFdroidDebugUnitTest testGplayDebugUnitTest lintFdroidDebug lintGplayDebug assembleFdroidDebug assembleGplayDebug assembleFdroidRelease assembleGplayRelease :app:dependencies --configuration fdroidReleaseRuntimeClasspath --console=plain
+  ```
+
+- ADB lists no connected device. The manual review checklist now includes missing-map recovery and retry. Head-unit and smartband verification and Play release prep remain pending.

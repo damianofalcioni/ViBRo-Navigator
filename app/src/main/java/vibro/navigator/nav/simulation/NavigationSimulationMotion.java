@@ -22,7 +22,7 @@ final class NavigationSimulationMotion {
     }
 
     LatLon advance(LatLon position, NavigationSimulationPath path, double meters) {
-        if (path.reached) { return position; }
+        if (path.reached || meters <= 0) { return position; }
         if (path.directTarget != null) {
             direct = true;
             return toward(position, path.directTarget, meters);
@@ -67,10 +67,9 @@ final class NavigationSimulationMotion {
 
     static LatLon toward(LatLon from, LatLon to, double meters) {
         double distance = distance(from, to);
-        if (distance <= meters || distance == 0) { return to; }
-        double fraction = meters / distance;
-        return new LatLon(from.lat + (to.lat - from.lat) * fraction,
-                from.lon + (to.lon - from.lon) * fraction);
+        if (distance <= meters) { return to; }
+        if (meters <= 0) { return from; }
+        return GeoMath.destinationPoint(from, GeoMath.bearingDegrees(from.lat, from.lon, to.lat, to.lon), meters);
     }
 
     static double distance(LatLon from, LatLon to) {

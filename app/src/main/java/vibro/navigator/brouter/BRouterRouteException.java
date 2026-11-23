@@ -11,6 +11,7 @@ public final class BRouterRouteException extends Exception {
         NO_ROUTE_FOUND,
         SERVICE_UNAVAILABLE,
         INVALID_PROFILE,
+        MISSING_ROUTING_DATA,
         MALFORMED_RESPONSE,
         UNKNOWN
     }
@@ -56,6 +57,9 @@ public final class BRouterRouteException extends Exception {
         if (normalized.isEmpty()) {
             return new BRouterRouteException(Reason.MALFORMED_RESPONSE, "BRouter returned an empty route response");
         }
+        if (isMissingRoutingDataResponse(normalized)) {
+            return new BRouterRouteException(Reason.MISSING_ROUTING_DATA, sanitized);
+        }
         if (isNoRouteResponse(normalized)) {
             return new BRouterRouteException(Reason.NO_ROUTE_FOUND, sanitized);
         }
@@ -63,6 +67,21 @@ public final class BRouterRouteException extends Exception {
             return new BRouterRouteException(Reason.INVALID_PROFILE, sanitized);
         }
         return new BRouterRouteException(Reason.UNKNOWN, sanitized);
+    }
+
+    public static boolean isMissingRoutingData(@Nullable Throwable failure) {
+        for (Throwable cause = failure; cause != null; cause = cause.getCause()) {
+            if (cause instanceof BRouterRouteException) {
+                return ((BRouterRouteException) cause).reason == Reason.MISSING_ROUTING_DATA;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isMissingRoutingDataResponse(String message) {
+        return (message.contains("datafile ") && message.contains(".rd5 not found"))
+                || (message.contains("segment directory ") && message.endsWith(" does not exist"))
+                || message.contains("no routing data files");
     }
 
     private static boolean isNoRouteResponse(@NonNull String normalizedMessage) {

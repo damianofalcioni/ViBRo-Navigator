@@ -83,7 +83,8 @@ public final class PolylineIndex {
             }
             double t = (alongTrackMeters - segmentStart) / segmentLength;
             double lat = start.lat + (end.lat - start.lat) * t;
-            double lon = start.lon + (end.lon - start.lon) * t;
+            double lonSpan = GeoMath.normalizeLongitude(end.lon - start.lon);
+            double lon = GeoMath.normalizeLongitude(start.lon + lonSpan * t);
             return new LatLon(lat, lon);
         }
 
@@ -159,13 +160,13 @@ public final class PolylineIndex {
         double kx = 111320.0 * Math.cos(refLatRad);
         double ky = 111320.0;
 
-        double ax = (a.lon - p.lon) * kx;
+        // Unwrap both endpoints around the same midpoint so date-line segments remain short.
+        double lonSpan = GeoMath.normalizeLongitude(b.lon - a.lon);
+        double lonMidpoint = a.lon + lonSpan / 2;
+        double ax = (GeoMath.normalizeLongitude(lonMidpoint - p.lon) - lonSpan / 2) * kx;
         double ay = (a.lat - p.lat) * ky;
-        double bx = (b.lon - p.lon) * kx;
-        double by = (b.lat - p.lat) * ky;
-
-        double abx = bx - ax;
-        double aby = by - ay;
+        double abx = lonSpan * kx;
+        double aby = (b.lat - a.lat) * ky;
         double ab2 = abx * abx + aby * aby;
         if (ab2 <= 0) {
             return null;

@@ -7,7 +7,11 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import java.util.ArrayDeque;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import vibro.navigator.dispatch.TaskScheduler;
 
@@ -73,6 +77,54 @@ public class ViBRoCarDestinationLoadTest {
         load.submitted(token, work);
         assertTrue(work.isCancelled());
         assertEquals(0, expirations);
+    }
+
+    @Test
+    public void replacementRunsWhileCancelledLookupStillOccupiesAWorker() throws InterruptedException {
+        assertReplacementRuns(false);
+    }
+
+    @Test
+    public void retryRunsWhileTimedOutLookupStillOccupiesAWorker() throws InterruptedException {
+        assertReplacementRuns(true);
+    }
+
+    @Test
+    public void rejectedWorkLeavesLoadingImmediately() {
+        ExecutorService worker = ViBRoCarDestinationLoad.newWorker();
+        worker.shutdownNow();
+        load.submit(load.begin(), worker, () -> { throw new AssertionError(); });
+        assertFalse(load.isLoading());
+        assertEquals(1, expirations);
+        assertTrue(scheduler.pending.isEmpty());
+    }
+
+    private void assertReplacementRuns(boolean expireFirst) throws InterruptedException {
+        ExecutorService worker = ViBRoCarDestinationLoad.newWorker();
+        CountDownLatch firstStarted = new CountDownLatch(1);
+        CountDownLatch latestStarted = new CountDownLatch(1);
+        Semaphore releaseFirst = new Semaphore(0);
+        try {
+            int first = load.begin();
+            load.submit(first, worker, () -> {
+                firstStarted.countDown();
+                // Emulate an I/O call that cannot be stopped by interrupting its thread.
+                releaseFirst.acquireUninterruptibly();
+            });
+            assertTrue(firstStarted.await(5, TimeUnit.SECONDS));
+            if (expireFirst) {
+                nowMs = 9_000;
+                load.refresh();
+            }
+            int latest = load.begin();
+            load.submit(latest, worker, latestStarted::countDown);
+            assertTrue(latestStarted.await(5, TimeUnit.SECONDS));
+            assertTrue(load.accept(latest));
+            assertFalse(load.accept(first));
+        } finally {
+            releaseFirst.release();
+            worker.shutdownNow();
+        }
     }
 
     private static final class ManualScheduler implements TaskScheduler {

@@ -7,11 +7,11 @@ import androidx.car.app.CarContext;
 import androidx.car.app.model.Template;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import vibro.navigator.R;
 import vibro.navigator.android.automotive.AndroidCarNavigationStarter;
@@ -20,6 +20,7 @@ import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.intent.IntentLocationParser;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.model.NavigationRequest;
+import vibro.navigator.nav.session.NavigationSessionInitialRoute;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 import vibro.navigator.poi.CoordinateParser;
 import vibro.navigator.poi.Poi;
@@ -30,7 +31,7 @@ final class ViBRoCarIncomingNavigation {
     interface Access {
         List<Poi> search(String query) throws IOException;
         @Nullable NavigationRequest prepare(Poi destination);
-        boolean start(NavigationRequest request);
+        boolean start(NavigationRequest request, NavigationSessionInitialRoute.Callback result);
     }
     private final TaskScheduler scheduler;
     private final Runnable invalidate;
@@ -46,7 +47,7 @@ final class ViBRoCarIncomingNavigation {
     private int message = R.string.nav_route_notice_no_route_found;
 
     ViBRoCarIncomingNavigation(CarContext context, TaskScheduler scheduler, Runnable invalidate) {
-        this(context, scheduler, invalidate, Executors.newSingleThreadExecutor(), new AndroidAccess(context));
+        this(context, scheduler, invalidate, ViBRoCarDestinationLoad.newWorker(), new AndroidAccess(context));
     }
 
     ViBRoCarIncomingNavigation(CarContext context, TaskScheduler scheduler, Runnable invalidate,
@@ -87,7 +88,7 @@ final class ViBRoCarIncomingNavigation {
     private void search() {
         int token = beginLoading();
         String query = pendingQuery;
-        load.submitted(token, worker.submit(() -> resolve(query, token)));
+        load.submit(token, worker, () -> resolve(query, token));
         invalidate.run();
     }
 
@@ -116,22 +117,42 @@ final class ViBRoCarIncomingNavigation {
         pendingDestination = destination;
         results = Collections.emptyList();
         int token = beginLoading();
-        load.submitted(token, worker.submit(() -> {
+        load.submit(token, worker, () -> {
             NavigationRequest request = access.prepare(destination);
             scheduler.post(() -> finishStart(request, token));
-        }));
+        });
         invalidate.run();
     }
 
     private void finishStart(@Nullable NavigationRequest request, int token) {
         if (!load.accept(token)) { return; }
         load.finish();
-        if (request != null && access.start(request)) {
-            pendingDestination = null;
+        if (request != null && access.start(request, initialRouteCallback(token))) {
             showing = false;
         } else {
             message = R.string.auto_setup_required;
         }
+        invalidate.run();
+    }
+
+    private NavigationSessionInitialRoute.Callback initialRouteCallback(int token) {
+        // The navigation service can wait for GPS after this car session has been destroyed.
+        WeakReference<ViBRoCarIncomingNavigation> owner = new WeakReference<>(this);
+        return missing -> {
+            ViBRoCarIncomingNavigation navigation = owner.get();
+            if (navigation != null) { navigation.finishInitialRoute(missing, token); }
+        };
+    }
+
+    private void finishInitialRoute(boolean missingRoutingData, int token) {
+        if (!load.matches(token)) { return; }
+        if (!missingRoutingData) {
+            cancel();
+            return;
+        }
+        load.cancel();
+        showing = true;
+        message = R.string.auto_setup_required;
         invalidate.run();
     }
 
@@ -197,8 +218,8 @@ final class ViBRoCarIncomingNavigation {
         @Override public NavigationRequest prepare(Poi destination) {
             return AndroidCarNavigationStarter.prepare(context, destination);
         }
-        @Override public boolean start(NavigationRequest request) {
-            return AndroidCarNavigationStarter.start(context, request);
+        @Override public boolean start(NavigationRequest request, NavigationSessionInitialRoute.Callback result) {
+            return AndroidCarNavigationStarter.start(context, request, result);
         }
     }
 }

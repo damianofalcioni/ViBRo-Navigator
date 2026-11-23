@@ -245,6 +245,7 @@ public class NavigationService extends AndroidLocalizedService {
         AppExitDiagnostics.navigationStoppedAsync(this, navigationSession.isStarted());
         AppLogger.i(TAG, "Stopping navigation listeners=" + stateBroadcaster.size()
                 + " routeLoaded=" + navigationSession.hasActiveRoute());
+        commandHandler.clearInitialRoute();
         locationHandler.simulation().stop();
         navigationSession.stop();
         runtime().resetStreetOverlay();
@@ -286,6 +287,7 @@ public class NavigationService extends AndroidLocalizedService {
     }
 
     private void emitState() {
+        commandHandler.reportInitialRoute(navigationSession, uiScheduler);
         if (runtime != null) {
             runtime.locationRecovery.onUpdateIntervalChanged();
             NavigationSessionResourceAdapter.recordBatterySnapshot(
