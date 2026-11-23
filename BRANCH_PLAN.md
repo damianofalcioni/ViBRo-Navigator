@@ -275,3 +275,15 @@ Do not redo the completed template/metadata/intent integration merely because a 
   ```
 
 - The fixes are complete in code. Head-unit verification remains pending. The connected phone was left on its existing build.
+
+## Additional regression review (2026-11-23)
+
+- Reviewed `4453f080` against `origin/main` at `2ba4dad3`, focusing on ordinary usage beyond the nine findings already fixed. Three Android Auto findings remain open.
+- Multi-stop routes lose the next stop's number, remaining distance, and ETA on the car display. The shared status still supplies these through `NavProgressStatus.stopProgressBlock`, which the old Auto display rendered. `ViBRoCarGuidance` reads the final destination estimate and omits the next-stop progress. An intermediate arrival cue does not restore that progress between stops.
+- A failed Blocked road action causes Android Auto to replace its native turn card with a text card. `ViBRoCarGuidance` chooses `MessageInfo` whenever the retained-route warning is present, dropping the host turn icon and structured distance while the old route is still guiding. The text cue and cluster steps remain available. `NavigationSessionRouteDisplayState` carries the warning on subsequent snapshots until the recorded failure is cleared.
+- A new snapshot timestamp alone invalidates the car template and republishes the cluster trip and ongoing car notification. `ViBRoCarTrip` uses the snapshot wall time when constructing step arrival timestamps, and `ViBRoCarHostNavigation` updates the notification whenever the trip changes, even with identical cue text. This occurs during routine accepted location updates with unchanged displayed distances and remaining durations. The platform recommends cluster updates based on speed and rounded distance changes. [AndroidX NavigationManager reference](https://developer.android.com/reference/androidx/car/app/navigation/NavigationManager)
+- A focused Google Play run passed 16 tests in 54s with zero failures, errors, or skips. Three temporary Robolectric tests reproduced the reported behavior. The temporary source was removed after verification. The ignored log is `build/additional-branch-regression-review.log`. `git diff --check` passed. Production code and the phone install were untouched. Head-unit and smartband verification remain pending. No Gradle commands remain active.
+
+  ```powershell
+  .\gradlew.bat :app:testGplayDebugUnitTest --tests '*ViBRoCarRegressionReviewProbeTest' --tests '*ViBRoCarGuidanceGplayTest' --tests '*ViBRoCarHostNavigationTest' --console=plain
+  ```
