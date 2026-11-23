@@ -338,3 +338,12 @@ Do not redo the completed template/metadata/intent integration merely because a 
   ```powershell
   .\gradlew.bat :app:testFdroidDebugUnitTest --tests '*NavigationSimulationNoticeRobolectricTest' --tests '*NavigationForegroundControllerTest' :app:testGplayDebugUnitTest --tests '*NavigationSimulationNoticeRobolectricTest' --tests '*NavigationForegroundControllerTest' --tests '*ViBRoCarSimulationDisplayTest' --console=plain
   ```
+
+## Follow-up location and settings review (2026-11-23)
+
+- Reviewed `07fe7f44` against `origin/main` at `2ba4dad3`. The additional pass covered regular GPS provider selection and recovery, recorded stationary and moving location traces, route matching, simulation settings and map-picker recreation, and Android Auto integration settings. No further meaningful regressions were confirmed in these workflows. Prior open findings and pending physical head-unit verification remain recorded above.
+- The focused run passed 47 F-Droid and 57 Google Play tests in 57s with zero failures, errors, or skips. The ignored log is `build/followup-shared-location-and-settings-review.log`. No Gradle invocation remains active.
+
+  ```powershell
+  .\gradlew.bat :app:testFdroidDebugUnitTest --tests '*NavigationLocationController*Test' --tests '*LiveLocationHysteresisReplayTest' --tests '*StationaryDeskLogReplayTest' --tests '*PolylineIndexTest' --tests '*AboutSimulation*Test' :app:testGplayDebugUnitTest --tests '*NavigationLocationController*Test' --tests '*LiveLocationHysteresisReplayTest' --tests '*StationaryDeskLogReplayTest' --tests '*PolylineIndexTest' --tests '*AboutSimulation*Test' --tests '*ViBRoCarAppServiceSettingsGplayTest' --console=plain
+  ```
