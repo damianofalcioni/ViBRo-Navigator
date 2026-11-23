@@ -224,3 +224,4 @@ Do not redo the completed template/metadata/intent integration merely because a 
   ```
 
 - Robolectric covered the shared phone dialog in both flavors, including deferred display until resume, regular instruction and GPS text, repeat suppression, a fresh simulated start, and ordinary navigation. The Google Play tests also cover the projected label and preserved guidance metadata. No phone was connected for a manual check.
+- On 2026-11-23, installed the verified Google Play debug APK from `9a6ef5ae` on the Huawei PRA-LX1 with `adb install -r`. ADB confirmed the updated `vibro.navigator.debug` package, version `1.0.0` / code `1000000`.
