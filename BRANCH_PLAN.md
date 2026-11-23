@@ -298,3 +298,14 @@ Do not redo the completed template/metadata/intent integration merely because a 
   ```powershell
   .\gradlew.bat :app:testGplayDebugUnitTest --tests '*ViBRoCarIdleReviewProbeTest' --tests '*ViBRoCarIncomingNavigationGplayTest' --tests '*ViBRoCarDestinationTemplatesTest' --console=plain
   ```
+
+## Follow-up guidance and notification review (2026-11-23)
+
+- Reviewed `58d300a3` against `origin/main` at `2ba4dad3` for further ordinary driving regressions. The findings already recorded above remain open.
+- The main Android Auto turn card loses the distance and estimated time between the first and second turns. The old surface displayed `afterNextLine` with both values. The normal `RoutingInfo` path now uses only the following maneuver type and instruction text. The probe compared a second turn 20 m after the first with one 500 m after it. Both produced identical main-display routing information. The cluster still received the two different distances from the current position. Host step cues support distance and duration spans. [AndroidX Step.Builder reference](https://developer.android.com/reference/androidx/car/app/navigation/model/Step.Builder)
+- Android Auto puts live turn instructions in the phone notification shade even with ViBRo's Notifications setting off. The ordinary transient alert was suppressed in the projection probe, but `AndroidCarNavigationNotifications` still posted the cue as the phone notification's text. The base phone ongoing notification carried generic navigation status. The car extender supports independent car text. [AndroidX CarAppExtender.Builder reference](https://developer.android.com/reference/androidx/car/app/notification/CarAppExtender.Builder)
+- The final focused Google Play run passed 12 tests in 33s with zero failures, errors, or skips. Two temporary Robolectric probes reproduced the findings and were removed after verification. The ignored final log is `build/car-guidance-phone-notification-review-final.log`. Head-unit rendering and real notification mirroring remain unverified. Production code and the phone install were untouched. No Gradle invocation remains active.
+
+  ```powershell
+  .\gradlew.bat :app:testGplayDebugUnitTest --tests '*ViBRoCarGuidanceGplayTest' --tests '*AndroidAutoGuidanceNotificationsTest' --tests '*AndroidCarNavigationNotificationsGplayTest' --console=plain
+  ```
