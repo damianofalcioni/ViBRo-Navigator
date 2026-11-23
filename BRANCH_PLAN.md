@@ -287,3 +287,14 @@ Do not redo the completed template/metadata/intent integration merely because a 
   ```powershell
   .\gradlew.bat :app:testGplayDebugUnitTest --tests '*ViBRoCarRegressionReviewProbeTest' --tests '*ViBRoCarGuidanceGplayTest' --tests '*ViBRoCarHostNavigationTest' --console=plain
   ```
+
+## Follow-up regression review (2026-11-23)
+
+- Reviewed `06f54724` against `origin/main` at `2ba4dad3` for additional issues in ordinary workflows. The three findings from the prior review remain open.
+- Switching away from an idle ViBRo car screen leaves the one-second service attachment timer active until the screen is destroyed. With no navigation service running, every tick tries to bind and cancels the car notification again. The base branch removed its timer at screen stop. The probe moved the screen to `ON_STOP` and verified the timer and notification cancellation over successive ticks.
+- Retrying a destination search on a poor connection can exhaust the Android Auto host's template quota. An initial timeout followed by two timed-out retries sent six consecutive loading/timeout `MessageTemplate` messages on the same screen. Their message text alternates, so these changes count as new steps under the documented `MessageTemplate` refresh rule. A host enforcing the five-step limit can close the app when the sixth step is delivered. The probe verified the emitted sequence. Actual enforcement remains to be checked on a head unit. [Android for Cars template restrictions](https://developer.android.com/training/cars/apps/library/template-restrictions) and [MessageTemplate refresh rules](https://developer.android.com/reference/androidx/car/app/model/MessageTemplate)
+- The final focused Google Play run passed 18 tests in 28s with zero failures, errors, or skips. The first idle probe used Robolectric's default successful bind and was corrected to model the absent navigation service. Both temporary probes were removed after the run. The ignored final log is `build/branch-regression-followup-review-rerun.log`. Production code and the phone install were untouched. No Gradle commands remain active.
+
+  ```powershell
+  .\gradlew.bat :app:testGplayDebugUnitTest --tests '*ViBRoCarIdleReviewProbeTest' --tests '*ViBRoCarIncomingNavigationGplayTest' --tests '*ViBRoCarDestinationTemplatesTest' --console=plain
+  ```
