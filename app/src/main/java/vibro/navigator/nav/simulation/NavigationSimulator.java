@@ -7,6 +7,7 @@ import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.startup.NavigationStartupLocationSelector;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
 /** App-local fixes only: never installs a system mock provider or changes other apps' GPS. */
@@ -47,15 +48,24 @@ public final class NavigationSimulator {
 
     public boolean isEnabled() { return enabled; }
 
-    public void seed(@Nullable NavigationLocation location) {
-        if (position == null && location != null) {
-            position = new LatLon(location.getLatitude(), location.getLongitude());
+    public boolean isWaitingForOrigin() { return enabled && position == null; }
+
+    public boolean seed(@Nullable NavigationLocation location) {
+        long nowMs = clock.elapsedRealtimeMs();
+        if (!isWaitingForOrigin() || location == null || location.getAccuracy() <= 0
+                || location.getElapsedRealtimeOrTimeMs() > nowMs
+                || !LatLon.isValidCoordinate(location.getLatitude(), location.getLongitude())
+                || !NavigationStartupLocationSelector.isUsableForRouteStart(location, nowMs)) {
+            return false;
         }
+        position = new LatLon(location.getLatitude(), location.getLongitude());
+        return true;
     }
 
-    public void acceptPhysical(NavigationLocation location, LocationSink realOutput) {
-        if (enabled) { seed(location); }
-        else { realOutput.onLocation(location); }
+    public boolean acceptPhysical(NavigationLocation location, LocationSink realOutput) {
+        if (enabled) { return seed(location); }
+        realOutput.onLocation(location);
+        return false;
     }
 
     @Nullable

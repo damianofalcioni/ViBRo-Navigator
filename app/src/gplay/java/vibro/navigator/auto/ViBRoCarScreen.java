@@ -30,7 +30,7 @@ public final class ViBRoCarScreen extends Screen {
     private final ViBRoCarIncomingNavigation incomingNavigation;
     private final TaskScheduler uiScheduler;
     private final ViBRoAutoSurfaceRenderer surfaceRenderer;
-    private final Runnable surfaceCountdownTicker = new Runnable() {
+    private final Runnable serviceAttachTicker = new Runnable() {
         @Override
         public void run() {
             if (navigationController.ensureIntegrationEnabled()) {
@@ -75,22 +75,24 @@ public final class ViBRoCarScreen extends Screen {
             public void onStart(@NonNull LifecycleOwner owner) {
                 refreshCarConfiguration();
                 carContext.getCarService(AppManager.class).setSurfaceCallback(surfaceRenderer);
+                navigationController.setMapVisible(true);
                 if (navigationController.ensureIntegrationEnabled()) {
                     navigationController.bind();
                 }
-                uiScheduler.removeCallbacks(surfaceCountdownTicker);
-                uiScheduler.post(surfaceCountdownTicker);
+                uiScheduler.removeCallbacks(serviceAttachTicker);
+                uiScheduler.post(serviceAttachTicker);
                 incomingNavigation.retryPending();
             }
 
             @Override
             public void onStop(@NonNull LifecycleOwner owner) {
+                navigationController.setMapVisible(false);
                 surfaceRenderer.clearSurface();
             }
 
             @Override
             public void onDestroy(@NonNull LifecycleOwner owner) {
-                uiScheduler.removeCallbacks(surfaceCountdownTicker);
+                uiScheduler.removeCallbacks(serviceAttachTicker);
                 incomingNavigation.dispose();
                 hostNavigation.dispose();
                 navigationController.dispose();

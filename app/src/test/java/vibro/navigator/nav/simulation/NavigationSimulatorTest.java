@@ -12,6 +12,7 @@ import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.route.GeoJsonRoute;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -105,9 +106,15 @@ public class NavigationSimulatorTest {
         driver.advance(1000);
         assertTrue(fixes.isEmpty());
         assertNull(driver.source.currentFix());
+        NavigationLocation coarse = realFix(END);
+        coarse.setAccuracy(600);
+        assertFalse(driver.source.seed(coarse));
+        NavigationLocation stale = realFix(END);
+        stale.setTime(System.currentTimeMillis(), driver.nowMs() - 30_000);
+        assertFalse(driver.source.seed(stale));
         NavigationLocation real = realFix(ORIGIN);
-        driver.source.acceptPhysical(real, ignored -> { throw new AssertionError(); });
-        driver.source.acceptPhysical(realFix(END), ignored -> { throw new AssertionError(); });
+        assertTrue(driver.source.acceptPhysical(real, ignored -> { throw new AssertionError(); }));
+        assertFalse(driver.source.acceptPhysical(realFix(END), ignored -> { throw new AssertionError(); }));
         driver.advance(1000);
         assertEquals(10, distance(ORIGIN, last()), 0.01);
     }
@@ -202,8 +209,10 @@ public class NavigationSimulatorTest {
         return NavigationSimulationMotion.distance(from, new LatLon(location.getLatitude(), location.getLongitude()));
     }
 
-    private static NavigationLocation realFix(LatLon point) {
+    private NavigationLocation realFix(LatLon point) {
         NavigationLocation location = new NavigationLocation("gps");
+        location.setTime(System.currentTimeMillis(), driver.nowMs());
+        location.setAccuracy(5);
         location.setLatitude(point.lat);
         location.setLongitude(point.lon);
         return location;

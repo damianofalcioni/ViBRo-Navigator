@@ -56,7 +56,11 @@ final class ViBRoAutoSurfacePainter {
         return compassPainter.isTransitionInProgress();
     }
 
-void resetCompass() {
+    void refreshTheme() {
+        compassPainter.refreshTheme();
+    }
+
+    void resetCompass() {
         compassPainter.reset();
     }
 

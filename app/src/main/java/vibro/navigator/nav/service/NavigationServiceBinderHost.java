@@ -105,8 +105,8 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
     }
 
     @Override
-    public void setCarNavigationUiVisible(boolean visible) {
-        uiVisibility.setCarNavigationUiVisible(visible);
+    public void setCarNavigationClient(boolean connected, boolean visible) {
+        uiVisibility.setCarNavigationClient(connected, visible);
     }
 
     @Override

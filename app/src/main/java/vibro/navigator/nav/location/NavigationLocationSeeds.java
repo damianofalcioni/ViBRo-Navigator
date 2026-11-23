@@ -34,6 +34,25 @@ final class NavigationLocationSeeds {
         }
     }
 
+    void requestSimulationOrigin(boolean preferFused) {
+        boolean fine = providers.hasFineLocationPermission();
+        boolean coarse = providers.hasCoarseLocationPermission();
+        if (!NavigationLocationProviders.hasAnyLocationPermission(fine, coarse)) {
+            return;
+        }
+        // Keep receiving fixes until one is usable, including on platforms without getCurrentLocation.
+        providers.requestProviderUpdates(providers.enabledPermittedProviders(fine, coarse),
+                NavigationLocationController.STARTUP_UPDATE_INTERVAL_MS);
+        if (preferFused) {
+            fused.requestCurrentLocationSeed(fine, coarse);
+        }
+    }
+
+    void finishSimulationOrigin() {
+        providers.removeUpdates();
+        fused.cancelCurrentLocationSeed();
+    }
+
     NavigationLocation bestStartup(long nowMs) {
         boolean fine = providers.hasFineLocationPermission();
         boolean coarse = providers.hasCoarseLocationPermission();

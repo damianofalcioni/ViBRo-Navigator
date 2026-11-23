@@ -34,7 +34,7 @@ public final class NavigationServiceBinder extends Binder {
 
         void setNavigationUiVisible(boolean visible);
 
-        void setCarNavigationUiVisible(boolean visible);
+        void setCarNavigationClient(boolean connected, boolean visible);
 
         void setCompassStreetViewport(@Nullable NavCompassState compassState);
 
@@ -107,8 +107,8 @@ public final class NavigationServiceBinder extends Binder {
         host.setNavigationUiVisible(visible);
     }
 
-    public void setCarNavigationUiVisible(boolean visible) {
-        host.setCarNavigationUiVisible(visible);
+    public void setCarNavigationClient(boolean connected, boolean visible) {
+        host.setCarNavigationClient(connected, visible);
     }
 
     public void setCompassStreetViewport(@Nullable NavCompassState compassState) {

@@ -112,10 +112,6 @@ public final class NavigationLocationController {
         requestLocationUpdates(minTimeMs, DEFAULT_UPDATE_INTERVAL_MS);
     }
 
-    public void requestStartupLocationUpdates() {
-        requestFastLocationUpdates();
-    }
-
     public void requestFastLocationUpdates() {
         requestLocationUpdates(STARTUP_UPDATE_INTERVAL_MS, STARTUP_UPDATE_INTERVAL_MS);
     }
@@ -152,12 +148,10 @@ public final class NavigationLocationController {
 
     private void requestLocationUpdates(long minTimeMs, long minimumIntervalMs) {
         if (stationarySuspended) { return; }
-        if (simulation.startIfEnabled()) {
+        if (simulation.startIfEnabled(() -> seeds.requestSimulationOrigin(fusedLocationUsePolicy.shouldUseFusedLocation()))) {
             lastRequestedLocationMinTimeMs = NavigationSimulator.FIX_INTERVAL_MS;
             lastRequestedProvider = NavigationSimulator.PROVIDER;
             refreshNextEvaluationDeadline(lastRequestedLocationMinTimeMs);
-            // Retry a missing origin through existing recovery requests, never a physical update stream.
-            requestCurrentLocationSeeds();
             return;
         }
         requestPhysicalLocationUpdates(minTimeMs, minimumIntervalMs);
@@ -196,7 +190,12 @@ public final class NavigationLocationController {
     }
 
     public void requestCurrentLocationSeeds() {
-        seeds.request(simulation.suppressSeeds(stationarySuspended), fusedLocationUsePolicy.shouldUseFusedLocation() && !legacyRecoveryActive);
+        seeds.request(simulation.suppressPhysicalSeed(stationarySuspended),
+                fusedLocationUsePolicy.shouldUseFusedLocation() && !legacyRecoveryActive);
+    }
+
+    public void finishSimulationOrigin() {
+        seeds.finishSimulationOrigin();
     }
 
     public void cancelCurrentLocationSeeds() {
@@ -210,12 +209,12 @@ public final class NavigationLocationController {
             boolean requestCurrentLocationSeed
     ) {
         requestLocationUpdates(fallbackMinTimeMs, DEFAULT_UPDATE_INTERVAL_MS);
-        seeds.requestEnabled(provider, requestCurrentLocationSeed, simulation.suppressProviderSeed(stationarySuspended));
+        seeds.requestEnabled(provider, requestCurrentLocationSeed, simulation.suppressPhysicalSeed(stationarySuspended));
     }
 
     public void onProviderEnabledFast(@NonNull String provider, boolean requestCurrentLocationSeed) {
         requestFastLocationUpdates();
-        seeds.requestEnabled(provider, requestCurrentLocationSeed, simulation.suppressProviderSeed(stationarySuspended));
+        seeds.requestEnabled(provider, requestCurrentLocationSeed, simulation.suppressPhysicalSeed(stationarySuspended));
     }
 
     public long getLastRequestedLocationMinTimeMsOrDefault(long fallbackMinTimeMs) {
@@ -248,7 +247,7 @@ public final class NavigationLocationController {
 
     @Nullable
     public NavigationLocation getBestStartupLastKnownLocation(long nowMs) {
-        return simulation.startup(() -> seeds.bestStartup(nowMs));
+        return simulation.startup(() -> seeds.bestStartup(nowMs), seeds::finishSimulationOrigin);
     }
 
     @NonNull

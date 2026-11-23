@@ -66,8 +66,11 @@ public final class AndroidNavigationNotificationDebugHelper {
         NotificationCompat.Builder builder = AndroidNavigationNotificationChannels.guidanceAlert(
                 context,
                 channelIdForGroup(group)
-        )
-                .setSmallIcon(R.drawable.ic_notification)
+        );
+        if (builder == null) {
+            return false;
+        }
+        builder.setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(titleForGroup(context, group))
                 .setContentText(summary)
                 .setStyle(new NotificationCompat.BigTextStyle()

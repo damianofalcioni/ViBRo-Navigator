@@ -195,7 +195,7 @@ public class NavigationLocationControllerTest {
         FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER);
         NavigationLocationController controller = controller(provider, clock);
 
-        controller.requestStartupLocationUpdates();
+        controller.requestFastLocationUpdates();
 
         assertEquals(NavigationLocationController.STARTUP_UPDATE_INTERVAL_MS, provider.requestedMinTimeMs);
         assertEquals(6_000L, controller.getNextEvaluationDeadlineElapsedMs());
@@ -357,7 +357,7 @@ public class NavigationLocationControllerTest {
         @NonNull
         private final List<String> enabledProviders;
         @NonNull
-        private List<String> requestedProviders = Collections.emptyList();
+        List<String> requestedProviders = Collections.emptyList();
         private boolean fineGranted = true;
         private boolean coarseGranted = true;
         int requestProviderUpdatesCount;

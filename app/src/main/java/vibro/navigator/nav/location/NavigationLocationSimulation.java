@@ -18,24 +18,27 @@ final class NavigationLocationSimulation {
         if (source != null) { source.pause(); }
     }
 
-    boolean startIfEnabled() {
+    boolean startIfEnabled(Runnable requestOrigin) {
         if (!enabled()) { return false; }
         source.start();
+        if (needsOrigin()) {
+            requestOrigin.run();
+        }
         return true;
     }
 
-    boolean suppressSeeds(boolean suspended) {
-        return suspended || enabled() && source.currentFix() != null;
-    }
+    boolean needsOrigin() { return source != null && source.isWaitingForOrigin(); }
 
-    boolean suppressProviderSeed(boolean suspended) { return suspended || enabled(); }
+    boolean suppressPhysicalSeed(boolean suspended) { return suspended || enabled(); }
 
     boolean allowGnss(boolean allowed) { return allowed && !enabled(); }
 
     @Nullable
-    NavigationLocation startup(StartupSeed physicalSeed) {
+    NavigationLocation startup(StartupSeed physicalSeed, Runnable finishOrigin) {
         if (!enabled()) { return physicalSeed.read(); }
-        if (source.currentFix() == null) { source.seed(physicalSeed.read()); }
+        if (needsOrigin() && source.seed(physicalSeed.read())) {
+            finishOrigin.run();
+        }
         return source.currentFix();
     }
 }

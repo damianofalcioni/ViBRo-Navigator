@@ -105,7 +105,13 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
 
     @Override
     public void onLocationChanged(@NonNull NavigationLocation location) {
-        simulation.acceptPhysical(location, accepted -> handleLocation(accepted, false));
+        if (simulation.ignorePhysicalProviders() && !currentLocationSeedPolicy.isCurrentLocationSeedAllowed()) {
+            return;
+        }
+        NavigationServiceLocationControllers controllers = this.controllers;
+        if (simulation.acceptPhysical(location, accepted -> handleLocation(accepted, false)) && controllers != null) {
+            controllers.locationController.finishSimulationOrigin();
+        }
     }
 
     private void handleLocation(@NonNull NavigationLocation location, boolean startupSeed) {

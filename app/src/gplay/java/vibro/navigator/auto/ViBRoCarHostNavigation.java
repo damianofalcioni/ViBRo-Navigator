@@ -9,6 +9,7 @@ import androidx.car.app.navigation.model.Trip;
 import vibro.navigator.android.automotive.AndroidCarNavigationNotifications;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.model.NavTravelEstimate;
+import vibro.navigator.settings.AppSettings;
 
 /** Maintains navigation ownership even while the car screen is covered by another app. */
 final class ViBRoCarHostNavigation implements NavigationManagerCallback {
@@ -17,6 +18,7 @@ final class ViBRoCarHostNavigation implements NavigationManagerCallback {
         void ended();
         void update(Trip trip, NavState state);
         void clear();
+        default boolean usesImperialDistances() { return false; }
         default void dispose() { }
     }
 
@@ -65,7 +67,7 @@ final class ViBRoCarHostNavigation implements NavigationManagerCallback {
     }
 
     private void publishTrip(NavState state) {
-        Trip trip = ViBRoCarTrip.from(state);
+        Trip trip = ViBRoCarTrip.from(state, host.usesImperialDistances());
         String guidanceLine = state.routeStatus.guidance.nextLine;
         if (!trip.equals(lastTrip) || !guidanceLine.equals(lastGuidanceLine)) {
             lastTrip = trip;
@@ -110,8 +112,10 @@ final class ViBRoCarHostNavigation implements NavigationManagerCallback {
     private static final class CarHost implements Host {
         private final NavigationManager manager;
         private final AndroidCarNavigationNotifications notifications;
+        private final CarContext context;
 
         CarHost(CarContext context) {
+            this.context = context;
             manager = context.getCarService(NavigationManager.class);
             notifications = new AndroidCarNavigationNotifications(context);
         }
@@ -123,6 +127,7 @@ final class ViBRoCarHostNavigation implements NavigationManagerCallback {
             manager.updateTrip(trip);
         }
         @Override public void clear() { notifications.clear(); }
+        @Override public boolean usesImperialDistances() { return AppSettings.isImperialUnitsEnabled(context); }
         @Override public void dispose() { manager.clearNavigationManagerCallback(); }
     }
 }

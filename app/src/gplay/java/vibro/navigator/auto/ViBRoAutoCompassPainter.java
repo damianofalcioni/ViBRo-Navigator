@@ -24,8 +24,8 @@ final class ViBRoAutoCompassPainter {
     private final ViBRoAutoGestureSequence gestures;
     private final ElapsedRealtimeClock elapsedRealtimeClock;
     private final CarContext carContext;
-    private final NavigationCompassView compassView;
-    private final ViBRoAutoCompassOverlayPainter overlayPainter;
+    private NavigationCompassView compassView;
+    private ViBRoAutoCompassOverlayPainter overlayPainter;
     private final ViBRoAutoCompassStreetViewportSink compassStreetViewportSink;
     private final RectF bounds = new RectF();
     private Boolean lastFullscreenRouteMode;
@@ -42,9 +42,14 @@ final class ViBRoAutoCompassPainter {
         float density = carContext.getResources().getDisplayMetrics().density;
         gestures = new ViBRoAutoGestureSequence(Math.max(48f * density, touchSlop * 2f),
                 touchSlop, ViewConfiguration.getDoubleTapTimeout());
-        compassView = new NavigationCompassView(carContext);
         this.compassStreetViewportSink = compassStreetViewportSink;
+        refreshTheme();
+    }
+
+    void refreshTheme() {
+        compassView = new NavigationCompassView(carContext);
         overlayPainter = new ViBRoAutoCompassOverlayPainter(carContext);
+        lastFullscreenRouteMode = null;
     }
 
     void draw(
@@ -85,7 +90,7 @@ final class ViBRoAutoCompassPainter {
     }
 
     boolean handleClick(float x, float y, @NonNull NavState state) {
-if (!bounds.contains(x, y)) {
+        if (!bounds.contains(x, y)) {
             return false;
         }
         if (!gestures.isRecent(elapsedRealtimeClock.elapsedRealtimeMs())) {

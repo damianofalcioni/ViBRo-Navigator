@@ -7,28 +7,32 @@ import androidx.car.app.navigation.model.Trip;
 import java.util.TimeZone;
 
 import vibro.navigator.nav.model.NavManeuver;
+import vibro.navigator.nav.model.NavGuidanceStatus;
 import vibro.navigator.nav.model.NavState;
 
 final class ViBRoCarTrip {
     private ViBRoCarTrip() { }
 
-    static Trip from(NavState state) {
+    static Trip from(NavState state, boolean imperial) {
         Trip.Builder trip = new Trip.Builder();
-        if (state.routeStatus.guidance.maneuvers.isEmpty()) {
+        NavGuidanceStatus guidance = state.routeStatus.guidance;
+        if (guidance.maneuvers.isEmpty()) {
             return trip.setLoading(true).build();
         }
-        for (NavManeuver maneuver : state.routeStatus.guidance.maneuvers) {
-            trip.addStep(ViBRoCarManeuvers.step(maneuver), stepEstimate(maneuver,
-                    state.routeStatus.progress.travelEstimate == null ? System.currentTimeMillis()
-                            : state.routeStatus.progress.travelEstimate.observationWallTimeMs));
+        long nowMs = state.routeStatus.progress.travelEstimate == null ? System.currentTimeMillis()
+                : state.routeStatus.progress.travelEstimate.observationWallTimeMs;
+        for (int index = 0; index < guidance.maneuvers.size(); index++) {
+            NavManeuver maneuver = guidance.maneuvers.get(index);
+            boolean uncertain = index == 0 ? guidance.nextUncertain : index == 1 && guidance.afterNextUncertain;
+            trip.addStep(ViBRoCarManeuvers.step(maneuver, uncertain), stepEstimate(maneuver, nowMs, imperial));
         }
         return trip.build();
     }
 
-    private static TravelEstimate stepEstimate(NavManeuver maneuver, long nowMs) {
+    private static TravelEstimate stepEstimate(NavManeuver maneuver, long nowMs, boolean imperial) {
         long seconds = Double.isFinite(maneuver.timeSeconds) && maneuver.timeSeconds >= 0
                 ? (long) Math.ceil(maneuver.timeSeconds) : TravelEstimate.REMAINING_TIME_UNKNOWN;
-        return new TravelEstimate.Builder(ViBRoCarManeuvers.distance(maneuver.distanceMeters),
+        return new TravelEstimate.Builder(ViBRoCarManeuvers.distance(maneuver.distanceMeters, imperial),
                 DateTimeWithZone.create(nowMs + Math.max(0, seconds) * 1_000L, TimeZone.getDefault()))
                 .setRemainingTimeSeconds(seconds).build();
     }

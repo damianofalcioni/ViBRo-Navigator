@@ -28,8 +28,8 @@ final class NavigationServiceSimulation {
 
     boolean ignorePhysicalProviders() { return source.isEnabled(); }
 
-    void acceptPhysical(NavigationLocation location, NavigationSimulator.LocationSink output) {
-        source.acceptPhysical(location, output);
+    boolean acceptPhysical(NavigationLocation location, NavigationSimulator.LocationSink output) {
+        return source.acceptPhysical(location, output);
     }
 
     void prepare() {

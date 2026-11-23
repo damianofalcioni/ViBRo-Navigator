@@ -240,7 +240,7 @@ Do not redo the completed template/metadata/intent integration merely because a 
 
 ## Regression review (2026-11-23)
 
-- Reviewed `0fd0d466` against `origin/main` at `2ba4dad3`. The user asked to record confirmed findings and check for additional regressions in ordinary workflows. Fixes remain pending.
+- Reviewed `0fd0d466` against `origin/main` at `2ba4dad3`. The user asked to record confirmed findings and check for additional regressions in ordinary workflows. The fixes are described below.
 - Simulation can wait indefinitely for GPS on Android 6–10 if the optional origin is blank and no usable cached fix exists. `NavigationLocationController` bypasses continuous provider updates in simulation and retries one-shot seeding. `AndroidCurrentLocationSeeder` only supports one-shot fixes on Android 11 and newer. This affects F-Droid and Google Play when Google Fused Location is disabled or unavailable. Verify a cold start on API 26 without a cached fix and confirm that device fixes stop influencing simulation once the origin has been set.
 - Simulation can start from the wrong location when a coarse network fix arrives before GPS. With the origin blank, `NavigationSimulator.seed` accepts the first non-null live fix and emits it with one-meter accuracy, bypassing the regular startup quality gate. The simulator then ignores a usable GPS fix that arrives immediately afterward. Verify both location settings with a coarse live fix followed by usable GPS and confirm that routing starts from the usable fix.
 - Android Auto sends turn, destination and cluster distances as raw meters. `ViBRoCarManeuvers.distance` hardcodes the AndroidX display unit, replacing the former formatter that used feet and miles in imperial mode and kilometers for longer metric distances. Verify short and long distances in both measurement settings for the navigation template and cluster trip. See the [AndroidX Distance display contract](https://developer.android.com/reference/androidx/car/app/model/Distance#create(double,int)).
@@ -260,3 +260,18 @@ Do not redo the completed template/metadata/intent integration merely because a 
   ```powershell
   .\gradlew.bat :app:testFdroidDebugUnitTest :app:testGplayDebugUnitTest --continue --console=plain
   ```
+
+## Regression fixes (2026-11-23)
+
+- The user authorized fixes for all nine findings in the regression review. The implementation covers both Android flavors and keeps Android Auto code in the Google Play flavor.
+- Simulation now uses a temporary platform location subscription while it needs an origin. It accepts fixes that meet the route-start accuracy and freshness rules and removes the physical subscription immediately after acquiring an origin. A configured origin still skips physical acquisition.
+- Android Auto uses the same unit thresholds as the phone for turn, destination and cluster distances. Host cues mark uncertain maneuvers with `≈`. A host guidance card carries the current instruction with a retained-route warning or a known destination distance when a timestamp cannot be supplied. Blocked Android notification categories remain blocked during projection.
+- A covered car map keeps receiving route state for the cluster and suspends compass UI updates when the phone display is also hidden. Map color refreshes retain the driver's current zoom and view state.
+- Focused verification passed 32 F-Droid and 102 Google Play tests, including an Android 8 cold-start test with Fused Location disabled. The initial checks found complexity violations in two classes. Those classes were simplified and PMD passed in the full run. See `build/branch-regression-fixes-focused-rerun.log` and `build/branch-regression-fixes-validation.log`.
+- Full verification passed in 18m11s. F-Droid passed 2,307 tests and Google Play passed 2,417 with zero failures, errors or skips. Both lint reports found no issues, PMD passed, and all four debug and release APKs built. The log is `build/branch-regression-fixes-validation.log`. No Gradle invocation remains active.
+
+  ```powershell
+  .\gradlew.bat :app:complexityCheck :app:testFdroidDebugUnitTest :app:testGplayDebugUnitTest :app:lintFdroidDebug :app:lintGplayDebug :app:assembleFdroidDebug :app:assembleGplayDebug :app:assembleFdroidRelease :app:assembleGplayRelease --continue --console=plain
+  ```
+
+- The fixes are complete in code. Head-unit verification remains pending. The connected phone was left on its existing build.

@@ -39,6 +39,7 @@ final class ViBRoCarNavigationController {
     private boolean bound;
     private boolean autoDrive;
     private boolean serviceConnectionPending;
+    private boolean mapVisible;
 
     private final NavigationService.Listener navListener = new NavigationService.Listener() {
         @Override
@@ -124,7 +125,7 @@ final class ViBRoCarNavigationController {
         try {
             if (navBinder != null) {
                 navBinder.unregisterListener(navListener);
-                navBinder.setCarNavigationUiVisible(false);
+                navBinder.setCarNavigationClient(false, false);
             }
             carContext.unbindService(connection);
         } catch (Exception e) {
@@ -140,7 +141,14 @@ final class ViBRoCarNavigationController {
         actions.setCompassStreetViewport(compassState);
     }
 
-void addBlockedWaypoint() {
+    void setMapVisible(boolean visible) {
+        mapVisible = visible;
+        if (navBinder != null) {
+            navBinder.setCarNavigationClient(true, visible);
+        }
+    }
+
+    void addBlockedWaypoint() {
         actions.addBlockedWaypoint();
     }
 
@@ -180,11 +188,13 @@ void addBlockedWaypoint() {
             unbind();
             return;
         }
-        if (autoDrive) { navBinder.enableSimulation(); }
-        navBinder.ensureForegroundNotification();
-        navBinder.setCarNavigationUiVisible(true);
-        navBinder.registerListener(navListener);
-
+        NavigationServiceBinder binder = navBinder;
+        if (autoDrive) { binder.enableSimulation(); }
+        binder.ensureForegroundNotification();
+        binder.setCarNavigationClient(true, mapVisible);
+        if (binder == navBinder) {
+            binder.registerListener(navListener);
+        }
     }
 
     private void clearCurrentState() {

@@ -91,6 +91,27 @@ public class AndroidAutoGuidanceNotificationsTest {
     }
 
     @Test
+    public void blockedTurnCategoryStaysBlockedDuringProjection() {
+        ServiceController<TestService> serviceController = Robolectric.buildService(TestService.class).create();
+        TestService service = serviceController.get();
+        AppNotificationSettings.setNavigationNotificationsEnabled(service, true);
+        NotificationManager manager = service.getSystemService(NotificationManager.class);
+        manager.createNotificationChannel(new NotificationChannel(NavigationService.CHANNEL_ID_TURN_LEFT,
+                "Left turns", NotificationManager.IMPORTANCE_NONE));
+        AndroidNavigationForegroundController controller = new AndroidNavigationForegroundController(service);
+        controller.ensureChannels();
+
+        ConnectionShadow.type.setValue(CarConnection.CONNECTION_TYPE_PROJECTION);
+        controller.sendImminentTurnNotification(LEFT_TURN, 50.0, 5.0);
+        assertFalse(AndroidNavigationNotificationDebugHelper.postLeftSymbolTestNotification(service));
+        assertEquals(0, manager.getActiveNotifications().length);
+
+        controller.sendWrongDirectionNotification(new NavigationWrongDirectionNotice(90.0, 270.0, 180.0));
+        assertSilentAlert(manager);
+        serviceController.destroy();
+    }
+
+    @Test
     @Config(sdk = Build.VERSION_CODES.N_MR1)
     @SuppressWarnings("deprecation") // Before notification channels, the vibration pattern lives on the notification.
     public void legacyTurnAlertVibratesOnlyWhileDisconnected() {

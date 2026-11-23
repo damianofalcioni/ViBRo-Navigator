@@ -14,6 +14,7 @@ import androidx.car.app.navigation.model.NavigationTemplate;
 
 import vibro.navigator.R;
 import vibro.navigator.android.language.AndroidAppLanguage;
+import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.model.NavState;
 
 final class ViBRoCarTemplates {
@@ -74,7 +75,7 @@ final class ViBRoCarTemplates {
     private Template buildNavigationTemplate(@NonNull NavState state) {
         NavigationTemplate.Builder builder = new NavigationTemplate.Builder()
                 .setActionStrip(buildNavigationActionStrip(state));
-        ViBRoCarGuidance.apply(builder, state);
+        ViBRoCarGuidance.apply(builder, state, new AndroidNavigationTextResources(carContext));
         if (carContext.getCarAppApiLevel() >= 2) {
             // Required by the host before it delivers scroll, pinch, or double-tap zoom.
             builder.setMapActionStrip(new ActionStrip.Builder().addAction(Action.PAN).build());

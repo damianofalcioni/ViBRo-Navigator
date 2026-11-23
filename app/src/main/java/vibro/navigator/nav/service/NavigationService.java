@@ -296,7 +296,7 @@ public class NavigationService extends AndroidLocalizedService {
                     runtime.batterySnapshotReader.read()
             );
         }
-        if (!uiVisibility.canDispatchStateToUi()) {
+        if (!uiVisibility.canDispatchNavigationState()) {
             return;
         }
         var orientationCue = runtime().activeOrientationCue();

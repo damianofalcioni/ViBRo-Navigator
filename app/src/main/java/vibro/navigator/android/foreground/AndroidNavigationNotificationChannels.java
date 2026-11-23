@@ -6,12 +6,14 @@ import android.content.Context;
 import android.os.Build;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
 import vibro.navigator.R;
 import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.directions.DirectionKind;
 import vibro.navigator.nav.service.NavigationService;
 
 public final class AndroidNavigationNotificationChannels {
@@ -91,15 +93,43 @@ public final class AndroidNavigationNotificationChannels {
         AppLogger.i(TAG, "Notification channels ensured");
     }
 
-    @NonNull
+    @Nullable
     static NotificationCompat.Builder guidanceAlert(@NonNull Context context, @NonNull String channelId) {
         if (DistributionServices.shouldSilenceGuidanceNotifications()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isBlocked(context, channelId)) {
+                return null;
+            }
             return new NotificationCompat.Builder(context, CHANNEL_ID_SILENT_GUIDANCE)
                     .setPriority(NotificationCompat.PRIORITY_LOW)
                     .setSilent(true);
         }
         return new NotificationCompat.Builder(context, channelId)
                 .setPriority(NotificationCompat.PRIORITY_HIGH);
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private static boolean isBlocked(Context context, String channelId) {
+        NotificationManager manager = context.getSystemService(NotificationManager.class);
+        NotificationChannel channel = manager == null ? null : manager.getNotificationChannel(channelId);
+        return channel != null && channel.getImportance() == NotificationManager.IMPORTANCE_NONE;
+    }
+
+    @NonNull
+    static String turnChannel(DirectionKind direction) {
+        return switch (direction) {
+            case LEFT -> NavigationService.CHANNEL_ID_TURN_LEFT;
+            case RIGHT -> NavigationService.CHANNEL_ID_TURN_RIGHT;
+            default -> NavigationService.CHANNEL_ID_ALERT;
+        };
+    }
+
+    @NonNull
+    static long[] legacyTurnVibration(DirectionKind direction) {
+        return switch (direction) {
+            case LEFT -> leftVibrationPattern();
+            case RIGHT -> rightVibrationPattern();
+            default -> genericAlertVibrationPattern();
+        };
     }
 
     @NonNull

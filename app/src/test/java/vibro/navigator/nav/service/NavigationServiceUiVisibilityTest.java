@@ -6,7 +6,13 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import java.util.Collections;
+import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.format.TestNavigationTextResources;
+import vibro.navigator.nav.model.NavigationRequest;
+import vibro.navigator.nav.model.NavigationRoutingMode;
 import vibro.navigator.nav.session.NavigationSession;
+import vibro.navigator.nav.session.NavigationSessionResourceAdapter;
 
 public class NavigationServiceUiVisibilityTest {
 
@@ -118,7 +124,7 @@ public class NavigationServiceUiVisibilityTest {
         visibility.onStateListenersChanged();
         visibility.onScreenInteractiveChanged(false);
 
-        visibility.setCarNavigationUiVisible(true);
+        visibility.setCarNavigationClient(true, true);
 
         assertTrue(visibility.hasActiveNavigationDisplay());
         assertTrue(visibility.canUseCompassStreetViewport());
@@ -164,15 +170,40 @@ public class NavigationServiceUiVisibilityTest {
         });
         visibility.onStateListenersChanged();
         visibility.onScreenInteractiveChanged(false);
-        visibility.setCarNavigationUiVisible(true);
+        visibility.setCarNavigationClient(true, true);
 
         int priorViewportClears = viewportClearer.calls;
-        visibility.setCarNavigationUiVisible(false);
+        visibility.setCarNavigationClient(false, false);
 
         assertEquals(priorViewportClears + 1, viewportClearer.calls);
         assertFalse(visibility.hasActiveNavigationDisplay());
         assertFalse(visibility.canDispatchStateToUi());
+        assertFalse(visibility.canDispatchNavigationState());
         assertFalse(displayActivity.active);
+    }
+
+    @Test
+    public void coveredCarMapKeepsGuidanceWithoutCompassUiUpdates() {
+        NavigationStateBroadcaster broadcaster = new NavigationStateBroadcaster();
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest(NavigationRoutingMode.STRAIGHT_LINE, null, "Destination",
+                new LatLon(48, 16), Collections.emptyList()));
+        assertTrue(NavigationSessionResourceAdapter.start(session, TestNavigationTextResources.metric(), 1_000));
+        NavigationServiceUiVisibility visibility = new NavigationServiceUiVisibility(session, broadcaster,
+                () -> { }, () -> { }, active -> { });
+        broadcaster.register(state -> { });
+        visibility.onScreenInteractiveChanged(false);
+        visibility.setCarNavigationClient(true, true);
+        assertTrue(visibility.shouldDispatchCompassUi());
+
+        visibility.setCarNavigationClient(true, false);
+        assertTrue(visibility.canDispatchNavigationState());
+        assertFalse(visibility.canDispatchStateToUi());
+        assertFalse(visibility.shouldDispatchCompassUi());
+        assertFalse(visibility.canUseCompassStreetViewport());
+
+        visibility.setCarNavigationClient(true, true);
+        assertTrue(visibility.canDispatchStateToUi());
     }
 
     @Test

@@ -19,6 +19,7 @@ public final class NavigationServiceUiVisibility implements NavigationOrientatio
     private final DisplayActivityListener displayActivityListener;
     private boolean navigationUiVisible;
     private boolean carNavigationUiVisible;
+    private boolean carGuidanceConnected;
     private boolean screenInteractive = true;
     private boolean displayActive;
 
@@ -75,10 +76,11 @@ public final class NavigationServiceUiVisibility implements NavigationOrientatio
         }
     }
 
-    public void setCarNavigationUiVisible(boolean visible) {
-        if (carNavigationUiVisible == visible) {
+    public void setCarNavigationClient(boolean connected, boolean visible) {
+        if (carGuidanceConnected == connected && carNavigationUiVisible == visible) {
             return;
         }
+        carGuidanceConnected = connected;
         carNavigationUiVisible = visible;
         onDisplayInputsChanged();
         if (hasActiveNavigationDisplay()) {
@@ -121,6 +123,10 @@ public final class NavigationServiceUiVisibility implements NavigationOrientatio
     boolean canDispatchStateToUi() {
         return hasActiveNavigationDisplay()
                 && stateBroadcaster.size() > 0;
+    }
+
+    boolean canDispatchNavigationState() {
+        return canDispatchStateToUi() || (carGuidanceConnected && stateBroadcaster.size() > 0);
     }
 
     boolean hasActiveNavigationDisplay() {
