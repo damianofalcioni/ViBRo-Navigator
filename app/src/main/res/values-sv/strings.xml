@@ -271,14 +271,14 @@
     <string name="nav_calculating_route_title">Beräknar rutt</string>
     <string name="nav_calculating_route_body">Hämtar vägbeskrivning från BRouter.</string>
     <string name="nav_route_unavailable_title">Rutt inte tillgänglig</string>
-    <string name="format_nav_route_unavailable_body">Rutt inte tillgänglig: %1$s \n Kontrollera BRouter för tillgängliga segment.</string>
+    <string name="format_nav_route_unavailable_body">Rutt inte tillgänglig: %1$s \n Öppna BRouter och ladda vid behov ner ruttdata för ditt område.</string>
     <string name="nav_route_unavailable_generic">okänt fel</string>
     <string name="nav_start_invalid_request">Navigeringsförfrågan är ofullständig</string>
     <string name="nav_route_notice_no_alternative_keep_current">Kunde inte hitta en alternativ rutt runt det blockerade området. Behåller nuvarande rutt.</string>
     <string name="nav_route_notice_no_route_found">Ingen rutt hittades till denna destination.</string>
     <string name="nav_route_notice_service_unavailable_keep_current">Rutttjänst inte tillgänglig. Behåller nuvarande rutt.</string>
     <string name="nav_route_notice_service_unavailable">Rutttjänst inte tillgänglig.</string>
-    <string name="nav_route_notice_invalid_profile">Ruttprofilen är ogiltig.</string>
+    <string name="nav_route_notice_invalid_profile">Ruttprofilen är inte tillgänglig.</string>
     <string name="nav_route_notice_update_failed_keep_current">Kunde inte uppdatera rutten. Behåller nuvarande rutt.</string>
     <string name="nav_route_notice_unavailable">Kunde inte beräkna en rutt.</string>
     <string name="nav_route_notice_blocked_road_recalculating">Blockerad väg tillagd. Beräknar om rutten.</string>

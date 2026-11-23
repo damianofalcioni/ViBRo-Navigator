@@ -271,14 +271,14 @@
     <string name="nav_calculating_route_title">正在计算路线</string>
     <string name="nav_calculating_route_body">正在从 BRouter 获取路线指引。</string>
     <string name="nav_route_unavailable_title">路线不可用</string>
-    <string name="format_nav_route_unavailable_body">路线不可用：%1$s \n 请检查 BRouter 以获取可用路段。</string>
+    <string name="format_nav_route_unavailable_body">路线不可用：%1$s \n 打开 BRouter，并根据需要下载所在地区的路线数据。</string>
     <string name="nav_route_unavailable_generic">未知错误</string>
     <string name="nav_start_invalid_request">导航请求不完整</string>
     <string name="nav_route_notice_no_alternative_keep_current">无法找到绕过封锁区域的替代路线。保持当前路线。</string>
     <string name="nav_route_notice_no_route_found">未找到该目的地的路线。</string>
     <string name="nav_route_notice_service_unavailable_keep_current">路线服务不可用。保持当前路线。</string>
     <string name="nav_route_notice_service_unavailable">路线服务不可用。</string>
-    <string name="nav_route_notice_invalid_profile">路线配置无效。</string>
+    <string name="nav_route_notice_invalid_profile">路线配置文件不可用。</string>
     <string name="nav_route_notice_update_failed_keep_current">无法更新路线。保持当前路线。</string>
     <string name="nav_route_notice_unavailable">无法计算路线。</string>
     <string name="nav_route_notice_blocked_road_recalculating">已添加封闭道路。正在重新计算路线。</string>

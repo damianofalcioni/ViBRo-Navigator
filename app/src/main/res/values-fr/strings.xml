@@ -271,14 +271,14 @@
     <string name="nav_calculating_route_title">Calcul de l\'itinéraire</string>
     <string name="nav_calculating_route_body">Obtention des directions depuis BRouter.</string>
     <string name="nav_route_unavailable_title">Itinéraire indisponible</string>
-    <string name="format_nav_route_unavailable_body">Itinéraire indisponible : %1$s \n Vérifiez BRouter pour les segments disponibles.</string>
+    <string name="format_nav_route_unavailable_body">Itinéraire indisponible : %1$s \n Ouvrez BRouter et téléchargez au besoin les données de routage de votre zone.</string>
     <string name="nav_route_unavailable_generic">erreur inconnue</string>
     <string name="nav_start_invalid_request">la demande de navigation est incomplète</string>
     <string name="nav_route_notice_no_alternative_keep_current">Impossible de trouver un itinéraire alternatif autour de la zone bloquée. Conservation de l\'itinéraire actuel.</string>
     <string name="nav_route_notice_no_route_found">Aucun itinéraire trouvé pour cette destination.</string>
     <string name="nav_route_notice_service_unavailable_keep_current">Service d\'itinéraire indisponible. Conservation de l\'itinéraire actuel.</string>
     <string name="nav_route_notice_service_unavailable">Service d\'itinéraire indisponible.</string>
-    <string name="nav_route_notice_invalid_profile">Profil d\'itinéraire invalide.</string>
+    <string name="nav_route_notice_invalid_profile">Profil d\'itinéraire indisponible.</string>
     <string name="nav_route_notice_update_failed_keep_current">Impossible de mettre à jour l\'itinéraire. Conservation de l\'itinéraire actuel.</string>
     <string name="nav_route_notice_unavailable">Impossible de calculer un itinéraire.</string>
     <string name="nav_route_notice_blocked_road_recalculating">Route bloquée ajoutée. Recalcul de l\'itinéraire.</string>

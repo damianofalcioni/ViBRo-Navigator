@@ -271,14 +271,14 @@
     <string name="nav_calculating_route_title">Útvonal számítása</string>
     <string name="nav_calculating_route_body">Irányok lekérése a(z) BRouter szolgáltatótól.</string>
     <string name="nav_route_unavailable_title">Útvonal nem elérhető</string>
-    <string name="format_nav_route_unavailable_body">Útvonal nem elérhető: %1$s \n Ellenőrizze a(z) BRouter elérhető szegmenseit.</string>
+    <string name="format_nav_route_unavailable_body">Útvonal nem elérhető: %1$s \n Nyissa meg a BRouter alkalmazást, és szükség esetén töltse le a területéhez tartozó útvonaladatokat.</string>
     <string name="nav_route_unavailable_generic">ismeretlen hiba</string>
     <string name="nav_start_invalid_request">a navigációs kérés nem teljes</string>
     <string name="nav_route_notice_no_alternative_keep_current">Nem található alternatív útvonal a lezárt terület körül. A jelenlegi útvonal megtartása.</string>
     <string name="nav_route_notice_no_route_found">Nem található útvonal ehhez a célhoz.</string>
     <string name="nav_route_notice_service_unavailable_keep_current">Útvonalkalkuláló szolgáltatás nem elérhető. A jelenlegi útvonal megtartása.</string>
     <string name="nav_route_notice_service_unavailable">Útvonalkalkuláló szolgáltatás nem elérhető.</string>
-    <string name="nav_route_notice_invalid_profile">Az útvonalprofil érvénytelen.</string>
+    <string name="nav_route_notice_invalid_profile">Az útvonalprofil nem érhető el.</string>
     <string name="nav_route_notice_update_failed_keep_current">Nem sikerült frissíteni az útvonalat. A jelenlegi útvonal megtartása.</string>
     <string name="nav_route_notice_unavailable">Nem sikerült kiszámítani az útvonalat.</string>
     <string name="nav_route_notice_blocked_road_recalculating">Lezárt út hozzáadva. Útvonal újraszámítása.</string>

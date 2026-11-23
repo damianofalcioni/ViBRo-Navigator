@@ -271,14 +271,14 @@
     <string name="nav_calculating_route_title">Route berekenen</string>
     <string name="nav_calculating_route_body">Routebeschrijving ophalen van BRouter.</string>
     <string name="nav_route_unavailable_title">Route niet beschikbaar</string>
-    <string name="format_nav_route_unavailable_body">Route niet beschikbaar: %1$s \n Controleer BRouter voor beschikbare segmenten.</string>
+    <string name="format_nav_route_unavailable_body">Route niet beschikbaar: %1$s \n Open BRouter en download zo nodig de routegegevens voor je gebied.</string>
     <string name="nav_route_unavailable_generic">onbekende fout</string>
     <string name="nav_start_invalid_request">navigatieverzoek is onvolledig</string>
     <string name="nav_route_notice_no_alternative_keep_current">Kon geen alternatieve route rond het geblokkeerde gebied vinden. Huidige route behouden.</string>
     <string name="nav_route_notice_no_route_found">Geen route gevonden voor deze bestemming.</string>
     <string name="nav_route_notice_service_unavailable_keep_current">Routeservice niet beschikbaar. Huidige route behouden.</string>
     <string name="nav_route_notice_service_unavailable">Routeservice niet beschikbaar.</string>
-    <string name="nav_route_notice_invalid_profile">Routeprofiel is ongeldig.</string>
+    <string name="nav_route_notice_invalid_profile">Routeprofiel niet beschikbaar.</string>
     <string name="nav_route_notice_update_failed_keep_current">Kon de route niet bijwerken. Huidige route behouden.</string>
     <string name="nav_route_notice_unavailable">Kon geen route berekenen.</string>
     <string name="nav_route_notice_blocked_road_recalculating">Geblokkeerde weg toegevoegd. Route opnieuw berekenen.</string>

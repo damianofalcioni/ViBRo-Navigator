@@ -271,14 +271,14 @@
     <string name="nav_calculating_route_title">جاري حساب الطريق</string>
     <string name="nav_calculating_route_body">الحصول على الاتجاهات من BRouter.</string>
     <string name="nav_route_unavailable_title">الطريق غير متاح</string>
-    <string name="format_nav_route_unavailable_body">الطريق غير متاح: %1$s \n تحقق من BRouter للقطاعات المتاحة.</string>
+    <string name="format_nav_route_unavailable_body">الطريق غير متاح: %1$s \n افتح BRouter ونزّل بيانات التوجيه لمنطقتك إذا لزم الأمر.</string>
     <string name="nav_route_unavailable_generic">خطأ غير معروف</string>
     <string name="nav_start_invalid_request">طلب الملاحة غير مكتمل</string>
     <string name="nav_route_notice_no_alternative_keep_current">تعذر العثور على طريق بديل حول المنطقة المحجوبة. سيتم الاستمرار في الطريق الحالي.</string>
     <string name="nav_route_notice_no_route_found">لم يتم العثور على طريق لهذا الوجهة.</string>
     <string name="nav_route_notice_service_unavailable_keep_current">خدمة توجيه الطريق غير متاحة. سيتم الاستمرار في الطريق الحالي.</string>
     <string name="nav_route_notice_service_unavailable">خدمة توجيه الطريق غير متاحة.</string>
-    <string name="nav_route_notice_invalid_profile">ملف تعريف التوجيه غير صالح.</string>
+    <string name="nav_route_notice_invalid_profile">ملف تعريف التوجيه غير متاح.</string>
     <string name="nav_route_notice_update_failed_keep_current">تعذر تحديث الطريق. سيتم الاستمرار في الطريق الحالي.</string>
     <string name="nav_route_notice_unavailable">تعذر حساب الطريق.</string>
     <string name="nav_route_notice_blocked_road_recalculating">تم إضافة طريق محجوب. جاري إعادة حساب الطريق.</string>

@@ -271,14 +271,14 @@
     <string name="nav_calculating_route_title">Calculant ruta</string>
     <string name="nav_calculating_route_body">Obtenint indicacions de BRouter.</string>
     <string name="nav_route_unavailable_title">Ruta no disponible</string>
-    <string name="format_nav_route_unavailable_body">Ruta no disponible: %1$s \n Comproveu BRouter per trams disponibles.</string>
+    <string name="format_nav_route_unavailable_body">Ruta no disponible: %1$s \n Obriu BRouter i baixeu les dades de rutes de la vostra zona si cal.</string>
     <string name="nav_route_unavailable_generic">error desconegut</string>
     <string name="nav_start_invalid_request">la sol·licitud de navegació està incompleta</string>
     <string name="nav_route_notice_no_alternative_keep_current">No s\'ha pogut trobar una ruta alternativa al voltant de l\'àrea bloquejada. Es manté la ruta actual.</string>
     <string name="nav_route_notice_no_route_found">No s\'ha trobat cap ruta per a aquesta destinació.</string>
     <string name="nav_route_notice_service_unavailable_keep_current">Servei de rutes no disponible. Es manté la ruta actual.</string>
     <string name="nav_route_notice_service_unavailable">Servei de rutes no disponible.</string>
-    <string name="nav_route_notice_invalid_profile">El perfil de rutes no és vàlid.</string>
+    <string name="nav_route_notice_invalid_profile">El perfil de rutes no està disponible.</string>
     <string name="nav_route_notice_update_failed_keep_current">No s\'ha pogut actualitzar la ruta. Es manté la ruta actual.</string>
     <string name="nav_route_notice_unavailable">No s\'ha pogut calcular una ruta.</string>
     <string name="nav_route_notice_blocked_road_recalculating">S\'ha afegit una carretera bloquejada. Recalculant ruta.</string>

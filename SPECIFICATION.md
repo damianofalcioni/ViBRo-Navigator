@@ -246,6 +246,7 @@ Pressing the button must:
 - When BRouter is not installed and a BRouter-backed profile or custom profile is selected, pressing start navigation must stop before profile resolution and must show a missing-BRouter message instead of opening the custom-profile picker
 - When BRouter is not installed and Straight Line mode is selected, pressing start navigation must continue without a missing-BRouter message
 - Round trip mode must require a selected BRouter profile; pressing start navigation without an applicable BRouter profile must show a short message and must not start navigation
+- If Route or Round Trip cannot calculate a route at startup, the route-unavailable details must tell the user to open BRouter and download regional routing data if needed. A routing profile that BRouter cannot resolve must be described as unavailable.
 
 #### 4.3 BRouter integration
 

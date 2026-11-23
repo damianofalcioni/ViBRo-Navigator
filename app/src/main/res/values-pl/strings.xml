@@ -271,14 +271,14 @@
     <string name="nav_calculating_route_title">Obliczanie trasy</string>
     <string name="nav_calculating_route_body">Pobieranie wskazówek z BRouter.</string>
     <string name="nav_route_unavailable_title">Trasa niedostępna</string>
-    <string name="format_nav_route_unavailable_body">Trasa niedostępna: %1$s \n Sprawdź BRouter, aby znaleźć dostępne odcinki.</string>
+    <string name="format_nav_route_unavailable_body">Trasa niedostępna: %1$s \n Otwórz BRouter i w razie potrzeby pobierz dane tras dla swojego obszaru.</string>
     <string name="nav_route_unavailable_generic">nieznany błąd</string>
     <string name="nav_start_invalid_request">żądanie nawigacji jest niekompletne</string>
     <string name="nav_route_notice_no_alternative_keep_current">Nie można znaleźć alternatywnej trasy wokół zablokowanego obszaru. Utrzymywanie obecnej trasy.</string>
     <string name="nav_route_notice_no_route_found">Nie znaleziono trasy do tego celu.</string>
     <string name="nav_route_notice_service_unavailable_keep_current">Usługa wyznaczania trasy niedostępna. Utrzymywanie obecnej trasy.</string>
     <string name="nav_route_notice_service_unavailable">Usługa wyznaczania trasy niedostępna.</string>
-    <string name="nav_route_notice_invalid_profile">Profil trasy jest nieprawidłowy.</string>
+    <string name="nav_route_notice_invalid_profile">Profil trasy jest niedostępny.</string>
     <string name="nav_route_notice_update_failed_keep_current">Nie można zaktualizować trasy. Utrzymywanie obecnej trasy.</string>
     <string name="nav_route_notice_unavailable">Nie można obliczyć trasy.</string>
     <string name="nav_route_notice_blocked_road_recalculating">Dodano zablokowaną drogę. Ponowne obliczanie trasy.</string>

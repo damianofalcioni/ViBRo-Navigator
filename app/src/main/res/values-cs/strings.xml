@@ -271,14 +271,14 @@
     <string name="nav_calculating_route_title">Vypočítávání trasy</string>
     <string name="nav_calculating_route_body">Získávání pokynů od BRouter.</string>
     <string name="nav_route_unavailable_title">Trasa nedostupná</string>
-    <string name="format_nav_route_unavailable_body">Trasa nedostupná: %1$s \n Zkontrolujte BRouter pro dostupné úseky.</string>
+    <string name="format_nav_route_unavailable_body">Trasa nedostupná: %1$s \n Otevřete BRouter a v případě potřeby stáhněte směrovací data pro svou oblast.</string>
     <string name="nav_route_unavailable_generic">neznámá chyba</string>
     <string name="nav_start_invalid_request">požadavek na navigaci je neúplný</string>
     <string name="nav_route_notice_no_alternative_keep_current">Nepodařilo se najít alternativní trasu kolem zablokované oblasti. Držíme se aktuální trasy.</string>
     <string name="nav_route_notice_no_route_found">Nebyla nalezena žádná trasa k tomuto cíli.</string>
     <string name="nav_route_notice_service_unavailable_keep_current">Služba trasování je nedostupná. Držíme se aktuální trasy.</string>
     <string name="nav_route_notice_service_unavailable">Služba trasování je nedostupná.</string>
-    <string name="nav_route_notice_invalid_profile">Profil trasy je neplatný.</string>
+    <string name="nav_route_notice_invalid_profile">Profil trasy není dostupný.</string>
     <string name="nav_route_notice_update_failed_keep_current">Nepodařilo se aktualizovat trasu. Držíme se aktuální trasy.</string>
     <string name="nav_route_notice_unavailable">Nepodařilo se vypočítat trasu.</string>
     <string name="nav_route_notice_blocked_road_recalculating">Přidána zablokovaná silnice. Přepočítávání trasy.</string>

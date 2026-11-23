@@ -271,14 +271,14 @@
     <string name="nav_calculating_route_title">Route wird berechnet</string>
     <string name="nav_calculating_route_body">Routenanweisungen von BRouter abrufen.</string>
     <string name="nav_route_unavailable_title">Route nicht verfügbar</string>
-    <string name="format_nav_route_unavailable_body">Route nicht verfügbar: %1$s \n Prüfe die verfügbaren Segmente in BRouter.</string>
+    <string name="format_nav_route_unavailable_body">Route nicht verfügbar: %1$s \n Öffne BRouter und lade bei Bedarf die Routendaten für deine Region herunter.</string>
     <string name="nav_route_unavailable_generic">Unbekannter Fehler</string>
     <string name="nav_start_invalid_request">Navigationsanfrage ist unvollständig</string>
     <string name="nav_route_notice_no_alternative_keep_current">Keine alternative Route um den gesperrten Bereich gefunden. Die aktuelle Route bleibt bestehen.</string>
     <string name="nav_route_notice_no_route_found">Keine Route für dieses Ziel gefunden.</string>
     <string name="nav_route_notice_service_unavailable_keep_current">Routendienst nicht verfügbar. Die aktuelle Route bleibt bestehen.</string>
     <string name="nav_route_notice_service_unavailable">Routendienst nicht verfügbar.</string>
-    <string name="nav_route_notice_invalid_profile">Routenprofil ist ungültig.</string>
+    <string name="nav_route_notice_invalid_profile">Routenprofil nicht verfügbar.</string>
     <string name="nav_route_notice_update_failed_keep_current">Route konnte nicht aktualisiert werden. Die aktuelle Route bleibt bestehen.</string>
     <string name="nav_route_notice_unavailable">Route konnte nicht berechnet werden.</string>
     <string name="nav_route_notice_blocked_road_recalculating">Gesperrte Straße hinzugefügt. Route wird neu berechnet.</string>

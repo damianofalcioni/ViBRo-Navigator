@@ -272,14 +272,14 @@
     <string name="nav_calculating_route_title">Calcolo del percorso</string>
     <string name="nav_calculating_route_body">Richiesta delle indicazioni a BRouter.</string>
     <string name="nav_route_unavailable_title">Percorso non disponibile</string>
-    <string name="format_nav_route_unavailable_body">Percorso non disponibile: %1$s \n Verifica in BRouter i segmenti disponibili.</string>
+    <string name="format_nav_route_unavailable_body">Percorso non disponibile: %1$s \n Apri BRouter e, se necessario, scarica i dati di navigazione per la tua zona.</string>
     <string name="nav_route_unavailable_generic">Errore sconosciuto</string>
     <string name="nav_start_invalid_request">La richiesta di navigazione è incompleta</string>
     <string name="nav_route_notice_no_alternative_keep_current">Nessun percorso alternativo trovato intorno all’area bloccata. Mantengo il percorso attuale.</string>
     <string name="nav_route_notice_no_route_found">Nessun percorso trovato per questa destinazione.</string>
     <string name="nav_route_notice_service_unavailable_keep_current">Servizio di navigazione non disponibile. Mantengo il percorso attuale.</string>
     <string name="nav_route_notice_service_unavailable">Servizio di navigazione non disponibile.</string>
-    <string name="nav_route_notice_invalid_profile">Il profilo di navigazione non è valido.</string>
+    <string name="nav_route_notice_invalid_profile">Il profilo di navigazione non è disponibile.</string>
     <string name="nav_route_notice_update_failed_keep_current">Impossibile aggiornare il percorso. Mantengo il percorso attuale.</string>
     <string name="nav_route_notice_unavailable">Impossibile calcolare un percorso.</string>
     <string name="nav_route_notice_blocked_road_recalculating">Strada bloccata aggiunta. Ricalcolo del percorso.</string>

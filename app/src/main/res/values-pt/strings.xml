@@ -271,14 +271,14 @@
     <string name="nav_calculating_route_title">Calculando rota</string>
     <string name="nav_calculating_route_body">Obtendo direções de BRouter.</string>
     <string name="nav_route_unavailable_title">Rota indisponível</string>
-    <string name="format_nav_route_unavailable_body">Rota indisponível: %1$s \n Verifique BRouter para segmentos disponíveis.</string>
+    <string name="format_nav_route_unavailable_body">Rota indisponível: %1$s \n Abra o BRouter e, se necessário, baixe os dados de roteamento da sua região.</string>
     <string name="nav_route_unavailable_generic">erro desconhecido</string>
     <string name="nav_start_invalid_request">solicitação de navegação está incompleta</string>
     <string name="nav_route_notice_no_alternative_keep_current">Não foi possível encontrar uma rota alternativa ao redor da área bloqueada. Mantendo a rota atual.</string>
     <string name="nav_route_notice_no_route_found">Nenhuma rota encontrada para este destino.</string>
     <string name="nav_route_notice_service_unavailable_keep_current">Serviço de roteamento indisponível. Mantendo a rota atual.</string>
     <string name="nav_route_notice_service_unavailable">Serviço de roteamento indisponível.</string>
-    <string name="nav_route_notice_invalid_profile">Perfil de roteamento inválido.</string>
+    <string name="nav_route_notice_invalid_profile">Perfil de roteamento indisponível.</string>
     <string name="nav_route_notice_update_failed_keep_current">Não foi possível atualizar a rota. Mantendo a rota atual.</string>
     <string name="nav_route_notice_unavailable">Não foi possível calcular uma rota.</string>
     <string name="nav_route_notice_blocked_road_recalculating">Estrada bloqueada adicionada. Recalculando rota.</string>

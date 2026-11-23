@@ -271,14 +271,14 @@
     <string name="nav_calculating_route_title">ルートを計算中</string>
     <string name="nav_calculating_route_body">BRouter からの経路を取得しています。</string>
     <string name="nav_route_unavailable_title">ルートが利用できません</string>
-    <string name="format_nav_route_unavailable_body">ルートが利用できません: %1$s \n 利用可能なセグメントについては BRouter を確認してください。</string>
+    <string name="format_nav_route_unavailable_body">ルートが利用できません: %1$s \n BRouter を開き、必要に応じて対象地域のルーティングデータをダウンロードしてください。</string>
     <string name="nav_route_unavailable_generic">不明なエラー</string>
     <string name="nav_start_invalid_request">ナビゲーションリクエストが不完全です</string>
     <string name="nav_route_notice_no_alternative_keep_current">通行止めエリアの迂回ルートを見つけることができませんでした。現在のルートを維持します。</string>
     <string name="nav_route_notice_no_route_found">この目的地へのルートが見つかりません。</string>
     <string name="nav_route_notice_service_unavailable_keep_current">ルーティングサービスが利用できません。現在のルートを維持します。</string>
     <string name="nav_route_notice_service_unavailable">ルーティングサービスが利用できません。</string>
-    <string name="nav_route_notice_invalid_profile">ルーティングプロファイルが無効です。</string>
+    <string name="nav_route_notice_invalid_profile">ルーティングプロファイルを利用できません。</string>
     <string name="nav_route_notice_update_failed_keep_current">ルートを更新できませんでした。現在のルートを維持します。</string>
     <string name="nav_route_notice_unavailable">ルートを計算できませんでした。</string>
     <string name="nav_route_notice_blocked_road_recalculating">通行止めの道路が追加されました。ルートを再計算しています。</string>

@@ -271,14 +271,14 @@
     <string name="nav_calculating_route_title">Beregner rute</string>
     <string name="nav_calculating_route_body">Henter vejledning fra BRouter.</string>
     <string name="nav_route_unavailable_title">Rute utilgængelig</string>
-    <string name="format_nav_route_unavailable_body">Rute utilgængelig: %1$s \n Tjek BRouter for tilgængelige segmenter.</string>
+    <string name="format_nav_route_unavailable_body">Rute utilgængelig: %1$s \n Åbn BRouter, og download rutedata for dit område om nødvendigt.</string>
     <string name="nav_route_unavailable_generic">ukendt fejl</string>
     <string name="nav_start_invalid_request">navigationsanmodning er ufuldstændig</string>
     <string name="nav_route_notice_no_alternative_keep_current">Kunne ikke finde en alternativ rute omkring det blokerede område. Holder nuværende rute.</string>
     <string name="nav_route_notice_no_route_found">Ingen rute fundet til denne destination.</string>
     <string name="nav_route_notice_service_unavailable_keep_current">Rutetjeneste utilgængelig. Holder nuværende rute.</string>
     <string name="nav_route_notice_service_unavailable">Rutetjeneste utilgængelig.</string>
-    <string name="nav_route_notice_invalid_profile">Ruteprofil er ugyldig.</string>
+    <string name="nav_route_notice_invalid_profile">Ruteprofilen er ikke tilgængelig.</string>
     <string name="nav_route_notice_update_failed_keep_current">Kunne ikke opdatere ruten. Holder nuværende rute.</string>
     <string name="nav_route_notice_unavailable">Kunne ikke beregne en rute.</string>
     <string name="nav_route_notice_blocked_road_recalculating">Blokeret vej tilføjet. Beregner ny rute.</string>

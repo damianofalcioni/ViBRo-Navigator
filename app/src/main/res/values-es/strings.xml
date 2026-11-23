@@ -271,14 +271,14 @@
     <string name="nav_calculating_route_title">Calculando ruta</string>
     <string name="nav_calculating_route_body">Obteniendo direcciones de BRouter.</string>
     <string name="nav_route_unavailable_title">Ruta no disponible</string>
-    <string name="format_nav_route_unavailable_body">Ruta no disponible: %1$s \n Verifique BRouter para segmentos disponibles.</string>
+    <string name="format_nav_route_unavailable_body">Ruta no disponible: %1$s \n Abre BRouter y descarga los datos de enrutamiento de tu zona si hace falta.</string>
     <string name="nav_route_unavailable_generic">error desconocido</string>
     <string name="nav_start_invalid_request">la solicitud de navegación está incompleta</string>
     <string name="nav_route_notice_no_alternative_keep_current">No se pudo encontrar una ruta alternativa alrededor del área bloqueada. Manteniendo la ruta actual.</string>
     <string name="nav_route_notice_no_route_found">No se encontró ruta para este destino.</string>
     <string name="nav_route_notice_service_unavailable_keep_current">Servicio de enrutamiento no disponible. Manteniendo la ruta actual.</string>
     <string name="nav_route_notice_service_unavailable">Servicio de enrutamiento no disponible.</string>
-    <string name="nav_route_notice_invalid_profile">Perfil de enrutamiento inválido.</string>
+    <string name="nav_route_notice_invalid_profile">Perfil de enrutamiento no disponible.</string>
     <string name="nav_route_notice_update_failed_keep_current">No se pudo actualizar la ruta. Manteniendo la ruta actual.</string>
     <string name="nav_route_notice_unavailable">No se pudo calcular una ruta.</string>
     <string name="nav_route_notice_blocked_road_recalculating">Camino bloqueado agregado. Recalculando ruta.</string>

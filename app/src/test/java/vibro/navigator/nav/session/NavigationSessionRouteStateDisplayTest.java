@@ -565,9 +565,28 @@ public class NavigationSessionRouteStateDisplayTest extends NavigationSessionRou
     @Test
     public void buildState_withoutActiveRouteShowsFriendlyNoRouteMessage() {
         NavigationTextResources context = TestNavigationTextResources.metric();
-        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavState navState = initialRouteFailure(context, "no track found at pass=0");
 
-        NavState navState = state.buildState(
+        assertEquals(context.getString(R.string.nav_route_unavailable_title), navState.routeStatus.guidance.nextLine);
+        assertTrue(navState.routeStatus.progress.detailBlock.contains(context.getString(R.string.nav_route_notice_no_route_found)));
+    }
+
+    @Test
+    public void buildState_missingNamedProfilePointsToBRouterSetup() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavState navState = initialRouteFailure(context, "Profile trekking does not exists");
+
+        assertEquals(context.getString(R.string.nav_route_unavailable_title), navState.routeStatus.guidance.nextLine);
+        assertEquals(
+                "Route unavailable: Routing profile unavailable. \n "
+                        + "Open BRouter and download routing data for your area if needed.",
+                navState.routeStatus.progress.detailBlock
+        );
+    }
+
+    private static NavState initialRouteFailure(NavigationTextResources context, String response) {
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        return state.buildState(
                 context,
                 location(0.0, 0.0, 1_000L),
                 5f,
@@ -580,11 +599,8 @@ public class NavigationSessionRouteStateDisplayTest extends NavigationSessionRou
                 1_000L,
                 false,
                 null,
-                BRouterRouteException.fromTextResponse("no track found at pass=0")
+                BRouterRouteException.fromTextResponse(response)
         );
-
-        assertEquals(context.getString(R.string.nav_route_unavailable_title), navState.routeStatus.guidance.nextLine);
-        assertTrue(navState.routeStatus.progress.detailBlock.contains(context.getString(R.string.nav_route_notice_no_route_found)));
     }
 
     @Test
