@@ -329,3 +329,12 @@ Do not redo the completed template/metadata/intent integration merely because a 
   .\gradlew.bat :app:testFdroidDebugUnitTest --tests '*NavigationLifecycleRobolectricTest' --tests '*NavigationService*Test' --tests '*NavigationRouteRequestManagerTest' :app:testGplayDebugUnitTest --tests '*NavigationLifecycleRobolectricTest' --tests '*NavigationService*Test' --tests '*NavigationRouteRequestManagerTest' --tests '*ViBRoCarHostNavigationTest' --tests '*ViBRoAutoStreetViewportGplayTest' --console=plain
   .\gradlew.bat :app:testGplayDebugUnitTest --tests '*ViBRoAutoSpeedCueReviewProbeTest' --tests '*ViBRoAutoStreetViewportGplayTest' --tests '*ViBRoCarGuidanceGplayTest' --console=plain
   ```
+
+## Follow-up simulation notification review (2026-11-23)
+
+- Reviewed `428b9fa2` against `origin/main` at `2ba4dad3`. Found one additional issue in the new simulator's external guidance. Simulated maneuver and arrival alerts use the ordinary notification text without the Simulation label required for external guidance in specification section 4.5.9. A recipient who sees only the notification can mistake the simulated instruction for live guidance. The car template has its own Simulation label, and the phone navigation screen shows the requested one-time dialog.
+- An end-to-end Robolectric probe started a simulated Straight Line route with an intermediate stop in each flavor. Normal arrival confirmation posted an unlabeled stop-arrival alert with mirroring allowed. Actual wearable delivery remains unverified. The focused run passed 7 F-Droid and 8 Google Play tests in 52s with zero failures, errors, or skips. The source for the temporary probe was removed. The ignored log is `build/simulation-external-alert-review.log`. Production code and the phone install were untouched. No Gradle invocation remains active.
+
+  ```powershell
+  .\gradlew.bat :app:testFdroidDebugUnitTest --tests '*NavigationSimulationNoticeRobolectricTest' --tests '*NavigationForegroundControllerTest' :app:testGplayDebugUnitTest --tests '*NavigationSimulationNoticeRobolectricTest' --tests '*NavigationForegroundControllerTest' --tests '*ViBRoCarSimulationDisplayTest' --console=plain
+  ```
