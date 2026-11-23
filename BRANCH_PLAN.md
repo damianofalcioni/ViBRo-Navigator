@@ -309,3 +309,13 @@ Do not redo the completed template/metadata/intent integration merely because a 
   ```powershell
   .\gradlew.bat :app:testGplayDebugUnitTest --tests '*ViBRoCarGuidanceGplayTest' --tests '*AndroidAutoGuidanceNotificationsTest' --tests '*AndroidCarNavigationNotificationsGplayTest' --console=plain
   ```
+
+## Follow-up simulation route review (2026-11-23)
+
+- Reviewed `7351c68c` against `origin/main` at `2ba4dad3`. Found one further issue in the shared route simulator.
+- The simulator can skip the planned road leg after reaching an intermediate stop. On an errands route where the driver passes Stop 2 on the way to Stop 1 and returns to Stop 2 via a different street, `NavigationIntermediateArrivalTracker` matches Stop 2 to its first occurrence on the entire route. Its simulation barrier is then behind the current cursor. `NavigationSimulationMotion` treats that barrier as reached along the route and heads straight to Stop 2, bypassing the planned streets. A temporary integration probe used two ordered stops and verified that after confirming Stop 1, the next simulated fix heads back down the outbound street instead of taking the planned turn onto the return leg. This is specific to simulated movement.
+- The focused simulation run passed 18 tests per flavor in 18s with zero failures, errors, or skips. The temporary probe reproduced the issue in both builds and was removed. The ignored log is `build/simulation-route-order-review.log`. Production code and the phone install were untouched. No Gradle invocation remains active.
+
+  ```powershell
+  .\gradlew.bat :app:testFdroidDebugUnitTest --tests '*NavigationSimulationArrivalTest' --tests '*NavigationSimulatorTest' :app:testGplayDebugUnitTest --tests '*NavigationSimulationArrivalTest' --tests '*NavigationSimulatorTest' --console=plain
+  ```
