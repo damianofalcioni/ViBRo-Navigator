@@ -70,7 +70,7 @@ public final class AndroidBRouterRouteClient implements BRouterRouteClient {
         try {
             AppLogger.d(TAG, "Requesting track from BRouter service attempt="
                     + attempt + "/" + MAX_REQUEST_ATTEMPTS);
-            String raw = service.getTrackFromParams(buildRouteParamsForRequest(request));
+            String raw = service.getTrackFromParams(AndroidBRouterRouteParams.build(request, readRemoteProfile(request)));
             return RoutePayloadAttemptResult.done(raw == null ? null : decodeRoutePayload(raw));
         } catch (RemoteException e) {
             if (!recoverFromRouteRequestFailure(attempt, e)) {
@@ -153,12 +153,7 @@ public final class AndroidBRouterRouteClient implements BRouterRouteClient {
 
     @NonNull
     static Bundle buildRouteParams(@NonNull BRouterRouteRequest request) {
-        return AndroidBRouterRouteParams.build(request);
-    }
-
-    @NonNull
-    private Bundle buildRouteParamsForRequest(@NonNull BRouterRouteRequest request) throws BRouterRouteException {
-        return AndroidBRouterRouteParams.build(request, readRemoteProfile(request));
+        return AndroidBRouterRouteParams.build(request, null);
     }
 
     @Nullable

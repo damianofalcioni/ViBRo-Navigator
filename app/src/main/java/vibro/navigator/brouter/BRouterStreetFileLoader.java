@@ -6,6 +6,7 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -20,16 +21,23 @@ final class BRouterStreetFileLoader {
     private final BRouterSegmentsRepository repository;
     private final BRouterSegmentDependencies dependencies;
     private final BRouterDecodedStreetCache decodedStreetCache;
+    private final BRouterStreetProviderRead providerRead;
     private final HashMap<String, String> segmentFileDirectoryIds = new HashMap<>();
 
     BRouterStreetFileLoader(
             BRouterSegmentsRepository repository,
             BRouterSegmentDependencies dependencies,
-            BRouterDecodedStreetCache decodedStreetCache
+            BRouterDecodedStreetCache decodedStreetCache,
+            BRouterStreetProviderRead providerRead
     ) {
         this.repository = repository;
         this.dependencies = dependencies;
         this.decodedStreetCache = decodedStreetCache;
+        this.providerRead = providerRead;
+    }
+
+    void clearSources() {
+        segmentFileDirectoryIds.clear();
     }
 
     void read(
@@ -40,22 +48,30 @@ final class BRouterStreetFileLoader {
             @NonNull CompassStreetVisibility visibility,
             @NonNull List<CompassStreetSegment> out
     ) {
-        Uri documentUri = repository.resolveSegmentFileUri(context, fileName);
-        if (documentUri == null) {
+        if (!repository.readTile(context, fileName, uri -> {
+            List<CompassStreetSegment> loaded = providerRead.run(uri,
+                    () -> readDocument(context, uri, fileName, bounds, maxSegments, visibility));
+            if (loaded == null) {
+                providerRead.recordFailure();
+                return false;
+            }
+            out.addAll(loaded);
+            return true;
+        })) {
             readLocal(context, fileName, bounds, maxSegments, visibility, out);
-            return;
         }
+    }
+
+    private List<CompassStreetSegment> readDocument(Context context, Uri documentUri, String fileName,
+            BRouterSegmentBounds bounds, int maxSegments, CompassStreetVisibility visibility) throws IOException {
         try (BRouterSegmentReadFile readFile = dependencies.documentAccess.openReadFile(context, documentUri)) {
             if (readFile == null) {
-                readLocal(context, fileName, bounds, maxSegments, visibility, out);
-                return;
+                return null;
             }
+            List<CompassStreetSegment> out = new ArrayList<>();
             new BRouterRd5StreetReader(readFile, fileName, documentUri.toString(), decodedStreetCache)
                     .read(bounds, maxSegments, out, visibility);
-        } catch (IOException | RuntimeException e) {
-            BRouterStreetReadCancellation.check();
-            AppLogger.w(TAG, "Failed to read BRouter segment file=" + fileName, e);
-            readLocal(context, fileName, bounds, maxSegments, visibility, out);
+            return out;
         }
     }
 
@@ -84,6 +100,7 @@ final class BRouterStreetFileLoader {
             Context context, String directoryId, String fileName, BRouterSegmentBounds bounds,
             int maxSegments, CompassStreetVisibility visibility, List<CompassStreetSegment> out
     ) {
+        int initialSize = out.size();
         try (BRouterSegmentReadFile readFile = dependencies.fileAccess.openReadFile(context, directoryId, fileName)) {
             if (readFile == null) {
                 return false;
@@ -92,7 +109,9 @@ final class BRouterStreetFileLoader {
                     .read(bounds, maxSegments, out, visibility);
             return true;
         } catch (IOException | RuntimeException e) {
+            out.subList(initialSize, out.size()).clear();
             BRouterStreetReadCancellation.check();
+            providerRead.recordFailure();
             AppLogger.w(TAG, "Failed to read BRouter segment file=" + fileName, e);
             return false;
         }

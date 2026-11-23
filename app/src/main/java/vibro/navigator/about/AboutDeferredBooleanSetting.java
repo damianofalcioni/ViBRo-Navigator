@@ -51,6 +51,10 @@ final class AboutDeferredBooleanSetting {
         scheduler.postDelayed(applyPending, APPLY_DELAY_MS);
     }
 
+    boolean isRendering() {
+        return rendering;
+    }
+
     void flush() {
         flush(true);
     }

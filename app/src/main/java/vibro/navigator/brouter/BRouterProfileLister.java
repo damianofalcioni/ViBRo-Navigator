@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
+import androidx.core.util.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
@@ -26,31 +27,76 @@ final class BRouterProfileLister {
     private static final String TAG = "BRouterProfiles";
 
     @NonNull
-    private final BRouterProfileDependencies.DocumentAccess documentAccess;
+    private final BRouterProfileDependencies dependencies;
     @NonNull
-    private final BRouterProfileDependencies.PackageAccess packageAccess;
+    private final BRouterProfileDirectories directories;
 
     BRouterProfileLister(
-            @NonNull BRouterProfileDependencies.DocumentAccess documentAccess,
-            @NonNull BRouterProfileDependencies.PackageAccess packageAccess
+            @NonNull BRouterProfileDependencies dependencies,
+            @NonNull BRouterProfileDirectories directories
     ) {
-        this.documentAccess = documentAccess;
-        this.packageAccess = packageAccess;
+        this.dependencies = dependencies;
+        this.directories = directories;
     }
 
     @NonNull
-    List<String> listProfiles(@NonNull Context context, @NonNull List<Uri> discoveryTreeUris) {
-        List<String> externalProfiles = new ArrayList<>();
-        for (Uri treeUri : discoveryTreeUris) {
-            externalProfiles.addAll(listProfilesFromTree(context, treeUri));
+    List<String> listProfiles(@NonNull Context context, @Nullable Uri legacyGrant,
+                              @NonNull List<String> bundled, Consumer<List<String>> progress) {
+        ListedGrant grant = listFirstPopulatedGrant(context, legacyGrant);
+        if (grant != null) {
+            List<String> profiles = mergeProfileNames(grant.profiles(), bundled);
+            progress.accept(profiles);
+            return profiles;
         }
-        List<String> bundled = listBundledProfiles(context);
+        return listAutodiscoveredProfiles(context, bundled, progress);
+    }
+
+    @NonNull
+    List<Uri> namedProfileTrees(Context context, @Nullable Uri legacyGrant) {
+        ListedGrant grant = listFirstPopulatedGrant(context, legacyGrant);
+        return grant == null ? autodiscoveredTrees(context) : Collections.singletonList(grant.tree());
+    }
+
+    @Nullable
+    private ListedGrant listFirstPopulatedGrant(Context context, @Nullable Uri legacyGrant) {
+        // BRouter resolves a named profile in one configured folder.
+        for (Uri tree : BRouterFolderGrant.sourceCandidates(context, legacyGrant, true)) {
+            if (Thread.currentThread().isInterrupted()) {
+                break;
+            }
+            if (!dependencies.uriPermissionAccess.hasReadPermission(context, tree)) {
+                continue;
+            }
+            List<String> profiles = listProfilesFromTree(context, tree);
+            if (!profiles.isEmpty()) {
+                return new ListedGrant(tree, profiles);
+            }
+        }
+        return null;
+    }
+
+    private List<String> listAutodiscoveredProfiles(Context context, List<String> bundled,
+                                                     Consumer<List<String>> progress) {
+        List<String> externalProfiles = new ArrayList<>();
+        for (Uri treeUri : autodiscoveredTrees(context)) {
+            if (Thread.currentThread().isInterrupted()) {
+                break;
+            }
+            externalProfiles.addAll(listProfilesFromTree(context, treeUri));
+            progress.accept(mergeProfileNames(externalProfiles, bundled));
+        }
         List<String> out = mergeProfileNames(externalProfiles, bundled);
         AppLogger.i(TAG, "Listed profiles total=" + out.size()
                 + " external=" + new TreeSet<>(externalProfiles).size()
                 + " bundled=" + bundled.size());
         return out;
     }
+
+    private List<Uri> autodiscoveredTrees(Context context) {
+        return directories.resolveProfilesDiscoveryTreeUris(context, Collections.emptyList());
+    }
+
+    private record ListedGrant(Uri tree, List<String> profiles) { }
 
     @NonNull
     static List<String> mergeProfileNames(
@@ -60,7 +106,7 @@ final class BRouterProfileLister {
         Set<String> out = new TreeSet<>(externalProfiles);
         out.addAll(bundledProfiles);
         for (Iterator<String> profiles = out.iterator(); profiles.hasNext();) {
-            if ("remote".equalsIgnoreCase(profiles.next())) {
+            if (isReservedProfile(profiles.next())) {
                 profiles.remove();
             }
         }
@@ -68,9 +114,9 @@ final class BRouterProfileLister {
     }
 
     @NonNull
-    List<String> listProfilesFromTree(@NonNull Context context, @NonNull Uri treeUri) {
+    private List<String> listProfilesFromTree(@NonNull Context context, @NonNull Uri treeUri) {
         List<String> out = new ArrayList<>();
-        for (String displayName : documentAccess.childDisplayNames(context, treeUri)) {
+        for (String displayName : dependencies.documentAccess.childDisplayNames(context, treeUri)) {
             addProfileName(out, displayName);
         }
         Collections.sort(out);
@@ -78,10 +124,14 @@ final class BRouterProfileLister {
         return out;
     }
 
+    private static boolean isReservedProfile(String name) {
+        return "remote".equalsIgnoreCase(name);
+    }
+
     @NonNull
     List<String> listBundledProfiles(@NonNull Context context) {
         try {
-            String sourceDir = packageAccess.sourceDir(context, BRouterProfilesRepository.BROUTER_PACKAGE_NAME);
+            String sourceDir = dependencies.packageAccess.sourceDir(context, BRouterProfilesRepository.BROUTER_PACKAGE_NAME);
             if (sourceDir == null) {
                 AppLogger.w(TAG, "BRouter APK source path unavailable");
                 return Collections.emptyList();
@@ -123,7 +173,7 @@ final class BRouterProfileLister {
 
     private void addProfileName(@NonNull List<String> out, @Nullable String rawName) {
         String profileName = normalizeProfileName(rawName);
-        if (profileName != null) {
+        if (profileName != null && !isReservedProfile(profileName)) {
             out.add(profileName);
         }
     }

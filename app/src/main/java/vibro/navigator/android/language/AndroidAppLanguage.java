@@ -3,12 +3,11 @@ package vibro.navigator.android.language;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.os.Build;
-import android.os.LocaleList;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
 import androidx.core.os.ConfigurationCompat;
+import androidx.core.os.LocaleListCompat;
 
 import java.util.Locale;
 
@@ -50,13 +49,7 @@ public final class AndroidAppLanguage {
     @NonNull
     static Configuration configuration(@NonNull Context context) {
         Configuration localized = new Configuration(context.getResources().getConfiguration());
-        Locale locale = Locale.forLanguageTag(effectiveLanguageTag(context));
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            localized.setLocales(new LocaleList(locale));
-        } else {
-            localized.setLocale(locale);
-        }
-        localized.setLayoutDirection(locale);
+        ConfigurationCompat.setLocales(localized, LocaleListCompat.forLanguageTags(effectiveLanguageTag(context)));
         return localized;
     }
 

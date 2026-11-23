@@ -147,7 +147,7 @@ public final class TestNavigationTextResources implements NavigationTextResource
         strings.put(R.string.nav_calculating_route_body, "Getting directions from BRouter.");
         strings.put(R.string.nav_route_unavailable_title, "Route unavailable");
         strings.put(R.string.format_nav_route_unavailable_body,
-                "Route unavailable: %1$s \n Check BRouter for available segments.");
+                "Route unavailable: %1$s \n Open BRouter and download routing data for your area if needed.");
         strings.put(R.string.nav_route_unavailable_generic, "unknown error");
         strings.put(R.string.nav_start_invalid_request, "navigation request is incomplete");
         strings.put(
@@ -160,7 +160,7 @@ public final class TestNavigationTextResources implements NavigationTextResource
                 "Routing service unavailable. Keeping current route."
         );
         strings.put(R.string.nav_route_notice_service_unavailable, "Routing service unavailable.");
-        strings.put(R.string.nav_route_notice_invalid_profile, "Routing profile is invalid.");
+        strings.put(R.string.nav_route_notice_invalid_profile, "Routing profile unavailable.");
         strings.put(
                 R.string.nav_route_notice_update_failed_keep_current,
                 "Could not update the route. Keeping current route."

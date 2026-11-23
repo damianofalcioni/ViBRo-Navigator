@@ -3,6 +3,7 @@ package vibro.navigator.nav.streets;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.core.util.Supplier;
 
 import java.util.List;
 
@@ -27,28 +28,35 @@ final class SurroundingStreetOverlayRuntime {
     }
 
     @NonNull
-    private final ChunkLoader chunkLoader;
+    private ChunkLoader chunkLoader;
+    @NonNull
+    private final Supplier<ChunkLoader> newSource;
     @NonNull
     private final Settings settings;
     @NonNull
-    private volatile CompassStreetVisibility activeVisibility = CompassStreetVisibility.all();
+    private CompassStreetVisibility activeVisibility = CompassStreetVisibility.all();
 
     SurroundingStreetOverlayRuntime(
             @NonNull ChunkLoader chunkLoader,
             @NonNull Settings settings
     ) {
-        this.chunkLoader = chunkLoader;
+        this(() -> chunkLoader, settings);
+    }
+
+    private SurroundingStreetOverlayRuntime(@NonNull Supplier<ChunkLoader> newSource, @NonNull Settings settings) {
+        this.newSource = newSource;
+        chunkLoader = newSource.get();
         this.settings = settings;
     }
 
     @NonNull
     static SurroundingStreetOverlayRuntime android(
             @NonNull Context context,
-            @NonNull SurroundingStreetRepository repository
+            @NonNull Supplier<SurroundingStreetRepository> repository
     ) {
         Context appContext = context.getApplicationContext();
         return new SurroundingStreetOverlayRuntime(
-                new SurroundingStreetChunkLoader(appContext, repository),
+                () -> new SurroundingStreetChunkLoader(appContext, repository.get()),
                 new Settings() {
                     @Override
                     public boolean isSurroundingStreetsEnabled() {
@@ -76,7 +84,13 @@ final class SurroundingStreetOverlayRuntime {
     }
 
     @NonNull
-    SurroundingStreetChunkLoadResult load(@NonNull List<SurroundingStreetChunkKey> keys) {
-        return chunkLoader.load(keys, activeVisibility);
+    Supplier<SurroundingStreetChunkLoadResult> request(@NonNull List<SurroundingStreetChunkKey> keys) {
+        ChunkLoader loader = chunkLoader;
+        CompassStreetVisibility visibility = activeVisibility;
+        return () -> loader.load(keys, visibility);
+    }
+
+    void changeSource() {
+        chunkLoader = newSource.get();
     }
 }

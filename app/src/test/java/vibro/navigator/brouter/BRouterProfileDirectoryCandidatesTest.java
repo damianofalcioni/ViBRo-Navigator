@@ -24,6 +24,7 @@ public class BRouterProfileDirectoryCandidatesTest {
         assertEquals(MEDIA_PROFILES_DIR_ID, candidates.get(1));
         assertEquals("B4DD-C8AC:" + LEGACY_PROFILES_DIR_ID.substring(PRIMARY_ROOT.length()), candidates.get(2));
         assertEquals(LEGACY_PROFILES_DIR_ID, candidates.get(3));
+        assertEquals(PRIMARY_ROOT + "brouter/profiles2", candidates.get(4));
     }
 
     @Test

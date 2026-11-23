@@ -20,7 +20,7 @@ public class BRouterProfilesRepository {
     private static final String PREFS = "vibenavigator_brouter";
     private static final String KEY_CUSTOM_PROFILE_URI = "custom_profile_uri";
     private static final String KEY_CUSTOM_PROFILE_NAME = "custom_profile_name";
-    private static final String KEY_PROFILES_TREE_URI = "profiles_tree_uri";
+    static final String KEY_PROFILES_TREE_URI = "profiles_tree_uri";
     private static final String KEY_SELECTED_PROFILE = "selected_profile";
     private static final String TAG = "BRouterProfiles";
 
@@ -36,46 +36,18 @@ public class BRouterProfilesRepository {
     private final BRouterProfileParameterStore parameterStore;
 
     public BRouterProfilesRepository(@NonNull BRouterProfileDependencies dependencies) {
-        this(
-                dependencies,
-                new BRouterProfileDirectories(dependencies.documentAccess, dependencies.storageVolumeAccess),
-                new BRouterProfileLister(dependencies.documentAccess, dependencies.packageAccess),
-                new BRouterProfileParameterSource(
-                        dependencies.documentAccess,
-                        dependencies.packageAccess,
-                        new BRouterProfileParameterParser()
-                ),
-                new BRouterProfileParameterStore(PREFS)
-        );
-    }
-
-    BRouterProfilesRepository(
-            @NonNull BRouterProfileDependencies dependencies,
-            @NonNull BRouterProfileDirectories profileDirectories,
-            @NonNull BRouterProfileLister profileLister,
-            @NonNull BRouterProfileParameterSource parameterSource,
-            @NonNull BRouterProfileParameterStore parameterStore
-    ) {
         this.dependencies = dependencies;
-        this.profileDirectories = profileDirectories;
-        this.profileLister = profileLister;
-        this.parameterSource = parameterSource;
-        this.parameterStore = parameterStore;
+        profileDirectories = new BRouterProfileDirectories(dependencies.documentAccess, dependencies.storageVolumeAccess);
+        profileLister = new BRouterProfileLister(dependencies, profileDirectories);
+        parameterSource = new BRouterProfileParameterSource(
+                dependencies.documentAccess, dependencies.packageAccess, new BRouterProfileParameterParser());
+        parameterStore = new BRouterProfileParameterStore(PREFS);
     }
 
     @Nullable
     public Uri getCustomProfileUri(@NonNull Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        String raw = prefs.getString(KEY_CUSTOM_PROFILE_URI, null);
-        if (raw == null || raw.trim().isEmpty()) {
-            return null;
-        }
-        try {
-            return Uri.parse(raw);
-        } catch (Exception e) {
-            AppLogger.w(TAG, "Failed to parse saved custom profile URI raw=" + raw, e);
-            return null;
-        }
+        return storedUri(prefs, KEY_CUSTOM_PROFILE_URI);
     }
 
     @Nullable
@@ -100,16 +72,13 @@ public class BRouterProfilesRepository {
     @Nullable
     public Uri getProfilesTreeUri(@NonNull Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        String raw = prefs.getString(KEY_PROFILES_TREE_URI, null);
-        if (raw == null || raw.trim().isEmpty()) {
-            return null;
-        }
-        try {
-            return Uri.parse(raw);
-        } catch (Exception e) {
-            AppLogger.w(TAG, "Failed to parse saved profiles tree URI raw=" + raw, e);
-            return null;
-        }
+        return storedUri(prefs, KEY_PROFILES_TREE_URI);
+    }
+
+    @Nullable
+    private static Uri storedUri(SharedPreferences prefs, String key) {
+        String value = prefs.getString(key, null);
+        return value == null || value.trim().isEmpty() ? null : Uri.parse(value);
     }
 
     public void saveProfilesTreeUri(@NonNull Context context, @NonNull Uri treeUri) {
@@ -141,17 +110,19 @@ public class BRouterProfilesRepository {
             @NonNull Context context,
             @Nullable String profileName
     ) {
-        String cleanName = BRouterProfileNames.clean(profileName);
-        if (cleanName == null) {
-            return Collections.emptyList();
-        }
-        return parameterSource.readParameters(
+        return getProfileParameters(context, profileName, java.util.Objects.equals(profileName, getCustomProfileName(context)));
+    }
+
+    @NonNull
+    public List<BRouterProfileParameter> getProfileParameters(Context context, @Nullable String profileName, boolean custom) {
+        List<BRouterProfileParameter> parameters = parameterSource.readParameters(
                 context,
-                cleanName,
+                profileName,
                 getCustomProfileUri(context),
-                getCustomProfileName(context),
-                resolveProfilesDiscoveryTreeUris(context)
+                custom,
+                () -> profileLister.namedProfileTrees(context, getProfilesTreeUri(context))
         );
+        return parameters == null ? Collections.emptyList() : parameters;
     }
 
     @NonNull
@@ -210,41 +181,48 @@ public class BRouterProfilesRepository {
 
     @Nullable
     public Uri getCustomProfilePickerInitialUri(@NonNull Context context) {
-        Uri profilesTreeUri = getProfilesTreeUri(context);
+        Uri profilesTreeUri = getGrantedProfilesTreeUri(context);
         return profileDirectories.getCustomProfilePickerInitialUri(
                 context,
                 profilesTreeUri,
-                hasPersistedReadPermission(context, profilesTreeUri),
                 getCustomProfileUri(context)
         );
     }
 
+    @Nullable
+    public Uri getProfilesTreePickerHint(@NonNull Context context, @Nullable Uri savedProfileHint) {
+        Uri treeUri = getGrantedProfilesTreeUri(context);
+        return profileDirectories.getProfilesTreePickerHint(
+                context,
+                treeUri,
+                savedProfileHint
+        );
+    }
+
     public boolean hasPersistedProfilesTreeAccess(@NonNull Context context) {
-        return hasPersistedReadPermission(context, getProfilesTreeUri(context));
+        return getGrantedProfilesTreeUri(context) != null;
     }
 
     public boolean isBRouterInstalled(@NonNull Context context) {
-        if (dependencies.packageAccess.isInstalled(context, BROUTER_PACKAGE_NAME)) {
-            AppLogger.d(TAG, "BRouter package detected");
-            return true;
-        }
-        AppLogger.w(TAG, "BRouter package not installed");
-        return false;
+        boolean installed = dependencies.packageAccess.isInstalled(context, BROUTER_PACKAGE_NAME);
+        AppLogger.d(TAG, "BRouter installed=" + installed);
+        return installed;
     }
 
     @NonNull
     public List<String> listProfiles(@NonNull Context context) {
-        return profileLister.listProfiles(context, resolveProfilesDiscoveryTreeUris(context));
+        return listAvailableProfiles(context, listBundledProfiles(context), ignored -> { });
     }
 
     @NonNull
-    private List<Uri> resolveProfilesDiscoveryTreeUris(@NonNull Context context) {
-        Uri savedTreeUri = getProfilesTreeUri(context);
-        return profileDirectories.resolveProfilesDiscoveryTreeUris(
-                context,
-                savedTreeUri,
-                hasPersistedReadPermission(context, savedTreeUri)
-        );
+    public List<String> listBundledProfiles(Context context) {
+        return BRouterProfileLister.mergeProfileNames(Collections.emptyList(), profileLister.listBundledProfiles(context));
+    }
+
+    @NonNull
+    public List<String> listAvailableProfiles(Context context, List<String> bundled,
+                                              androidx.core.util.Consumer<List<String>> progress) {
+        return profileLister.listProfiles(context, getProfilesTreeUri(context), bundled, progress);
     }
 
     @Nullable
@@ -252,7 +230,9 @@ public class BRouterProfilesRepository {
         return BRouterProfileLister.normalizeProfileName(rawName);
     }
 
-    private boolean hasPersistedReadPermission(@NonNull Context context, @Nullable Uri uri) {
-        return dependencies.uriPermissionAccess.hasReadPermission(context, uri);
+    @Nullable
+    private Uri getGrantedProfilesTreeUri(Context context) {
+        return BRouterFolderGrant.resolve(context, getProfilesTreeUri(context), true,
+                dependencies.uriPermissionAccess::hasReadPermission);
     }
 }

@@ -2,6 +2,7 @@ package vibro.navigator.nav.ui;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
 
@@ -59,5 +60,17 @@ final class NavigationCustomButtonUi {
 
     boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         return controller.onActivityResult(requestCode, resultCode, data);
+    }
+
+    void restoreState(@Nullable Bundle state) {
+        controller.restoreState(state);
+    }
+
+    void saveState(Bundle state) {
+        controller.saveState(state);
+    }
+
+    void dispose() {
+        controller.dispose();
     }
 }

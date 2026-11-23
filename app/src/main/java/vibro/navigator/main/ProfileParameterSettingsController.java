@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import vibro.navigator.R;
+import vibro.navigator.android.brouter.AndroidBRouterProfileLoader;
 import vibro.navigator.brouter.BRouterProfileParameter;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.logging.AppLogger;
@@ -30,6 +31,7 @@ final class ProfileParameterSettingsController {
     @NonNull
     private final ProfileSpinnerController profileSpinnerController;
     private boolean profileSelectionApplicable = true;
+    private boolean loading;
 
     ProfileParameterSettingsController(
             @NonNull Activity activity,
@@ -46,7 +48,7 @@ final class ProfileParameterSettingsController {
     }
 
     void updateButtonState() {
-        boolean enabled = profileSelectionApplicable && selectedProfileName() != null;
+        boolean enabled = profileSelectionApplicable && !loading && selectedProfileName() != null;
         button.setEnabled(enabled);
         button.setAlpha(enabled ? 1.0f : 0.38f);
     }
@@ -58,10 +60,30 @@ final class ProfileParameterSettingsController {
 
     private void showSelectedProfileSettings() {
         String profileName = selectedProfileName();
-        if (profileName == null) {
+        ProfileSpinnerOption option = profileSpinnerController.selectedOption();
+        if (profileName == null || option == null || loading) {
             return;
         }
-        List<BRouterProfileParameter> parameters = profilesRepository.getProfileParameters(activity, profileName);
+        loading = true;
+        updateButtonState();
+        AndroidBRouterProfileLoader.loadParameters(activity, profilesRepository, profileName, option.isCustom(),
+                parameters -> showLoadedParameters(profileName, option, parameters));
+    }
+
+    private void showLoadedParameters(String profileName, ProfileSpinnerOption option,
+                                      @Nullable List<BRouterProfileParameter> parameters) {
+        loading = false;
+        if (activity.isFinishing() || activity.isDestroyed()) {
+            return;
+        }
+        updateButtonState();
+        if (!isStillSelected(option)) {
+            return;
+        }
+        if (parameters == null) {
+            Toast.makeText(activity, R.string.msg_brouter_profile_not_ready, Toast.LENGTH_SHORT).show();
+            return;
+        }
         if (parameters.isEmpty()) {
             showNoParametersDialog();
             return;
@@ -72,6 +94,11 @@ final class ProfileParameterSettingsController {
                 profilesRepository.getProfileParameterValueOverrides(activity, profileName)
         );
         showParameterDialog(profileName, parameters, form);
+    }
+
+    private boolean isStillSelected(ProfileSpinnerOption option) {
+        ProfileSpinnerOption selected = profileSpinnerController.selectedOption();
+        return profileSelectionApplicable && selected != null && selected.selectionKey().equals(option.selectionKey());
     }
 
     private void showParameterDialog(
@@ -88,7 +115,7 @@ final class ProfileParameterSettingsController {
         form.view().findViewById(R.id.profileParameterSaveButton).setOnClickListener(v ->
                 saveAndClose(dialog, profileName, parameters, form));
         form.view().findViewById(R.id.profileParameterResetButton).setOnClickListener(v ->
-                confirmReset(profileName, form));
+                confirmReset(profileName, parameters, form));
         dialog.show();
     }
 
@@ -98,7 +125,7 @@ final class ProfileParameterSettingsController {
             @NonNull List<BRouterProfileParameter> parameters,
             @NonNull ProfileParameterForm form
     ) {
-        Map<String, String> values = form.collectValues(activity);
+        Map<String, String> values = form.collectChanges(activity);
         if (values == null) {
             return;
         }
@@ -107,18 +134,17 @@ final class ProfileParameterSettingsController {
         dialog.dismiss();
     }
 
-    private void confirmReset(@NonNull String profileName, @NonNull ProfileParameterForm form) {
+    private void confirmReset(String profileName, List<BRouterProfileParameter> parameters, ProfileParameterForm form) {
         new AlertDialog.Builder(activity)
                 .setTitle(R.string.title_profile_parameters_reset_confirm)
                 .setMessage(R.string.msg_profile_parameters_reset_confirm)
                 .setNegativeButton(R.string.action_cancel, null)
-                .setPositiveButton(android.R.string.ok, (dialog, which) -> reset(profileName, form))
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> reset(profileName, parameters, form))
                 .show();
     }
 
-    private void reset(@NonNull String profileName, @NonNull ProfileParameterForm form) {
-        profilesRepository.resetProfileParameterValues(activity, profileName);
-        form.resetToDefaults();
+    private void reset(String profileName, List<BRouterProfileParameter> parameters, ProfileParameterForm form) {
+        profilesRepository.saveProfileParameterValues(activity, profileName, parameters, form.resetToDefaults());
         Toast.makeText(activity, R.string.msg_profile_parameters_reset, Toast.LENGTH_SHORT).show();
         AppLogger.i(TAG, "Reset profile parameters profile=" + profileName);
     }

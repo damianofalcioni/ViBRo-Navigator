@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import vibro.navigator.brouter.BRouterProfileParameterParser;
+import vibro.navigator.brouter.BRouterProfileParameterValues;
 import vibro.navigator.brouter.BRouterRouteRequest;
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.geo.LatLon;
@@ -38,8 +40,9 @@ final class AndroidBRouterRouteParameterValues {
         putRoutePoints(values, request, points);
         putNogos(values, request.blockedWaypoints);
         putProfile(values, request, remoteProfile);
-        if (request.profileParameters != null) {
-            values.put("extraParams", request.profileParameters);
+        String parameters = profileParameters(request, remoteProfile);
+        if (parameters != null && !parameters.isEmpty()) {
+            values.put("extraParams", parameters);
         }
         putRoundTripParams(values, request);
 
@@ -50,6 +53,17 @@ final class AndroidBRouterRouteParameterValues {
         values.put("timode", "9");
         values.put("acceptCompressedResult", "true");
         return new AndroidBRouterRouteParameterValues(values);
+    }
+
+    @Nullable
+    private static String profileParameters(BRouterRouteRequest request, @Nullable String remoteProfile) {
+        String encoded = request.profileParameters;
+        if (!request.customProfile || encoded == null || remoteProfile == null) {
+            // BRouter resolves named profiles in its own configured folder.
+            return encoded;
+        }
+        return BRouterProfileParameterValues.filterExtraParams(
+                encoded, new BRouterProfileParameterParser().overridableNames(remoteProfile));
     }
 
     @NonNull

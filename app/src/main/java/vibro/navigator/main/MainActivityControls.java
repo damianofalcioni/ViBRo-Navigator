@@ -23,7 +23,7 @@ final class MainActivityControls {
     @NonNull
     final View profileSelectionPanel;
     @NonNull
-    final Spinner profileSpinner;
+    final RepeatSelectSpinner profileSpinner;
     @NonNull
     final ImageButton profileSettingsButton;
     @NonNull
@@ -70,7 +70,7 @@ final class MainActivityControls {
             @NonNull Spinner routeModeSpinner,
             @NonNull TextView profileLabel,
             @NonNull View profileSelectionPanel,
-            @NonNull Spinner profileSpinner,
+            @NonNull RepeatSelectSpinner profileSpinner,
             @NonNull ImageButton profileSettingsButton,
             @NonNull View destinationLabel,
             @NonNull View routeSetupPanel,

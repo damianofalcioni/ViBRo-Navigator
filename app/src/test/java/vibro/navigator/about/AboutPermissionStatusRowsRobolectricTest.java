@@ -15,6 +15,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.os.Build;
 import android.os.Looper;
+import android.provider.DocumentsContract;
 import android.provider.Settings;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -39,6 +40,9 @@ import org.robolectric.shadows.ShadowToast;
 import java.util.concurrent.TimeUnit;
 
 import vibro.navigator.R;
+import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
+import vibro.navigator.android.brouter.AndroidBRouterSegmentsRepositoryFactory;
+import vibro.navigator.android.brouter.TestBRouterStorage;
 import vibro.navigator.android.startup.AndroidNavigationPreflight;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.logging.AppLogger;
@@ -115,23 +119,20 @@ public class AboutPermissionStatusRowsRobolectricTest {
         );
         assertPermissionRow(
                 activity,
-                R.id.aboutPermissionProfileStorageLabel,
-                R.id.aboutPermissionProfileStorageStatus,
-                R.string.label_permission_brouter_profile_storage
+                R.id.aboutPermissionBRouterStorageLabel,
+                R.id.aboutPermissionBRouterStorageStatus,
+                R.string.title_brouter_storage_access
         );
     }
 
     @Test
-    public void brouterStorageRowsAreHiddenWhenBRouterIsMissing() {
+    public void brouterStorageRowIsHiddenWhenBRouterIsMissing() {
         Application context = ApplicationProvider.getApplicationContext();
         AppCompassSettings.setSurroundingStreetsEnabled(context, true);
         AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         idleInitialDiagnosticRender();
 
-        assertEquals(View.GONE, activity.findViewById(
-                R.id.aboutPermissionSurroundingStreetStorageRow
-        ).getVisibility());
-        assertEquals(View.GONE, activity.findViewById(R.id.aboutPermissionProfileStorageRow).getVisibility());
+        assertEquals(View.GONE, activity.findViewById(R.id.aboutPermissionBRouterStorageRow).getVisibility());
     }
 
     @Test
@@ -178,10 +179,11 @@ public class AboutPermissionStatusRowsRobolectricTest {
     @Test
     public void profileStorageRowOpensInstructionPromptBeforeFolderPicker() {
         installBRouterPackage();
+        TestBRouterStorage.createPrimaryFolder("profiles2");
         AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         idleInitialDiagnosticRender();
 
-        activity.findViewById(R.id.aboutPermissionProfileStorageRow).performClick();
+        activity.findViewById(R.id.aboutPermissionBRouterStorageRow).performClick();
         shadowOf(Looper.getMainLooper()).idleFor(android.view.ViewConfiguration.getPressedStateDuration(),
                 TimeUnit.MILLISECONDS);
 
@@ -191,7 +193,7 @@ public class AboutPermissionStatusRowsRobolectricTest {
                 activity.getString(R.string.action_continue),
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).getText().toString()
         );
-        assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains("profiles2"));
+        assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains("brouter"));
 
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         shadowOf(Looper.getMainLooper()).idle();
@@ -199,21 +201,67 @@ public class AboutPermissionStatusRowsRobolectricTest {
         ShadowActivity.IntentForResult started = shadowOf(activity).getNextStartedActivityForResult();
         assertNotNull(started);
         assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, started.intent.getAction());
-        assertEquals(AboutPermissionStatusRows.REQUEST_PROFILES_STORAGE, started.requestCode);
+        assertEquals(AboutPermissionStatusRows.REQUEST_BROUTER_STORAGE, started.requestCode);
+    }
+
+    @Test
+    @Config(sdk = Build.VERSION_CODES.Q)
+    public void restoredAboutScreenConsumesSharedGrantBeforeDiagnosticsRender() {
+        installBRouterPackage();
+        TestBRouterStorage.createPrimaryFolder("profiles2");
+        TestBRouterStorage.createPrimaryFolder("segments4");
+        try (var controller = Robolectric.buildActivity(AboutActivity.class).setup()) {
+            AboutActivity activity = controller.get();
+            idleInitialDiagnosticRender();
+            activity.findViewById(R.id.aboutPermissionBRouterStorageRow).performClick();
+            shadowOf(Looper.getMainLooper()).idleFor(android.view.ViewConfiguration.getPressedStateDuration(),
+                    TimeUnit.MILLISECONDS);
+            ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            shadowOf(Looper.getMainLooper()).idle();
+            int request = shadowOf(activity).getNextStartedActivityForResult().requestCode;
+
+            controller.recreate();
+            AboutActivity restored = controller.get();
+            Intent result = new Intent().setData(DocumentsContract.buildTreeDocumentUri(
+                    "com.android.externalstorage.documents", "primary:Android/media/btools.routingapp/brouter"))
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            restored.onActivityResult(request, android.app.Activity.RESULT_OK, result);
+
+            assertTrue(AndroidBRouterProfilesRepositoryFactory.create().hasPersistedProfilesTreeAccess(restored));
+            assertTrue(AndroidBRouterSegmentsRepositoryFactory.create().hasPersistedSegmentsTreeAccess(restored));
+            assertEquals(1, restored.getContentResolver().getPersistedUriPermissions().size());
+        }
+    }
+
+    @Test
+    @Config(sdk = Build.VERSION_CODES.R)
+    public void diagnosticsRecognizesAUsableParentWithOnlyProfiles() {
+        installBRouterPackage();
+        TestBRouterStorage.createPrimaryFolder("profiles2");
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
+        idleInitialDiagnosticRender();
+        Intent grant = new Intent().setData(DocumentsContract.buildTreeDocumentUri(
+                "com.android.externalstorage.documents", "primary:Android/media/btools.routingapp/brouter"))
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        activity.onActivityResult(AboutPermissionStatusRows.REQUEST_BROUTER_STORAGE, android.app.Activity.RESULT_OK, grant);
+
+        TextView status = activity.findViewById(R.id.aboutPermissionBRouterStorageStatus);
+        assertEquals(activity.getString(R.string.permission_status_ok), status.getText().toString());
     }
 
     @Test
     @Config(sdk = {Build.VERSION_CODES.O, Build.VERSION_CODES.P})
-    public void legacyProfileStorageRequestsSharedPermissionAndUpdatesBothRows() {
+    public void legacyStorageRequestsSharedPermissionAndUpdatesStorageRow() {
         installBRouterPackage();
         AppCompassSettings.setSurroundingStreetsEnabled(ApplicationProvider.getApplicationContext(), true);
         AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         idleInitialDiagnosticRender();
-        activity.findViewById(R.id.aboutPermissionProfileStorageRow).performClick();
+        activity.findViewById(R.id.aboutPermissionBRouterStorageRow).performClick();
 
         ShadowActivity.PermissionsRequest request = shadowOf(activity).getLastRequestedPermission();
         assertNotNull(request);
-        assertEquals(AboutPermissionStatusRows.REQUEST_PROFILES_STORAGE, request.requestCode);
+        assertEquals(AboutPermissionStatusRows.REQUEST_BROUTER_STORAGE, request.requestCode);
         assertEquals("android.permission.READ_EXTERNAL_STORAGE", request.requestedPermissions[0]);
         assertNull(ShadowAlertDialog.getLatestAlertDialog());
         assertNoFolderPicker(activity);
@@ -222,9 +270,7 @@ public class AboutPermissionStatusRowsRobolectricTest {
         activity.onRequestPermissionsResult(request.requestCode, request.requestedPermissions, new int[]{0});
 
         assertEquals(activity.getString(R.string.permission_status_ok),
-                ((TextView) activity.findViewById(R.id.aboutPermissionProfileStorageStatus)).getText().toString());
-        assertEquals(activity.getString(R.string.permission_status_ok),
-                ((TextView) activity.findViewById(R.id.aboutPermissionSurroundingStreetStorageStatus)).getText().toString());
+                ((TextView) activity.findViewById(R.id.aboutPermissionBRouterStorageStatus)).getText().toString());
     }
 
     @Test
@@ -233,12 +279,12 @@ public class AboutPermissionStatusRowsRobolectricTest {
         installBRouterPackage();
         AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         idleInitialDiagnosticRender();
-        activity.findViewById(R.id.aboutPermissionProfileStorageRow).performClick();
-        activity.onRequestPermissionsResult(AboutPermissionStatusRows.REQUEST_PROFILES_STORAGE,
+        activity.findViewById(R.id.aboutPermissionBRouterStorageRow).performClick();
+        activity.onRequestPermissionsResult(AboutPermissionStatusRows.REQUEST_BROUTER_STORAGE,
                 new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, new int[0]);
 
         assertEquals(activity.getString(R.string.permission_status_needs_attention),
-                ((TextView) activity.findViewById(R.id.aboutPermissionProfileStorageStatus)).getText().toString());
+                ((TextView) activity.findViewById(R.id.aboutPermissionBRouterStorageStatus)).getText().toString());
         assertEquals(activity.getString(R.string.msg_brouter_profiles_storage_permission_required),
                 ShadowToast.getTextOfLatestToast());
         assertNoFolderPicker(activity);

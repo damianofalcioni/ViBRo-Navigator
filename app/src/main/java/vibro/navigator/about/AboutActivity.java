@@ -33,6 +33,7 @@ public class AboutActivity extends AndroidLocalizedActivity {
     private final AboutSettingsControllers settingsControllers = new AboutSettingsControllers(this);
     private AboutDiagnosticSection diagnosticSection;
     private AboutSettingsSwitches settingsSwitches;
+    private Bundle initialSettingsState;
     private final AboutDatabaseBackupActions databaseBackupActions = new AboutDatabaseBackupActions(
             this, this::flushDeferredSettings, this::renderAfterDatabaseImport);
     private boolean settingsInitializationScheduled;
@@ -51,6 +52,7 @@ public class AboutActivity extends AndroidLocalizedActivity {
         setContentView(R.layout.activity_about);
         outputSaving.restoreState(savedInstanceState);
         settingsControllers.restoreState(savedInstanceState);
+        initialSettingsState = savedInstanceState;
 
         TextView version = findViewById(R.id.aboutVersion);
         AboutProjectLinks.configure(this);
@@ -114,6 +116,8 @@ public class AboutActivity extends AndroidLocalizedActivity {
                 navigationCustomButtonSwitch,
                 this::scheduleDiagnosticSectionRender
         );
+        settingsSwitches.streetPicker.restore(initialSettingsState);
+        initialSettingsState = null;
         settingsSwitches.configure();
         settingsControllers.configure();
         databaseBackupActions.configure(exportDatabaseButton, importDatabaseButton);
@@ -155,9 +159,10 @@ public class AboutActivity extends AndroidLocalizedActivity {
         if (diagnosticSection != null) {
             diagnosticSection.shutdown();
         }
-        if (settingsControllers != null) {
-            settingsControllers.shutdown();
+        if (settingsSwitches != null) {
+            settingsSwitches.streetPicker.dispose();
         }
+        settingsControllers.shutdown();
         super.onDestroy();
     }
 
@@ -172,7 +177,7 @@ public class AboutActivity extends AndroidLocalizedActivity {
         }
         AboutActivityResultHandlers.handleActivityResult(
                 settingsSwitches,
-                diagnosticSection,
+                this::diagnosticSection,
                 databaseBackupActions,
                 requestCode,
                 resultCode,
@@ -226,6 +231,7 @@ public class AboutActivity extends AndroidLocalizedActivity {
         flushDeferredSettings();
         outputSaving.saveState(state);
         settingsControllers.saveState(state);
+        AboutSettingsSwitches.savePicker(settingsSwitches, initialSettingsState, state);
         super.onSaveInstanceState(state);
     }
 

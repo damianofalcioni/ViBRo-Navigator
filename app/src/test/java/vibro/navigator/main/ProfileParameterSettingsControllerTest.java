@@ -8,7 +8,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.net.Uri;
 import android.widget.ImageButton;
-import android.widget.Spinner;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,7 +66,7 @@ public class ProfileParameterSettingsControllerTest {
                 profiles.saveCustomProfile(activity, Uri.parse("content://test/profiles/trekking.brf"), profileName);
             }
             profiles.saveSelectedProfileKey(activity, custom ? ProfileSpinnerOption.CUSTOM_KEY : profileName);
-            Spinner spinner = new Spinner(activity);
+            RepeatSelectSpinner spinner = new RepeatSelectSpinner(activity);
             ProfileSpinnerController profileController = new ProfileSpinnerController(
                     activity, spinner, profiles, () -> { });
             profileController.refresh();
@@ -105,12 +104,13 @@ public class ProfileParameterSettingsControllerTest {
         }
 
         @Override
-        public List<String> listProfiles(Context context) {
+        public List<String> listAvailableProfiles(Context context, List<String> bundled,
+                                                  androidx.core.util.Consumer<List<String>> progress) {
             return Collections.singletonList(profileName);
         }
 
         @Override
-        public List<BRouterProfileParameter> getProfileParameters(Context context, String selectedProfileName) {
+        public List<BRouterProfileParameter> getProfileParameters(Context context, String selectedProfileName, boolean custom) {
             requestedProfile = selectedProfileName;
             return editable ? Collections.singletonList(new BRouterProfileParameter("avoid_paths", "", "0",
                     BRouterProfileParameter.ValueType.BOOLEAN, Collections.emptyList())) : Collections.emptyList();

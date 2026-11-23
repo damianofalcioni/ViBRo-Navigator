@@ -1,55 +1,52 @@
 package vibro.navigator.android.brouter;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.Intent;
+import android.content.Context;
 import android.net.Uri;
-import android.view.ViewConfiguration;
+import android.os.CancellationSignal;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Locale;
+import java.util.concurrent.atomic.AtomicReference;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import androidx.core.util.Consumer;
 
-import vibro.navigator.R;
-import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.android.storage.AndroidDocumentAccess;
+import vibro.navigator.android.storage.AndroidStorageVolumes;
+import vibro.navigator.brouter.BRouterDirectoryCandidates;
+import vibro.navigator.brouter.BRouterFolderGrant;
 import vibro.navigator.brouter.BRouterProfilesRepository;
-import vibro.navigator.logging.AppLogger;
 
 public final class AndroidBRouterProfilesTreeAccessPrompt {
-
     private AndroidBRouterProfilesTreeAccessPrompt() {
     }
 
-    public static void show(
-            @NonNull Activity activity,
-            @NonNull BRouterProfilesRepository profilesRepository,
-            int requestCode,
-            @NonNull String logTag,
-            @NonNull Runnable beforeLaunch,
-            @NonNull Runnable onCancel
-    ) {
-        show(activity, profilesRepository, requestCode, logTag, beforeLaunch, onCancel, dialog -> { });
+    public static void findCustomProfileLocation(Activity activity, BRouterProfilesRepository repository,
+                                                 Consumer<Uri> onResult) {
+        var app = activity.getApplicationContext();
+        AtomicReference<Uri> local = new AtomicReference<>();
+        AndroidBRouterFolderDiscovery.findWithFallback(signal -> {
+            local.set(findLocalProfiles(app));
+            return AndroidBRouterProfilesRepositoryFactory.withCancellation(signal,
+                    () -> repository.getCustomProfilePickerInitialUri(app));
+        }, local::get, onResult);
     }
 
-    public static void show(
-            @NonNull Activity activity,
-            @NonNull BRouterProfilesRepository profilesRepository,
-            int requestCode,
-            @NonNull String logTag,
-            @NonNull Runnable beforeLaunch,
-            @NonNull Runnable onCancel,
-            @NonNull Consumer<AlertDialog> onShown
-    ) {
-        AndroidTaskScheduler.main().postDelayed(() -> {
-            if (!activity.isFinishing() && !activity.isDestroyed()) {
-                onShown.accept(showNow(activity, profilesRepository, requestCode, logTag, beforeLaunch, onCancel));
+    @Nullable
+    private static Uri findLocalProfiles(Context context) {
+        for (String id : BRouterDirectoryCandidates.buildLikelyDocumentIdCandidates(
+                AndroidStorageVolumes.secondaryStorageRootIds(context), AndroidBRouterFolderAccess.Kind.PROFILES.folder)) {
+            if (AndroidDocumentAccess.isDirectExternalDirectory(context, id)) {
+                return AndroidDocumentAccess.buildExternalStorageDocumentUri(id);
             }
-        }, ViewConfiguration.getPressedStateDuration());
+        }
+        return null;
     }
 
-    private static AlertDialog showNow(
+    public static void show(
             @NonNull Activity activity,
             @NonNull BRouterProfilesRepository profilesRepository,
             int requestCode,
@@ -57,38 +54,71 @@ public final class AndroidBRouterProfilesTreeAccessPrompt {
             @NonNull Runnable beforeLaunch,
             @NonNull Runnable onCancel
     ) {
-        Uri initialUri = profilesRepository.getCustomProfilePickerInitialUri(activity);
-        return new AlertDialog.Builder(activity)
-                .setTitle(R.string.title_brouter_profiles_storage_access)
-                .setMessage(activity.getString(R.string.msg_brouter_profiles_storage_access_prompt,
-                        AndroidBRouterStorageInstructions.folderPath(initialUri, "profiles2")))
-                .setPositiveButton(R.string.action_continue, (dialog, which) -> launchPicker(
-                        activity,
-                        initialUri,
-                        requestCode,
-                        logTag,
-                        beforeLaunch
-                ))
-                .setNegativeButton(R.string.action_cancel, (dialog, which) -> onCancel.run())
-                .setOnCancelListener(dialog -> onCancel.run())
-                .show();
-    }
-
-    private static void launchPicker(
-            @NonNull Activity activity,
-            @Nullable Uri initialUri,
-            int requestCode,
-            @NonNull String logTag,
-            @NonNull Runnable beforeLaunch
-    ) {
-        Intent intent = AndroidDocumentAccess.openDocumentTreeIntent(initialUri);
-        beforeLaunch.run();
-        AppLogger.i(logTag, "Launching BRouter profiles tree picker initialUri=" + safe(initialUri));
-        activity.startActivityForResult(intent, requestCode);
+        AndroidBRouterDeferredPrompt.request(activity, requestCode, false,
+                (signal, progress) -> findLocation(activity, profilesRepository, Collections.emptySet(), signal, progress),
+                location -> AndroidBRouterFolderPrompt.show(activity, location.initialUri, requestCode, logTag,
+                        beforeLaunch, onCancel, onCancel));
     }
 
     @NonNull
-    private static String safe(@Nullable Uri value) {
-        return value == null ? "null" : value.toString();
+    static AndroidBRouterPickerLocation findLocation(
+            @NonNull Activity activity,
+            @NonNull BRouterProfilesRepository profilesRepository,
+            Collection<String> excluded,
+            CancellationSignal signal,
+            Consumer<AndroidBRouterPickerLocation> progress
+    ) {
+        return findLocation(activity, profilesRepository, excluded, signal, progress, null);
+    }
+
+    static AndroidBRouterPickerLocation findLocation(
+            Activity activity, BRouterProfilesRepository profilesRepository, Collection<String> excluded,
+            CancellationSignal signal, Consumer<AndroidBRouterPickerLocation> progress,
+            @Nullable AndroidBRouterFolderAccess.Kind needed
+    ) {
+        Uri savedParent = needed == null ? savedParent(activity, excluded) : null;
+        if (savedParent != null) {
+            return AndroidBRouterPickerLocation.confirmed(savedParent);
+        }
+        Uri savedProfileHint = profilesRepository.getCustomProfileUri(activity);
+        Uri hint = profilesRepository.getProfilesTreePickerHint(activity, savedProfileHint);
+        String id = hint != null && AndroidDocumentAccess.isExternalStorageDocument(hint)
+                ? AndroidDocumentAccess.documentId(hint) : null;
+        Uri parent = parentHint(id);
+        return AndroidBRouterPickerLocation.resolve(
+                activity, parent, AndroidBRouterFolderAccess.FOLDER, needed == null ? null : needed.folder,
+                excluded, signal, progress, needed != null);
+    }
+
+    @Nullable
+    static Uri savedParent(Activity activity, Collection<String> excluded) {
+        Uri tree = BRouterFolderGrant.get(activity);
+        if (tree == null || !AndroidBRouterFolderAccess.hasUsableParent(activity, tree)) {
+            return null;
+        }
+        Uri document = parentDocument(tree);
+        return document != null && !excluded.contains(document.toString()) ? document : null;
+    }
+
+    @Nullable
+    static Uri parentDocument(Uri tree) {
+        if (!AndroidDocumentAccess.isExternalStorageDocument(tree)) {
+            return AndroidDocumentAccess.buildTreeDocumentUri(tree);
+        }
+        String id = AndroidDocumentAccess.treeDocumentId(tree);
+        return id != null && AndroidBRouterDirectoryCheck.isSelectableDocumentId(id)
+                ? AndroidDocumentAccess.buildExternalStorageDocumentUri(id) : null;
+    }
+
+    @Nullable
+    private static Uri parentHint(@Nullable String id) {
+        if (id == null) {
+            return null;
+        }
+        String normalized = id.toLowerCase(Locale.ROOT);
+        if (normalized.endsWith("/brouter/profiles2") || normalized.endsWith(":brouter/profiles2")) {
+            return AndroidDocumentAccess.buildExternalStorageDocumentUri(id.substring(0, id.lastIndexOf('/')));
+        }
+        return null;
     }
 }

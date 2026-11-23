@@ -2,9 +2,13 @@ package vibro.navigator.android.brouter;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Intent;
 import android.net.Uri;
-import android.view.ViewConfiguration;
+import android.os.CancellationSignal;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -12,83 +16,95 @@ import androidx.annotation.Nullable;
 import androidx.core.util.Consumer;
 
 import vibro.navigator.R;
-import vibro.navigator.android.dispatch.AndroidTaskScheduler;
-import vibro.navigator.android.storage.AndroidDocumentAccess;
-import vibro.navigator.brouter.BRouterSegmentsRepository;
-import vibro.navigator.logging.AppLogger;
+import vibro.navigator.brouter.BRouterFolderGrant;
 
 public final class AndroidBRouterSegmentsTreeAccessPrompt {
-
     private AndroidBRouterSegmentsTreeAccessPrompt() {
     }
 
     public static void show(
             @NonNull Activity activity,
-            @NonNull BRouterSegmentsRepository segmentsRepository,
-            int requestCode,
-            @NonNull String logTag,
-            @NonNull Runnable beforeLaunch,
-            @NonNull Runnable onCancel
-    ) {
-        show(activity, segmentsRepository, requestCode, logTag, beforeLaunch, onCancel, dialog -> { });
-    }
-
-    public static void show(
-            @NonNull Activity activity,
-            @NonNull BRouterSegmentsRepository segmentsRepository,
             int requestCode,
             @NonNull String logTag,
             @NonNull Runnable beforeLaunch,
             @NonNull Runnable onCancel,
-            @NonNull Consumer<AlertDialog> onShown
+            @NonNull Runnable onAlreadyGranted
     ) {
-        AndroidTaskScheduler.main().postDelayed(() -> {
-            if (!activity.isFinishing() && !activity.isDestroyed()) {
-                onShown.accept(showNow(activity, segmentsRepository, requestCode, logTag, beforeLaunch, onCancel));
+        AndroidBRouterDeferredPrompt.request(activity, requestCode, true,
+                (signal, progress) -> findLocation(activity, Collections.emptySet(), signal, progress),
+                location -> {
+                    if (AndroidBRouterSegmentsRepositoryFactory.create().hasPersistedSegmentsTreeAccess(activity)) {
+                        onAlreadyGranted.run();
+                        return null;
+                    }
+                    return showNow(activity, location.initialUri, requestCode, logTag, beforeLaunch, onCancel, onCancel);
+                });
+    }
+
+    public static void cancel(Activity activity, int requestCode) {
+        AndroidBRouterDeferredPrompt.cancel(activity, requestCode);
+    }
+
+    public static void findAvailableFolder(Activity activity,
+                                           Collection<String> excluded, Consumer<Uri> onResult) {
+        AtomicReference<Uri> fallback = new AtomicReference<>();
+        AndroidBRouterFolderDiscovery.findWithFallback(
+                signal -> findLocation(activity, startupExclusions(activity, excluded), signal,
+                        location -> fallback.set(location.confirmedUri()))
+                        .confirmedUri(), fallback::get, onResult);
+    }
+
+    private static Collection<String> startupExclusions(Activity activity, Collection<String> excluded) {
+        var locations = new ArrayList<>(excluded);
+        for (Uri tree : BRouterFolderGrant.parents(activity)) {
+            Uri document = AndroidBRouterProfilesTreeAccessPrompt.parentDocument(tree);
+            if (document != null && isGrantedProfilesOnly(activity, tree)) {
+                locations.add(document.toString());
             }
-        }, ViewConfiguration.getPressedStateDuration());
+        }
+        return locations;
     }
 
-    private static AlertDialog showNow(
+    private static boolean isGrantedProfilesOnly(Activity activity, Uri tree) {
+        return AndroidBRouterGrantedDirectories.hasKnownChild(activity, tree, AndroidBRouterFolderAccess.Kind.PROFILES)
+                && !AndroidBRouterFolderAccess.hasPersistedReadPermission(activity, tree, AndroidBRouterFolderAccess.Kind.SEGMENTS);
+    }
+
+    @NonNull
+    private static AndroidBRouterPickerLocation findLocation(
             @NonNull Activity activity,
-            @NonNull BRouterSegmentsRepository segmentsRepository,
-            int requestCode,
-            @NonNull String logTag,
-            @NonNull Runnable beforeLaunch,
-            @NonNull Runnable onCancel
+            Collection<String> excluded,
+            CancellationSignal signal,
+            Consumer<AndroidBRouterPickerLocation> progress
     ) {
-        Uri initialUri = segmentsRepository.getSegmentsTreePickerInitialUri(activity);
-        return new AlertDialog.Builder(activity)
-                .setTitle(R.string.title_brouter_segments_storage_access)
-                .setMessage(activity.getString(R.string.msg_brouter_segments_storage_access_prompt,
-                        AndroidBRouterStorageInstructions.folderPath(initialUri, "segments4")))
-                .setPositiveButton(R.string.action_continue, (dialog, which) -> launchPicker(
-                        activity,
-                        initialUri,
-                        requestCode,
-                        logTag,
-                        beforeLaunch
-                ))
-                .setNegativeButton(R.string.action_cancel, (dialog, which) -> onCancel.run())
-                .setOnCancelListener(dialog -> onCancel.run())
-                .show();
+        return AndroidBRouterPickerLocation.resolve(
+                activity, null, AndroidBRouterFolderAccess.FOLDER, AndroidBRouterFolderAccess.Kind.SEGMENTS.folder,
+                excluded, signal, progress);
     }
 
-    private static void launchPicker(
+    public static AlertDialog showNow(
             @NonNull Activity activity,
             @Nullable Uri initialUri,
             int requestCode,
             @NonNull String logTag,
-            @NonNull Runnable beforeLaunch
+            @NonNull Runnable beforeLaunch,
+            @NonNull Runnable onCancel,
+            @NonNull Runnable onLaunchFailure
     ) {
-        Intent intent = AndroidDocumentAccess.openDocumentTreeIntent(initialUri);
-        beforeLaunch.run();
-        AppLogger.i(logTag, "Launching BRouter segments tree picker initialUri=" + safe(initialUri));
-        activity.startActivityForResult(intent, requestCode);
+        return AndroidBRouterFolderPrompt.show(activity, initialUri, requestCode, logTag,
+                beforeLaunch, onCancel, onLaunchFailure);
     }
 
-    @NonNull
-    private static String safe(@Nullable Uri value) {
-        return value == null ? "null" : value.toString();
+    public static AlertDialog showRetry(Activity activity, @Nullable Uri initialUri, int requestCode,
+                                        String logTag, Runnable beforeLaunch, Runnable onSkip) {
+        return new AlertDialog.Builder(activity)
+                .setTitle(R.string.title_brouter_storage_access)
+                .setMessage(AndroidBRouterFolderPrompt.withTileFolderHint(activity,
+                        activity.getString(R.string.msg_brouter_segments_folder_required)))
+                .setPositiveButton(R.string.action_browse, (dialog, which) ->
+                        AndroidBRouterTreePicker.launch(activity, initialUri, requestCode, logTag, beforeLaunch, onSkip))
+                .setNegativeButton(R.string.action_cancel, (dialog, which) -> onSkip.run())
+                .setOnCancelListener(dialog -> onSkip.run())
+                .show();
     }
 }

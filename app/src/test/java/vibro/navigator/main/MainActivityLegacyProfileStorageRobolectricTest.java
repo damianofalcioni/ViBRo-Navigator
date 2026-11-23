@@ -1,6 +1,7 @@
 package vibro.navigator.main;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -33,6 +34,7 @@ import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 
 import vibro.navigator.R;
+import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
 import vibro.navigator.android.storage.AndroidStorageVolumes;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.settings.AppMainUiSettings;
@@ -69,6 +71,7 @@ public class MainActivityLegacyProfileStorageRobolectricTest {
     }
 
     @Test
+    @Config(sdk = {Build.VERSION_CODES.M, Build.VERSION_CODES.N_MR1, Build.VERSION_CODES.O, Build.VERSION_CODES.P})
     public void startupUsesAllowPermissionAndRefreshesExternalProfilesOnGrant() {
         try (ActivityController<MainActivity> controller = Robolectric.buildActivity(MainActivity.class).setup()) {
             MainActivity activity = controller.get();
@@ -83,6 +86,21 @@ public class MainActivityLegacyProfileStorageRobolectricTest {
 
             assertProfileListed(activity);
         }
+    }
+
+    @Test
+    public void leftoverSharedProfilesAreNotOfferedAsNamedRoutes() throws Exception {
+        Application app = ApplicationProvider.getApplicationContext();
+        shadowOf(app).grantPermissions(READ_STORAGE);
+        File root = AndroidStorageVolumes.storageRoot(app, "primary");
+        File shared = new File(root, "brouter/profiles2");
+        assertTrue(shared.mkdirs() || shared.isDirectory());
+        File abandoned = new File(shared, "abandoned-profile.brf");
+        assertTrue(abandoned.createNewFile());
+
+        BRouterProfilesRepository repository = AndroidBRouterProfilesRepositoryFactory.create();
+        assertTrue(repository.listProfiles(app).contains(PROFILE_NAME));
+        assertFalse(repository.listProfiles(app).contains("abandoned-profile"));
     }
 
     @Test

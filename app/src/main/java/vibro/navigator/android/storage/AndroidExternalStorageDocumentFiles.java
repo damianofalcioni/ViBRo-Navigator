@@ -2,6 +2,7 @@ package vibro.navigator.android.storage;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Environment;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -85,7 +86,7 @@ final class AndroidExternalStorageDocumentFiles {
     }
 
     @Nullable
-    private static File fileForDocumentId(@NonNull Context context, @NonNull String documentId) {
+    static File fileForDocumentId(@NonNull Context context, @NonNull String documentId) {
         int separator = documentId.indexOf(':');
         if (separator <= 0 || separator >= documentId.length() - 1) {
             return null;
@@ -94,8 +95,17 @@ final class AndroidExternalStorageDocumentFiles {
         if (hasUnsafeRelativePath(relativePath)) {
             return null;
         }
-        File root = AndroidStorageVolumes.storageRoot(context, documentId.substring(0, separator));
+        File root = documentRoot(context, documentId.substring(0, separator));
         return root == null ? null : new File(root, relativePath);
+    }
+
+    @Nullable
+    private static File documentRoot(Context context, String rootId) {
+        if (!"home".equalsIgnoreCase(rootId)) {
+            return AndroidStorageVolumes.storageRoot(context, rootId);
+        }
+        File primary = AndroidStorageVolumes.storageRoot(context, "primary");
+        return primary == null ? null : new File(primary, Environment.DIRECTORY_DOCUMENTS);
     }
 
     @Nullable

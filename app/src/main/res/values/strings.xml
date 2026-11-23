@@ -28,7 +28,7 @@
     <string name="welcome_setup_title">Initial setup</string>
     <string name="welcome_brouter_body">• Install BRouter using the links provided, then open it and download routing data for your area.</string>
     <string name="welcome_permissions_body">• After this welcome and the optional BRouter installation prompt, allow location, microphone (for voice input), notifications, and any requested storage access. Enable device location when prompted. You can skip a request and enable access later.</string>
-    <string name="welcome_storage_body">• Grant profiles2 folder access when prompted, or storage permission on older Android versions.</string>
+    <string name="welcome_storage_body">• Grant access to the brouter folder when prompted, or storage permission on older Android versions.</string>
     <string name="welcome_battery_body">• Allow the optional battery optimization exemption for reliable guidance with the screen off.</string>
     <string name="welcome_optional_access_body">• Microphone access is only needed if requested for voice search.</string>
     <string name="welcome_safety_title">Safety and responsibility</string>
@@ -160,6 +160,7 @@
     <string name="msg_speech_input_unresponsive">Speech recognition did not start. Enable the Google app or Android voice input.</string>
     <string name="msg_speech_permission_required">Microphone permission is needed for speech input.</string>
     <string name="msg_select_custom_profile">Select a custom BRouter .brf file</string>
+    <string name="msg_brouter_profile_not_ready">Routing profile unavailable. Wait for discovery or choose an available profile.</string>
     <string name="msg_invalid_custom_profile">Select a valid BRouter .brf file</string>
     <string name="msg_profile_parameters_empty">This profile does not expose editable parameters.</string>
     <string name="msg_profile_parameters_not_localized">Parameters are dynamically extracted from the BRouter profile file, so their names, descriptions, and options are not translated.</string>
@@ -171,11 +172,14 @@
     <string name="msg_poi_details_map_check_hint">Use the map to double-check that this is the intended location.</string>
     <string name="msg_poi_google_maps_search_info">Opens Google Maps with the text from this POI search field. After choosing a place in Google Maps, share that place and select ViBRo Navigator to bring the result back here.</string>
     <string name="msg_compass_surrounding_streets_storage_permission_required">Storage access is needed to read local BRouter streets.</string>
-    <string name="title_brouter_segments_storage_access">BRouter street storage</string>
-    <string name="msg_brouter_segments_storage_access_prompt">Surrounding streets need access to the BRouter segments4 folder. On the next screen, browse to %1$s and confirm folder access. If that location is unavailable, select the folder where BRouter stores its .rd5 files.</string>
     <string name="msg_brouter_profiles_storage_permission_required">Storage access is needed to read BRouter profile files.</string>
-    <string name="title_brouter_profiles_storage_access">BRouter profile storage</string>
-    <string name="msg_brouter_profiles_storage_access_prompt">BRouter profiles need access to the profiles2 folder. On the next screen, browse to %1$s and confirm folder access. If that location is unavailable, select the folder where BRouter stores its .brf profiles.</string>
+    <string name="title_brouter_storage_access">BRouter storage</string>
+    <string name="msg_brouter_storage_access_prompt">Select the BRouter folder at %1$s to give ViBRo read access to profiles and routing data.</string>
+    <string name="msg_brouter_folder_required">Select a brouter folder containing profiles2, segments4, or both.</string>
+    <string name="msg_brouter_segments_folder_required">Select the brouter folder containing segments4.</string>
+    <string name="msg_brouter_direct_tiles_hint">If your .rd5 files are in a separate folder, you can select that folder.</string>
+    <string name="action_browse">Browse</string>
+    <string name="msg_brouter_storage_folder_missing">Browse to select your %1$s folder. If it does not exist yet, finish storage setup in BRouter.</string>
     <string name="msg_symbol_test_notification_sent">Symbol test notification sent.</string>
     <string name="msg_map_location_searching">Looking up current location…</string>
     <string name="msg_map_location_unavailable">Current location is unavailable.</string>
@@ -286,14 +290,14 @@
     <string name="nav_calculating_route_title">Calculating route</string>
     <string name="nav_calculating_route_body">Getting directions from BRouter.</string>
     <string name="nav_route_unavailable_title">Route unavailable</string>
-    <string name="format_nav_route_unavailable_body">Route unavailable: %1$s \n Check BRouter for available segments.</string>
+    <string name="format_nav_route_unavailable_body">Route unavailable: %1$s \n Open BRouter and download routing data for your area if needed.</string>
     <string name="nav_route_unavailable_generic">unknown error</string>
     <string name="nav_start_invalid_request">navigation request is incomplete</string>
     <string name="nav_route_notice_no_alternative_keep_current">Could not find an alternative route around the blocked area. Keeping current route.</string>
     <string name="nav_route_notice_no_route_found">No route found for this destination.</string>
     <string name="nav_route_notice_service_unavailable_keep_current">Routing service unavailable. Keeping current route.</string>
     <string name="nav_route_notice_service_unavailable">Routing service unavailable.</string>
-    <string name="nav_route_notice_invalid_profile">Routing profile is invalid.</string>
+    <string name="nav_route_notice_invalid_profile">Routing profile unavailable.</string>
     <string name="nav_route_notice_update_failed_keep_current">Could not update the route. Keeping current route.</string>
     <string name="nav_route_notice_unavailable">Could not calculate a route.</string>
     <string name="nav_route_notice_blocked_road_recalculating">Blocked road added. Recalculating route.</string>
@@ -611,8 +615,6 @@
     <string name="label_permission_location_services">Device location</string>
     <string name="label_permission_notifications">Notifications</string>
     <string name="label_permission_battery">Battery optimization</string>
-    <string name="label_permission_surrounding_street_storage">BRouter street storage</string>
-    <string name="label_permission_brouter_profile_storage">BRouter profile storage</string>
     <string name="permission_status_ok" translatable="false">OK</string>
     <string name="permission_status_needs_attention" translatable="false">KO</string>
     <string name="format_about_permission_status_content_description">%1$s: %2$s. Tap to resolve.</string>

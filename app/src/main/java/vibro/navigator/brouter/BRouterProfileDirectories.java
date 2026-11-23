@@ -31,36 +31,53 @@ final class BRouterProfileDirectories {
     Uri getCustomProfilePickerInitialUri(
             @NonNull Context context,
             @Nullable Uri profilesTreeUri,
-            boolean hasProfilesTreeReadPermission,
             @Nullable Uri customProfileUri
     ) {
-        if (hasProfilesTreeReadPermission) {
-            Uri treeDocumentUri = profilesTreeUri == null ? null : documentAccess.buildTreeDocumentUri(profilesTreeUri);
-            return treeDocumentUri != null ? treeDocumentUri : profilesTreeUri;
+        if (profilesTreeUri != null) {
+            Uri directory = documentAccess.profilePickerDirectory(context, profilesTreeUri);
+            return directory != null ? directory : initialUriForTree(profilesTreeUri);
         }
         if (customProfileUri != null) {
             Uri parentUri = toParentDocumentUri(customProfileUri);
             return parentUri != null ? parentUri : customProfileUri;
         }
-        String documentId = resolveProfilesPickerInitialDocumentId(context);
-        if (documentId == null) {
-            AppLogger.d(TAG, "No accessible profiles folder found for custom picker initial URI");
-            return null;
+        String existing = findExistingProfilesDocumentId(context);
+        return existing != null ? buildExternalStorageDocumentUri(existing) : fallbackPickerUri(context);
+    }
+
+    @Nullable
+    Uri getProfilesTreePickerHint(
+            @NonNull Context context,
+            @Nullable Uri persistedTreeUri,
+            @Nullable Uri savedProfileHint
+    ) {
+        if (persistedTreeUri != null) {
+            return initialUriForTree(persistedTreeUri);
         }
-        return buildExternalStorageDocumentUri(documentId);
+        // A file grant may identify the folder even when probing cannot read its parent.
+        if (savedProfileHint != null) {
+            String parent = toParentDocumentId(savedProfileHint);
+            if (parent != null && (parent.endsWith("/profiles2") || parent.endsWith(":profiles2"))) {
+                return buildExternalStorageDocumentUri(parent);
+            }
+        }
+        return fallbackPickerUri(context);
+    }
+
+    @Nullable
+    private Uri initialUriForTree(@Nullable Uri treeUri) {
+        Uri documentUri = treeUri == null ? null : documentAccess.buildTreeDocumentUri(treeUri);
+        return documentUri != null ? documentUri : treeUri;
     }
 
     @NonNull
     List<Uri> resolveProfilesDiscoveryTreeUris(
             @NonNull Context context,
-            @Nullable Uri savedTreeUri,
-            boolean hasSavedTreeReadPermission
+            List<Uri> savedTrees
     ) {
-        List<Uri> out = new ArrayList<>();
-        if (hasSavedTreeReadPermission && savedTreeUri != null) {
-            addDiscoveryTreeUri(out, savedTreeUri);
-        }
-        for (String documentId : getProfilesDocumentIdCandidates(context)) {
+        List<Uri> out = new ArrayList<>(savedTrees);
+        // Shared legacy folders supply named profiles only after the user grants access.
+        for (String documentId : directoryCandidates.getNamedProfileDocumentIdCandidates(context)) {
             if (documentExists(context, documentId)) {
                 addDiscoveryTreeUri(out, buildExternalStorageTreeUri(documentId));
             }
@@ -98,21 +115,13 @@ final class BRouterProfileDirectories {
         }
     }
 
-    @Nullable
-    private String resolveProfilesPickerInitialDocumentId(@NonNull Context context) {
-        String existing = findExistingProfilesDocumentId(context);
-        if (existing != null) {
-            return existing;
-        }
+    @NonNull
+    private Uri fallbackPickerUri(@NonNull Context context) {
         List<String> fallbackCandidates = BRouterProfileDirectoryCandidates.buildFallbackPickerDocumentIdCandidates(
                 directoryCandidates.getSecondaryStorageRootIds(context)
         );
-        if (fallbackCandidates.isEmpty()) {
-            return null;
-        }
         String fallback = fallbackCandidates.get(0);
-        AppLogger.d(TAG, "Using fallback profiles path documentId=" + fallback);
-        return fallback;
+        return buildExternalStorageDocumentUri(fallback);
     }
 
     @Nullable

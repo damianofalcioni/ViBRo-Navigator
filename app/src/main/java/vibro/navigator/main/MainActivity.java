@@ -170,7 +170,7 @@ public class MainActivity extends AndroidLocalizedActivity {
             return;
         }
         if (routeModeController != null) {
-            routeModeController.showRouteMode();
+            routeModeController.onNewIntent(intent, profileCoordinator.isBRouterInstalled());
         }
         MainActivityIntentHandler.handleIncomingIntent(
                 this,
@@ -186,10 +186,11 @@ public class MainActivity extends AndroidLocalizedActivity {
     protected void onResume() {
         super.onResume();
         AndroidAppTheme.recreateIfThemeChanged(this, appliedLightTheme);
-        MainActivityProfileCoordinator.refresh(profileCoordinator);
         if (routeModeController != null) {
+            routeModeController.refreshAvailability(profileCoordinator.isBRouterInstalled());
             routeModeController.updateDistanceUnitText();
         }
+        MainActivityProfileCoordinator.refresh(profileCoordinator);
         if (roundTripDirectionController != null) {
             roundTripDirectionController.onResume();
         }
@@ -265,7 +266,7 @@ public class MainActivity extends AndroidLocalizedActivity {
             return;
         }
         if (routeModeController.isRoundTripMode()) {
-            routeModeController.startRoundTripNavigation(profileSelection);
+            routeModeController.startRoundTripNavigation(profileSelection, profileCoordinator.skippedSegmentsFolders());
             return;
         }
         NavigationInputResolver.Result input = NavigationInputResolver.resolve(
@@ -282,7 +283,7 @@ public class MainActivity extends AndroidLocalizedActivity {
     }
 
     private void launchNavigation(@NonNull NavigationInputResolver.Result input) {
-        MainActivityNavigationLauncher.launch(this, input.request);
+        MainActivityNavigationLauncher.launch(this, input.request, profileCoordinator.skippedSegmentsFolders());
     }
 
     @Nullable

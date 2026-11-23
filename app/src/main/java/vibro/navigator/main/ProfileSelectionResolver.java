@@ -14,6 +14,29 @@ final class ProfileSelectionResolver {
     }
 
     @Nullable
+    static ProfileSelection selected(Context context, BRouterProfilesRepository repository,
+                                     @Nullable ProfileSpinnerOption option, Runnable openPicker) {
+        if (option == null) {
+            Toast.makeText(context, R.string.msg_select_custom_profile, Toast.LENGTH_SHORT).show();
+            return null;
+        }
+        if (!repository.isBRouterInstalled(context)) {
+            Toast.makeText(context, R.string.msg_brouter_not_found, Toast.LENGTH_SHORT).show();
+            return null;
+        }
+        if (!option.isCustom()) {
+            return brouter(context, repository, option.profileName());
+        }
+        String customProfile = repository.getCustomProfileName(context);
+        if (clean(customProfile) == null) {
+            Toast.makeText(context, R.string.msg_select_custom_profile, Toast.LENGTH_SHORT).show();
+            openPicker.run();
+            return null;
+        }
+        return customBrouter(context, repository, customProfile);
+    }
+
+    @Nullable
     static ProfileSelection brouter(
             @NonNull Context context,
             @NonNull BRouterProfilesRepository profilesRepository,

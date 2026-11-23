@@ -8,12 +8,36 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.LinkedHashSet;
 
 final class ProfileSpinnerOptions {
 
     private final List<String> profiles = new ArrayList<>();
     private final List<ProfileSpinnerOption> options = new ArrayList<>();
+
+    private List<String> bundled = Collections.emptyList();
+
+    void replaceFromLoad(Context context, List<String> loaded, List<String> currentBundled,
+                         boolean complete, @Nullable String customProfile) {
+        var available = new LinkedHashSet<>(loaded);
+        if (!complete) {
+            var external = new ArrayList<>(profiles);
+            external.removeAll(bundled);
+            available.addAll(external);
+        }
+        bundled = currentBundled;
+        var names = new ArrayList<>(available);
+        if (!complete) {
+            Collections.sort(names);
+        }
+        replace(context, names, customProfile);
+    }
+
+    boolean contains(String selectionKey) {
+        return findPosition(selectionKey) >= 0;
+    }
 
     void replace(
             @NonNull Context context,

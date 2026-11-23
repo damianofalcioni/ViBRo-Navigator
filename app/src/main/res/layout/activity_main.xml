@@ -71,6 +71,14 @@
                 android:src="@drawable/ic_settings" />
         </LinearLayout>
 
+        <Button
+            android:id="@+id/brouterStorageAccessButton"
+            style="@style/Widget.ViBRoNavigator.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/title_brouter_storage_access"
+            android:visibility="gone" />
+
         <TextView
             android:id="@+id/destinationLabel"
             android:layout_width="match_parent"

@@ -15,6 +15,7 @@ import androidx.test.core.app.ApplicationProvider;
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
 import vibro.navigator.brouter.BRouterProfileParameter;
 import vibro.navigator.brouter.BRouterProfilesRepository;
+import vibro.navigator.brouter.BRouterFolderGrant;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.model.NavigationRoutingMode;
 import vibro.navigator.poi.Poi;
@@ -154,6 +155,24 @@ public class AppDataBackupTest {
                 profiles.getProfileParameterOverridesExtraParams(context, PROFILE_TREKKING));
         assertEquals(SAVED_ROUTE_PAYLOAD, context.getSharedPreferences(PREFS_SAVED_ROUTES, Context.MODE_PRIVATE)
                 .getString(KEY_SAVED_ROUTE_ITEMS, ""));
+    }
+
+    @Test
+    public void importingOlderBackupPreservesLocalBRouterFolders() throws Exception {
+        BRouterProfilesRepository profiles = AndroidBRouterProfilesRepositoryFactory.create();
+        profiles.saveSelectedProfileKey(context, PROFILE_TREKKING);
+        String olderBackup = AppDataBackup.exportJson(context);
+        Uri tree = Uri.parse("content://local/tree/brouter");
+        Uri segments = Uri.parse("content://local/tree/brouter/document/segments4");
+        BRouterFolderGrant.save(context, tree, null, segments);
+        profiles.saveSelectedProfileKey(context, "temporary-profile");
+
+        AppDataBackup.importJson(context, olderBackup);
+
+        assertEquals(tree, BRouterFolderGrant.get(context));
+        assertEquals(segments, BRouterFolderGrant.directory(context, tree, false));
+        assertEquals(PROFILE_TREKKING, profiles.getSelectedProfileKey(context));
+        assertFalse(AppDataBackup.exportJson(context).contains(tree.toString()));
     }
 
     @Test

@@ -2,7 +2,7 @@
 
 ## Current state and first actions
 
-- The coverage audit at the end of this plan supersedes earlier implementation-complete statements. It records three open gaps, fresh verification and the current merge conflict.
+- The coverage audit at the end of this plan supersedes earlier implementation-complete statements. It records three open gaps and pre-sync verification. The most recent section records the sync with `main`.
 - The Google Play appeal follow-up shared November 17, 2026 scopes the vibration restriction to the Android Auto environment. The user chose silent phone notifications while projected so compatible smartbands can still mirror them. `gplay/android/automotive/AndroidAutoConnectionMonitor` observes `CarConnection` from application startup and uses silence until the first connection result. `AndroidNavigationNotificationChannels.guidanceAlert` selects the silent channel for all shared transient navigation alerts and About tests during projection. The three Google Play regression tests cover the initial state, connect and disconnect during the same service session, alerts available for mirroring, and legacy vibration behavior.
 - Verification passed with `.\gradlew.bat testFdroidDebugUnitTest testGplayDebugUnitTest lintFdroidDebug lintGplayDebug assembleFdroidRelease assembleGplayRelease :app:complexityCheck --console=plain`. All 2,161 F-Droid and 2,259 Google Play tests passed with zero failures, errors or skips. PMD found zero violations. Both release APKs built. Both lints reported only the existing locale and Gradle version warnings. The F-Droid lint dependency model contains no Android for Cars or Google Play Services libraries. No Gradle commands remain running.
 - No phone was listed by `adb devices -l`. Verify connect and disconnect mid-route on a head unit and verify actual smartband mirroring before resubmission. The companion app may filter silent notifications or apply its own haptics. Google requested deactivating bundle `1000000` across production and active test tracks and submitting a higher code. Release preparation and Play Console actions remain pending.
@@ -12,8 +12,8 @@
 - Working branch: `codex/android-auto-compliance`, created from clean `main` at `1a502328` (`Document agent branch and commit workflow`). Continue this branch; do not recreate the work on main.
 - Both the earlier Android Auto compliance milestone (804f9027; handoff workflow 5e5b951c) and the shared simulation milestone are complete and verified. Simulation is committed locally with this updated plan; use git log -1 for its identifier. No commands are running. Keep this branch and its existing work.
 - Simulation is now authorized and in progress (latest user request). Implement it in shared code for Google Play and F-Droid, with Advanced settings row ordered label/configuration/switch/info, configurable speed using current display units, optional starting coordinates and the existing POI map picker beside them. Blank start uses device location; explicit coordinates must work without a physical fix. Android Auto onAutoDriveEnabled must activate the same simulator. Preserve pause/resume, route changes and arrival rules; clearly label simulation. Implementation and final verification are complete; see the simulation map and validation notes below.
-- Nothing has been pushed, merged, published, submitted to Play, or installed on a phone. Both release APKs built locally are unsigned. App version remains `1.0.0` / `1000000`; this is not a new upload-ready release.
-- This plan is branch-only. Keep it while work and handoffs continue; before an approved merge, preserve any lasting decisions in maintained documentation, remove this file on the working branch, and commit its removal. The final merge diff and target tree must exclude `BRANCH_PLAN.md`, as now required by AGENT.md.
+- Nothing has been pushed, merged into `main`, published, submitted to Play, or installed on a phone. Both release APKs built locally are unsigned. App version remains `1.0.0` / `1000000`; this is not a new upload-ready release.
+- This plan is branch-only. Keep it while work and handoffs continue; before merging this work into `main`, preserve any lasting decisions in maintained documentation, remove this file on the working branch, and commit its removal. The final merge diff and target tree must exclude `BRANCH_PLAN.md`, as now required by AGENT.md.
 - Read `AGENT.md`, this plan and specification section 4.5.8, then inspect `git status` and `git log -3`. The completed milestone is recorded below; do not repeat its checks without a relevant change or new failure. Never push this working branch or merge without the required user authorization.
 
 ## Original problem and review context
@@ -185,3 +185,15 @@ Do not redo the completed template/metadata/intent integration merely because a 
 
 - No ADB device or SDK Desktop Head Unit was available. The manual checks in `gradle/ANDROID_AUTO_REVIEW.md` and connect/disconnect with a real smartband remain pending. The checked-in release is still `1.0.0` / `1000000`. Release preparation and Play Console track replacement remain pending after verification.
 - `git merge-tree --write-tree --name-only main HEAD` found a content conflict in `app/src/main/java/vibro/navigator/about/AboutActivity.java` against `main` at `2ba4dad3`. Resolve it and revalidate both flavors as part of any approved integration. Remove this handoff file before the approved merge.
+
+## Sync with main (2026-11-23)
+
+- The user requested branch alignment before implementing the three audit fixes. `git fetch origin main` confirmed that local `main` and `origin/main` both point to `2ba4dad3`. Merged `main` into `codex/android-auto-compliance` with a merge commit to preserve branch history.
+- The sole conflict was `AboutActivity.java`. Retained immediate simulation-draft restoration and deferred BRouter street-picker restoration, saved both paths during recreation, and guarded street-picker teardown until settings exist. Retained `main`'s result dispatch, BRouter changes and toolchain (Gradle 9.9.2 / AGP 9.5.2).
+- Post-merge verification passed in 12m36s. F-Droid passed 2,297 tests and Google Play passed 2,395, with zero failures, errors or skips. Both lints reported no issues, PMD found zero violations, and all four APKs built. The F-Droid runtime dependency report contains no Car App Library or Google Play Services. Evidence: local ignored `build/android-auto-main-sync-20261123.log`. The Gradle invocation has finished.
+
+  ```powershell
+  .\gradlew.bat testFdroidDebugUnitTest testGplayDebugUnitTest lintFdroidDebug lintGplayDebug assembleFdroidDebug assembleGplayDebug assembleFdroidRelease assembleGplayRelease :app:complexityCheck :app:dependencies --configuration fdroidReleaseRuntimeClasspath --console=plain
+  ```
+
+- The three audit fixes, manual Android Auto/head-unit checks and Play release work remain open. Keep this handoff plan on the active feature branch until it is ready to merge into `main`.

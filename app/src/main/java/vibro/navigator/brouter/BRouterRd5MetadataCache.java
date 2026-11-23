@@ -30,6 +30,10 @@ final class BRouterRd5MetadataCache {
         }
     }
 
+    synchronized void clear() {
+        entries.clear();
+    }
+
     static final class Entry {
         @NonNull
         final long[] topIndex;

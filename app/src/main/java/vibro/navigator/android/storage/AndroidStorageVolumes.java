@@ -8,6 +8,7 @@ import android.os.storage.StorageVolume;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ public final class AndroidStorageVolumes {
     public static List<String> secondaryStorageRootIds(@NonNull Context context) {
         List<String> rootIds = new ArrayList<>();
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            return rootIds;
+            return legacySecondaryStorageRootIds(context);
         }
         StorageManager storageManager = context.getSystemService(StorageManager.class);
         if (storageManager == null) {
@@ -33,14 +34,34 @@ public final class AndroidStorageVolumes {
         }
         for (StorageVolume volume : storageManager.getStorageVolumes()) {
             String uuid = volume.getUuid();
-            if (uuid == null || uuid.trim().isEmpty()) {
-                continue;
-            }
-            if (!rootIds.contains(uuid)) {
+            if (isMounted(volume) && hasRootId(uuid) && !rootIds.contains(uuid)) {
                 rootIds.add(uuid);
             }
         }
         return rootIds;
+    }
+
+    private static List<String> legacySecondaryStorageRootIds(Context context) {
+        List<String> rootIds = new ArrayList<>();
+        File[] directories = context.getExternalFilesDirs(null);
+        for (int i = 1; i < directories.length; i++) {
+            File directory = directories[i];
+            File root = storageRootFromAppExternalDir(directory);
+            if (root != null && !rootIds.contains(root.getName())) {
+                rootIds.add(root.getName());
+            }
+        }
+        return rootIds;
+    }
+
+    private static boolean hasRootId(@Nullable String uuid) {
+        return uuid != null && !uuid.trim().isEmpty();
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    private static boolean isMounted(StorageVolume volume) {
+        return Environment.MEDIA_MOUNTED.equals(volume.getState())
+                || Environment.MEDIA_MOUNTED_READ_ONLY.equals(volume.getState());
     }
 
     @Nullable

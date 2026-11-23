@@ -4,6 +4,10 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 
+import java.util.ArrayList;
+import androidx.core.util.Supplier;
+
+import vibro.navigator.R;
 import vibro.navigator.android.startup.AndroidFirstRunPermissions;
 import vibro.navigator.settings.AppMainUiSettings;
 
@@ -24,6 +28,8 @@ final class MainActivityStartupCoordinator {
     private boolean waitingForInstall;
     private boolean leftForInstall;
     private boolean ready;
+    private boolean resumed;
+    private Supplier<Boolean> storagePickerPending = () -> false;
 
     MainActivityStartupCoordinator(MainActivity activity, MainActivityProfileCoordinator profiles) {
         this.activity = activity;
@@ -34,6 +40,8 @@ final class MainActivityStartupCoordinator {
     void start(Bundle state, Runnable onReady) {
         this.onReady = onReady;
         permissions = new AndroidFirstRunPermissions(activity, state, this::complete);
+        storagePickerPending = permissions.bindBRouterAction(activity.findViewById(R.id.brouterStorageAccessButton),
+                profiles::refreshAfterAccessChange, profiles::isCustomPickerRequested, profiles::onBRouterPromptClosed);
         if (state != null) {
             installDone = state.getBoolean(STATE_INSTALL_DONE);
             waitingForInstall = state.getBoolean(STATE_INSTALL_WAITING);
@@ -50,6 +58,10 @@ final class MainActivityStartupCoordinator {
             ready = true;
             onReady.run();
         }
+    }
+
+    boolean isBRouterPickerPending() {
+        return storagePickerPending.get();
     }
 
     private void firstRun() {
@@ -73,13 +85,18 @@ final class MainActivityStartupCoordinator {
 
     private void complete() {
         AppMainUiSettings.completeFirstRunSetup(activity);
-        MainActivityProfileCoordinator.refresh(profiles);
+        profiles.refreshAfterAccessChange();
         ready = true;
         onReady.run();
+        permissions.setBRouterForegroundChecksEnabled(resumed);
     }
 
     boolean isPending() {
         return !ready;
+    }
+
+    ArrayList<String> skippedSegmentsFolders() {
+        return permissions.skippedSegmentsFolders();
     }
 
     boolean onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -96,14 +113,21 @@ final class MainActivityStartupCoordinator {
     }
 
     void onPause() {
+        resumed = false;
+        permissions.setResumed(false);
+        permissions.setBRouterForegroundChecksEnabled(false);
         if (waitingForInstall) {
             leftForInstall = true;
         }
     }
 
     void onResume() {
+        resumed = true;
+        permissions.setResumed(true);
         if (waitingForInstall && leftForInstall) {
             afterInstall();
+        } else if (ready) {
+            permissions.setBRouterForegroundChecksEnabled(true);
         }
     }
 

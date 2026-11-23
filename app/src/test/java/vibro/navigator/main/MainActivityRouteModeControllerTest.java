@@ -81,6 +81,22 @@ public class MainActivityRouteModeControllerTest {
     }
 
     @Test
+    public void temporaryBRouterLossPreservesAndRestoresRoundTripMode() {
+        Fixture fixture = Fixture.create();
+        AppMainUiSettings.setRoutingMode(fixture.activity, NavigationRoutingMode.ROUND_TRIP);
+        fixture.controller.configure(null, true);
+
+        fixture.controller.refreshAvailability(false);
+        shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(NavigationRoutingMode.STRAIGHT_LINE, fixture.controller.currentRoutingMode());
+        assertEquals(NavigationRoutingMode.ROUND_TRIP, AppMainUiSettings.getRoutingMode(fixture.activity));
+
+        fixture.controller.refreshAvailability(true);
+        shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(NavigationRoutingMode.ROUND_TRIP, fixture.controller.currentRoutingMode());
+    }
+
+    @Test
     public void configure_disablesBRouterBackedRouteModesWhenBRouterIsMissing() {
         Fixture fixture = Fixture.create();
 

@@ -24,5 +24,6 @@ public class BRouterSegmentDirectoryCandidatesTest {
         assertEquals(MEDIA_SEGMENTS_DIR_ID, candidates.get(1));
         assertEquals("B4DD-C8AC:" + LEGACY_SEGMENTS_DIR_ID.substring(PRIMARY_ROOT.length()), candidates.get(2));
         assertEquals(LEGACY_SEGMENTS_DIR_ID, candidates.get(3));
+        assertEquals(PRIMARY_ROOT + "brouter/segments4", candidates.get(4));
     }
 }

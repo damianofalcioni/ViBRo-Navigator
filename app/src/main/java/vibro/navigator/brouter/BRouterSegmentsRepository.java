@@ -1,18 +1,14 @@
 package vibro.navigator.brouter;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.Objects;
 
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.compass.CompassStreetOverlay;
@@ -22,68 +18,53 @@ import vibro.navigator.nav.streets.SurroundingStreetRepository;
 
 public final class BRouterSegmentsRepository implements SurroundingStreetRepository {
     private static final String TAG = "BRouterSegments";
-    private static final String PREFS = "vibenavigator_brouter";
-    private static final String KEY_SEGMENTS_TREE_URI = "segments_tree_uri";
 
     @NonNull
     private final BRouterSegmentDependencies dependencies;
     @NonNull
     private final BRouterSegmentDirectories segmentDirectories;
     @NonNull
-    private final Map<String, Uri> segmentFileUris = new HashMap<>();
-    @NonNull
-    private final Set<String> missingSegmentFiles = new HashSet<>();
+    private final BRouterSegmentTileLookup tileLookup;
     @Nullable
-    private List<Uri> discoveryTreeUris;
+    private List<Uri> detectedTrees;
+    private List<Uri> grantedTrees = java.util.Collections.emptyList();
     @Nullable
     private List<String> discoveryDirectoryIds;
     private final BRouterDecodedStreetCache decodedStreetCache = new BRouterDecodedStreetCache();
+    private final BRouterStreetProviderRead providerRead = new BRouterStreetProviderRead();
     private final BRouterStreetFileLoader streetFileLoader;
+    @Nullable
+    private String sourceRevision;
 
     public BRouterSegmentsRepository(@NonNull BRouterSegmentDependencies dependencies) {
         this.dependencies = dependencies;
+        tileLookup = new BRouterSegmentTileLookup(dependencies.documentAccess, providerRead);
         segmentDirectories = new BRouterSegmentDirectories(
                 dependencies.documentAccess,
-                dependencies.storageVolumeAccess
+                dependencies.storageVolumeAccess,
+                providerRead
         );
-        streetFileLoader = new BRouterStreetFileLoader(this, dependencies, decodedStreetCache);
+        streetFileLoader = new BRouterStreetFileLoader(this, dependencies, decodedStreetCache, providerRead);
     }
 
     @Nullable
     public Uri getSegmentsTreeUri(@NonNull Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        String raw = prefs.getString(KEY_SEGMENTS_TREE_URI, null);
-        if (raw == null || raw.trim().isEmpty()) {
-            return null;
-        }
-        try {
-            return Uri.parse(raw);
-        } catch (Exception e) {
-            AppLogger.w(TAG, "Failed to parse saved BRouter segments tree URI raw=" + raw, e);
-            return null;
-        }
+        return BRouterSegmentSourceSettings.getTreeUri(context);
     }
 
     public void saveSegmentsTreeUri(@NonNull Context context, @NonNull Uri treeUri) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .edit()
-                .putString(KEY_SEGMENTS_TREE_URI, treeUri.toString())
-                .apply();
+        BRouterSegmentSourceSettings.save(context, treeUri);
         AppLogger.i(TAG, "Saved BRouter segments tree uri=" + treeUri);
     }
 
     public boolean hasPersistedSegmentsTreeAccess(@NonNull Context context) {
-        return hasPersistedReadPermission(context, getSegmentsTreeUri(context));
+        return getGrantedSegmentsTreeUri(context) != null;
     }
 
     @Nullable
-    public Uri getSegmentsTreePickerInitialUri(@NonNull Context context) {
-        Uri savedTreeUri = getSegmentsTreeUri(context);
-        return segmentDirectories.getSegmentsTreePickerInitialUri(
-                context,
-                savedTreeUri,
-                hasPersistedReadPermission(context, savedTreeUri)
-        );
+    public Uri getGrantedSegmentsTreeUri(@NonNull Context context) {
+        return BRouterFolderGrant.resolve(context, getSegmentsTreeUri(context), false,
+                dependencies.uriPermissionAccess::hasReadPermission);
     }
 
     @NonNull
@@ -96,47 +77,62 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
             int maxSegments,
             @NonNull CompassStreetVisibility visibility
     ) {
+        providerRead.startLoad();
+        refreshSourceCaches(context);
         BRouterSegmentBounds bounds = BRouterSegmentBounds.around(latitude, longitude, radiusMeters);
         List<CompassStreetSegment> segments = new ArrayList<>();
-        Set<String> fileNames = BRouterSegmentTile.fileNamesForBounds(bounds);
+        var fileNames = BRouterSegmentTile.fileNamesForBounds(bounds);
         for (String fileName : fileNames) {
             if (segments.size() >= maxSegments) {
                 break;
             }
             streetFileLoader.read(context, fileName, bounds, maxSegments, visibility, segments);
         }
+        if (segments.isEmpty() && providerRead.failed()) {
+            throw new SurroundingStreetRepository.ReadUnavailable();
+        }
         return segments.isEmpty() ? CompassStreetOverlay.EMPTY : new CompassStreetOverlay(segments);
     }
 
-    @Nullable
-    Uri resolveSegmentFileUri(@NonNull Context context, @NonNull String fileName) {
-        if (missingSegmentFiles.contains(fileName)) {
-            return null;
+    boolean readGrantedTile(@NonNull Context context, @NonNull String fileName, BRouterSegmentTileLookup.Reader reader) {
+        providerRead.startLoad();
+        refreshSourceCaches(context);
+        return readTile(context, fileName, reader);
+    }
+
+    boolean readTile(Context context, String fileName, BRouterSegmentTileLookup.Reader reader) {
+        return tileLookup.read(context, fileName, grantedTrees, () -> detectedTrees(context), reader);
+    }
+
+    private void refreshSourceCaches(@NonNull Context context) {
+        String revision = BRouterSegmentSourceSettings.getRevision(context);
+        List<String> directories = segmentDirectories.getSegmentsDocumentIdCandidates(context);
+        List<Uri> grants = BRouterFolderGrant.discoveryTrees(
+                context, getSegmentsTreeUri(context), false, dependencies.uriPermissionAccess::hasReadPermission);
+        if (Objects.equals(sourceRevision, revision) && directories.equals(discoveryDirectoryIds)
+                && grants.equals(grantedTrees)) {
+            return;
         }
-        if (segmentFileUris.containsKey(fileName)) {
-            return segmentFileUris.get(fileName);
-        }
-        for (Uri treeUri : discoveryTreeUris(context)) {
-            Uri documentUri = dependencies.documentAccess.childDocumentUri(context, treeUri, fileName);
-            if (documentUri != null) {
-                segmentFileUris.put(fileName, documentUri);
-                return documentUri;
-            }
-        }
-        return null;
+        sourceRevision = revision;
+        detectedTrees = null;
+        discoveryDirectoryIds = directories;
+        grantedTrees = grants;
+        tileLookup.clear();
+        streetFileLoader.clearSources();
+        decodedStreetCache.clear();
     }
 
     @NonNull
-    private List<Uri> discoveryTreeUris(@NonNull Context context) {
-        if (discoveryTreeUris == null) {
-            Uri savedTreeUri = getSegmentsTreeUri(context);
-            discoveryTreeUris = segmentDirectories.resolveSegmentsDiscoveryTreeUris(
-                    context,
-                    savedTreeUri,
-                    hasPersistedReadPermission(context, savedTreeUri)
-            );
+    private List<Uri> detectedTrees(@NonNull Context context) {
+        if (detectedTrees == null) {
+            List<Uri> detected = segmentDirectories.resolveSegmentsDiscoveryTreeUris(context, discoveryDirectoryIds);
+            detected.removeAll(grantedTrees);
+            if (!providerRead.failed()) {
+                detectedTrees = detected;
+            }
+            return detected;
         }
-        return discoveryTreeUris;
+        return detectedTrees;
     }
 
     @NonNull
@@ -148,11 +144,7 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
     }
 
     void recordMissingSegmentFile(@NonNull String fileName) {
-        missingSegmentFiles.add(fileName);
+        tileLookup.recordMissing(fileName);
         AppLogger.d(TAG, "BRouter segment file not found file=" + fileName);
-    }
-
-    private boolean hasPersistedReadPermission(@NonNull Context context, @Nullable Uri uri) {
-        return dependencies.uriPermissionAccess.hasReadPermission(context, uri);
     }
 }

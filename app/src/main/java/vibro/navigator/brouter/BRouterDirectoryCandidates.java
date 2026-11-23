@@ -5,7 +5,7 @@ import androidx.annotation.NonNull;
 import java.util.ArrayList;
 import java.util.List;
 
-final class BRouterDirectoryCandidates {
+public final class BRouterDirectoryCandidates {
     private static final String PRIMARY_ROOT_ID = "primary";
     private static final String MEDIA_BROUTER_RELATIVE_DOCUMENT_PATH =
             "Android/media/btools.routingapp/brouter/";
@@ -16,9 +16,23 @@ final class BRouterDirectoryCandidates {
     }
 
     @NonNull
-    static List<String> buildLikelyDocumentIdCandidates(
+    public static List<String> buildLikelyDocumentIdCandidates(
             @NonNull List<String> secondaryRootIds,
             @NonNull String directoryName
+    ) {
+        List<String> candidates = buildStandardDocumentIdCandidates(secondaryRootIds, directoryName);
+        candidates.add(legacySharedPrimaryDocumentId(directoryName));
+        return candidates;
+    }
+
+    @NonNull
+    static String legacySharedPrimaryDocumentId(@NonNull String directoryName) {
+        return directoryId(PRIMARY_ROOT_ID, "brouter/", directoryName);
+    }
+
+    @NonNull
+    static List<String> buildStandardDocumentIdCandidates(
+            @NonNull List<String> secondaryRootIds, @NonNull String directoryName
     ) {
         List<String> candidates = new ArrayList<>();
         List<String> rootIds = new ArrayList<>(secondaryRootIds);
@@ -62,9 +76,15 @@ final class BRouterDirectoryCandidates {
             @NonNull String brouterRelativePath,
             @NonNull String directoryName
     ) {
-        String documentId = rootId + ":" + brouterRelativePath + directoryName;
+        String documentId = directoryId(rootId, brouterRelativePath, directoryName);
         if (!candidates.contains(documentId)) {
             candidates.add(documentId);
         }
+    }
+
+    private static String directoryId(String rootId, String basePath, String directoryName) {
+        String path = directoryName.equals("brouter") ? basePath.substring(0, basePath.length() - 1)
+                : basePath + directoryName;
+        return rootId + ":" + path;
     }
 }

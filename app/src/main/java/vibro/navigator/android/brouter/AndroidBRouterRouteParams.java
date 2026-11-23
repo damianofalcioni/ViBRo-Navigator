@@ -14,11 +14,6 @@ final class AndroidBRouterRouteParams {
     }
 
     @NonNull
-    static Bundle build(@NonNull BRouterRouteRequest request) {
-        return build(request, null);
-    }
-
-    @NonNull
     static Bundle build(@NonNull BRouterRouteRequest request, @Nullable String remoteProfile) {
         AndroidBRouterRouteParameterValues values = AndroidBRouterRouteParameterValues.build(request, remoteProfile);
         Bundle bundle = new Bundle();

@@ -3,6 +3,7 @@ package vibro.navigator.nav.streets;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.core.util.Supplier;
 
 import java.util.List;
 
@@ -15,6 +16,7 @@ import vibro.navigator.nav.time.ElapsedRealtimeClock;
 public final class SurroundingStreetOverlayController {
     private static final int MAX_DISPLAY_STREET_SEGMENTS = 2_000;
     private static final int MAX_LOAD_CHUNKS_PER_REQUEST = 16;
+    private static final long FAILED_READ_RETRY_MS = 5_000L;
 
     @NonNull
     private final SurroundingStreetOverlayRuntime runtime;
@@ -52,7 +54,7 @@ public final class SurroundingStreetOverlayController {
             @NonNull Context context,
             @NonNull TaskScheduler resultScheduler,
             @NonNull ElapsedRealtimeClock elapsedRealtimeClock,
-            @NonNull SurroundingStreetRepository repository,
+            @NonNull Supplier<SurroundingStreetRepository> repository,
             @NonNull Runnable stateEmitter
     ) {
         runtime = SurroundingStreetOverlayRuntime.android(context, repository);
@@ -114,6 +116,7 @@ public final class SurroundingStreetOverlayController {
                 lastSelectionCompassState,
                 compassState
         )) {
+            overlayCache.retryFailedReads(elapsedRealtimeClock.elapsedRealtimeMs(), this::requestOverlayIfNeeded);
             return;
         }
         viewportActive = true;
@@ -126,6 +129,17 @@ public final class SurroundingStreetOverlayController {
         clearViewportIfActive();
     }
 
+    public void onSourcesChanged() {
+        boolean reloadViewport = viewportActive;
+        clearAll();
+        executor.changeSource();
+        runtime.changeSource();
+        if (reloadViewport) {
+            onCompassViewport(lastCompassState);
+            stateEmitter.run();
+        }
+    }
+
     @NonNull
     public CompassStreetOverlay currentOverlay() {
         return runtime.isSurroundingStreetsEnabled() && viewportActive
@@ -136,6 +150,7 @@ public final class SurroundingStreetOverlayController {
     public void shutdown() {
         shutdown = true;
         generation++;
+        clearViewportState();
         executor.shutdown();
     }
 
@@ -153,9 +168,10 @@ public final class SurroundingStreetOverlayController {
     }
 
     private void requestOverlayIfNeeded() {
-        if (shutdown || inFlight || !isReadyForLoading()) {
+        if (inFlight || !isReadyForLoading()) {
             return;
         }
+        overlayCache.expireReadFailures(elapsedRealtimeClock.elapsedRealtimeMs());
         List<SurroundingStreetChunkKey> urgentMissing =
                 overlayCache.missing(activeSelection.displayKeys, MAX_LOAD_CHUNKS_PER_REQUEST);
         if (!urgentMissing.isEmpty()) {
@@ -185,10 +201,7 @@ public final class SurroundingStreetOverlayController {
     }
 
     private boolean isReadyForLoading() {
-        return runtime.isSurroundingStreetsEnabled()
-                && viewportActive
-                && lastAcceptedLocation != null
-                && !activeSelection.isEmpty();
+        return runtime.isSurroundingStreetsEnabled() && lastAcceptedLocation != null && !activeSelection.isEmpty();
     }
 
     private void requestChunks(
@@ -199,8 +212,9 @@ public final class SurroundingStreetOverlayController {
         NavigationLocation requestLocation = new NavigationLocation(lastAcceptedLocation);
         int requestGeneration = ++generation;
         inFlight = true;
+        var load = runtime.request(keys);
         executor.execute(() -> {
-            SurroundingStreetChunkLoadResult loaded = runtime.load(keys);
+            SurroundingStreetChunkLoadResult loaded = load.get();
             if (Thread.currentThread().isInterrupted()) {
                 return;
             }
@@ -229,7 +243,7 @@ public final class SurroundingStreetOverlayController {
             lastRefreshLocation = requestLocation;
             lastRefreshElapsedMs = requestElapsedMs;
         }
-        loaded.putInto(overlayCache);
+        loaded.putInto(overlayCache, elapsedRealtimeClock.elapsedRealtimeMs() + FAILED_READ_RETRY_MS);
         rebuildSelection();
         stateEmitter.run();
         requestOverlayIfNeeded();

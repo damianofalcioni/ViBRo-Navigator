@@ -115,6 +115,53 @@ public class AndroidFirstRunPermissionsTest {
         assertEquals(1, completions);
     }
 
+    @Test
+    public void oldPendingFolderStepRechecksPermissionsInsteadOfWaitingForTheOldPicker() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        AndroidFirstRunPermissions restored = setup(activity, legacySnapshot(0));
+        restored.start();
+
+        assertEquals(AndroidFirstRunPermissions.REQUEST_RUNTIME,
+                shadowOf(activity).getLastRequestedPermission().requestCode);
+    }
+
+    @Test
+    public void oldRuntimeResultStillLeadsToTheLocationServicesCheck() {
+        shadowOf((LocationManager) app.getSystemService(Activity.LOCATION_SERVICE)).setLocationEnabled(false);
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        AndroidFirstRunPermissions restored = setup(activity, legacySnapshot(2));
+        restored.start();
+
+        assertTrue(restored.onRequestPermissionsResult(AndroidFirstRunPermissions.REQUEST_RUNTIME));
+        assertEquals(activity.getString(vibro.navigator.R.string.msg_location_disabled),
+                shadowOf(ShadowAlertDialog.getLatestAlertDialog()).getMessage());
+        assertEquals(0, completions);
+    }
+
+    @Test
+    public void resultFromAnOldProfilesPickerIsAcceptedAfterUpgrade() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            var restored = setup(activity, legacySnapshot(0));
+            var tree = vibro.navigator.android.storage.AndroidDocumentAccess.buildExternalStorageTreeUri(
+                    "primary:brouter/profiles2");
+            restored.start();
+
+            assertTrue(restored.onActivityResult(1102, Activity.RESULT_OK, new Intent().setData(tree)
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)));
+            assertEquals(tree, vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory.create()
+                    .getProfilesTreeUri(activity));
+            restored.dispose();
+        }
+    }
+
+    private static Bundle legacySnapshot(int step) {
+        Bundle state = new Bundle();
+        state.putInt("first_run_permission_step", step);
+        state.putBoolean("first_run_permission_waiting", true);
+        return state;
+    }
+
     private AndroidFirstRunPermissions setup(Activity activity, Bundle state) {
         return new AndroidFirstRunPermissions(activity, state, () -> completions++);
     }

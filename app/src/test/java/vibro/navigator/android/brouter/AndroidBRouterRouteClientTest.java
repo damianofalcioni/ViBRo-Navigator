@@ -25,7 +25,8 @@ import vibro.navigator.geo.LatLon;
 public class AndroidBRouterRouteClientTest {
     private static final String PROFILE_TREKKING = "trekking";
     private static final String PROFILE_PARAMETERS = "avoid_path=1";
-    private static final String CUSTOM_PROFILE_TEXT = "assign validForBikes = true";
+    private static final String CUSTOM_PROFILE_TEXT = "assign avoid_path = false # %avoid_path% | Avoid paths | boolean\n"
+            + "assign custom = value # %custom% | Custom value | text";
     private static final String EXTRA_PARAMS = "extraParams";
 
     @Test
@@ -104,7 +105,7 @@ public class AndroidBRouterRouteClientTest {
                 new LatLon(48.2, 16.2),
                 "custom-car",
                 true,
-                PROFILE_PARAMETERS,
+                PROFILE_PARAMETERS + "&old_option=1",
                 Collections.emptyList()
         );
 

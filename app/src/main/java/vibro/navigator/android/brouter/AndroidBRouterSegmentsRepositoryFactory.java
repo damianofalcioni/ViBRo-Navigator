@@ -10,7 +10,6 @@ import java.io.IOException;
 
 import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.android.storage.AndroidDocumentReadFile;
-import vibro.navigator.android.storage.AndroidPersistedUriPermissions;
 import vibro.navigator.android.storage.AndroidStorageVolumes;
 import vibro.navigator.brouter.BRouterSegmentDependencies;
 import vibro.navigator.brouter.BRouterSegmentReadFile;
@@ -26,17 +25,12 @@ public final class AndroidBRouterSegmentsRepositoryFactory {
                 new AndroidDocuments(),
                 new AndroidSegmentFiles(),
                 AndroidStorageVolumes::secondaryStorageRootIds,
-                AndroidPersistedUriPermissions::hasReadPermission
+                (context, uri) -> AndroidBRouterFolderAccess.hasPersistedReadPermission(
+                        context, uri, AndroidBRouterFolderAccess.Kind.SEGMENTS)
         ));
     }
 
     private static final class AndroidDocuments implements BRouterSegmentDependencies.DocumentAccess {
-        @NonNull
-        @Override
-        public Uri buildExternalStorageDocumentUri(@NonNull String documentId) {
-            return AndroidDocumentAccess.buildExternalStorageDocumentUri(documentId);
-        }
-
         @NonNull
         @Override
         public Uri buildExternalStorageTreeUri(@NonNull String documentId) {
@@ -51,7 +45,19 @@ public final class AndroidBRouterSegmentsRepositoryFactory {
         @Nullable
         @Override
         public Uri childDocumentUri(@NonNull Context context, @NonNull Uri treeUri, @NonNull String displayName) {
-            return AndroidDocumentAccess.childDocumentUri(context, treeUri, displayName);
+            Uri directory = AndroidBRouterFolderAccess.dataDirectory(context, treeUri,
+                    AndroidBRouterFolderAccess.Kind.SEGMENTS);
+            Uri file = directory == null ? null : AndroidDocumentAccess.childDocumentUri(context, directory, displayName);
+            if (file == null) {
+                AndroidBRouterFolderAccess.recheckSharedFolder(context, treeUri);
+            }
+            return file;
+        }
+
+        @Override
+        public String documentIdentity(Uri uri) {
+            String id = AndroidDocumentAccess.documentId(uri);
+            return id == null ? uri.toString() : uri.getAuthority() + ":" + id;
         }
 
         @Nullable

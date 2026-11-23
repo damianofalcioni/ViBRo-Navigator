@@ -1,6 +1,5 @@
 package vibro.navigator.main;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
@@ -8,9 +7,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
+
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
-import vibro.navigator.android.brouter.AndroidBRouterProfilesStorageAccess;
-import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.android.storage.AndroidLegacyExternalStorageAccess;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.R;
@@ -18,7 +17,6 @@ import vibro.navigator.nav.model.NavigationRoutingMode;
 
 final class MainActivityProfileCoordinator {
     private static final int REQUEST_STARTUP_PROFILES_STORAGE = 1003;
-    private static final String TAG = "MainProfileCoordinator";
 
     @NonNull
     private final MainActivity activity;
@@ -30,8 +28,8 @@ final class MainActivityProfileCoordinator {
     private final ProfileSpinnerController profileSpinnerController;
     @NonNull
     private final ProfileParameterSettingsController profileParameterSettingsController;
-    private boolean waitingForStartupProfilesTree;
     private final MainActivityStartupCoordinator startup;
+    private boolean resumedOnce;
 
     private MainActivityProfileCoordinator(
             @NonNull MainActivity activity,
@@ -85,19 +83,32 @@ final class MainActivityProfileCoordinator {
         return profilesRepository.isBRouterInstalled(activity);
     }
 
+    ArrayList<String> skippedSegmentsFolders() {
+        return startup.skippedSegmentsFolders();
+    }
+
     void refresh() {
         profileSpinnerController.refresh();
     }
 
+    void refreshAfterAccessChange() {
+        profileSpinnerController.refreshAfterAccessChange();
+    }
+
     static void refresh(@Nullable MainActivityProfileCoordinator coordinator) {
         if (coordinator != null) {
-            coordinator.refresh();
+            coordinator.profilePicker.setResumed(true);
+            if (coordinator.resumedOnce) {
+                coordinator.profileSpinnerController.refreshOnResume();
+            }
+            coordinator.resumedOnce = true;
             coordinator.startup.onResume();
         }
     }
 
     static void pauseStartup(@Nullable MainActivityProfileCoordinator coordinator) {
         if (coordinator != null) {
+            coordinator.profilePicker.setResumed(false);
             coordinator.startup.onPause();
         }
     }
@@ -105,6 +116,7 @@ final class MainActivityProfileCoordinator {
     static void startup(@Nullable MainActivityProfileCoordinator coordinator, @Nullable Bundle state,
                         @NonNull Runnable onReady) {
         if (coordinator != null) {
+            coordinator.profilePicker.restore(state, coordinator.startup::isBRouterPickerPending);
             coordinator.startup.start(state, onReady);
         }
     }
@@ -116,11 +128,21 @@ final class MainActivityProfileCoordinator {
     static void saveStartupState(@Nullable MainActivityProfileCoordinator coordinator, @NonNull Bundle state) {
         if (coordinator != null) {
             coordinator.startup.saveState(state);
+            coordinator.profilePicker.save(state);
         }
+    }
+
+    boolean isCustomPickerRequested() {
+        return profilePicker.isPickerRequested();
+    }
+
+    void onBRouterPromptClosed() {
+        profilePicker.tryOpenPicker();
     }
 
     static void disposeStartup(@Nullable MainActivityProfileCoordinator coordinator) {
         if (coordinator != null) {
+            coordinator.profileSpinnerController.dispose();
             coordinator.startup.dispose();
         }
     }
@@ -129,26 +151,12 @@ final class MainActivityProfileCoordinator {
         if (!enabled) {
             return;
         }
-        if (isBRouterInstalled()) {
-            requestProfilesStorageAccessAtStartupIfNeeded();
-        } else {
+        if (!isBRouterInstalled()) {
             MainActivityBRouterInstallPrompt.show(activity);
+        } else if (AndroidLegacyExternalStorageAccess.isRuntimeReadPermissionRelevant()
+                && !AndroidLegacyExternalStorageAccess.hasReadPermission(activity)) {
+            AndroidLegacyExternalStorageAccess.requestReadPermission(activity, REQUEST_STARTUP_PROFILES_STORAGE);
         }
-    }
-
-    private void requestProfilesStorageAccessAtStartupIfNeeded() {
-        if (AndroidBRouterProfilesStorageAccess.hasAccess(activity, profilesRepository)) {
-            return;
-        }
-        AndroidBRouterProfilesStorageAccess.request(
-                activity,
-                profilesRepository,
-                REQUEST_STARTUP_PROFILES_STORAGE,
-                TAG,
-                () -> waitingForStartupProfilesTree = true,
-                () -> {
-                }
-        );
     }
 
     @Nullable
@@ -172,10 +180,6 @@ final class MainActivityProfileCoordinator {
 
     private boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (startup.onActivityResult(requestCode, resultCode, data)) {
-            return true;
-        }
-        if (requestCode == REQUEST_STARTUP_PROFILES_STORAGE) {
-            handleStartupProfilesTreeResult(resultCode, data);
             return true;
         }
         return profilePicker.handleActivityResult(requestCode, resultCode, data);
@@ -203,20 +207,6 @@ final class MainActivityProfileCoordinator {
             showStorageRequiredToast();
         }
         return true;
-    }
-
-    private void handleStartupProfilesTreeResult(int resultCode, @Nullable Intent data) {
-        if (!waitingForStartupProfilesTree) {
-            return;
-        }
-        waitingForStartupProfilesTree = false;
-        if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null
-                && AndroidDocumentAccess.persistReadPermission(activity, data, data.getData())) {
-            profilesRepository.saveProfilesTreeUri(activity, data.getData());
-            profilePicker.refreshProfiles();
-            return;
-        }
-        showStorageRequiredToast();
     }
 
     private void showStorageRequiredToast() {

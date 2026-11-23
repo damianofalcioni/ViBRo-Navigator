@@ -6,14 +6,13 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
+import android.os.CancellationSignal;
 import android.provider.DocumentsContract;
 import android.provider.OpenableColumns;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import vibro.navigator.logging.AppLogger;
@@ -23,6 +22,12 @@ public final class AndroidDocumentAccess {
     private static final String EXTERNAL_STORAGE_DOCUMENTS_AUTHORITY = "com.android.externalstorage.documents";
 
     private AndroidDocumentAccess() {
+    }
+
+    public enum DirectoryPresence {
+        PRESENT,
+        MISSING,
+        UNKNOWN
     }
 
     @NonNull
@@ -69,12 +74,18 @@ public final class AndroidDocumentAccess {
 
     @Nullable
     public static String displayName(@NonNull Context context, @NonNull Uri uri) {
+        return displayName(context, uri, null);
+    }
+
+    @Nullable
+    public static String displayName(Context context, Uri uri, @Nullable CancellationSignal signal) {
         try (Cursor cursor = context.getContentResolver().query(
                 uri,
                 new String[]{OpenableColumns.DISPLAY_NAME},
                 null,
                 null,
-                null
+                null,
+                signal
         )) {
             if (cursor != null && cursor.moveToFirst()) {
                 int nameCol = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
@@ -136,42 +147,28 @@ public final class AndroidDocumentAccess {
         }
     }
 
+    @Nullable
+    public static String directoryDocumentId(@NonNull Uri treeUri) {
+        return treeUri.getPathSegments().size() > 2 ? documentId(treeUri) : treeDocumentId(treeUri);
+    }
+
+    @NonNull
+    public static Uri treeGrantUri(@NonNull Uri treeUri, @NonNull String treeDocumentId) {
+        return DocumentsContract.buildTreeDocumentUri(treeUri.getAuthority(), treeDocumentId);
+    }
+
+    @NonNull
+    public static Uri descendantDocumentUri(@NonNull Uri treeUri, @NonNull String documentId) {
+        return DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId);
+    }
+
     @NonNull
     public static List<String> childDisplayNames(@NonNull Context context, @NonNull Uri treeUri) {
-        String treeDocumentId = treeDocumentId(treeUri);
-        if (treeDocumentId == null) {
-            return Collections.emptyList();
-        }
-        List<String> directNames = AndroidExternalStorageDocumentFiles.childDisplayNames(context, treeDocumentId);
-        if (directNames != null) {
-            return directNames;
-        }
-        Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, treeDocumentId);
-        List<String> out = new ArrayList<>();
-        try (Cursor cursor = context.getContentResolver().query(
-                childrenUri,
-                new String[]{DocumentsContract.Document.COLUMN_DISPLAY_NAME},
-                null,
-                null,
-                null
-        )) {
-            if (cursor == null) {
-                AppLogger.w(TAG, "Document tree query returned null cursor uri=" + treeUri);
-                return Collections.emptyList();
-            }
-            int nameCol = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME);
-            if (nameCol < 0) {
-                AppLogger.w(TAG, "Document tree query missing display-name column uri=" + treeUri);
-                return Collections.emptyList();
-            }
-            while (cursor.moveToNext()) {
-                out.add(cursor.getString(nameCol));
-            }
-            return out;
-        } catch (Exception e) {
-            AppLogger.w(TAG, "Failed to list document tree children uri=" + treeUri, e);
-            return Collections.emptyList();
-        }
+        return AndroidDocumentTreeFileAccess.childDisplayNames(context, treeUri, null);
+    }
+
+    public static boolean canReadExternalDirectory(Context context, String documentId) {
+        return AndroidExternalStorageDocumentFiles.directoryExists(context, documentId);
     }
 
     @Nullable
@@ -180,7 +177,7 @@ public final class AndroidDocumentAccess {
             @NonNull Uri treeUri,
             @NonNull String displayName
     ) {
-        return AndroidDocumentTreeFileAccess.childDocumentUri(context, treeUri, displayName);
+        return AndroidDocumentTreeFileAccess.childDocumentUri(context, treeUri, displayName, null);
     }
 
     @Nullable
@@ -196,21 +193,25 @@ public final class AndroidDocumentAccess {
             AppLogger.d(TAG, "Direct external storage document accessible documentId=" + documentId);
             return true;
         }
-        Uri treeUri = buildExternalStorageTreeUri(documentId);
-        Uri documentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId);
-        try (Cursor cursor = context.getContentResolver().query(
-                documentUri,
-                new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID},
-                null,
-                null,
-                null
-        )) {
-            return cursor != null && cursor.moveToFirst();
-        } catch (Exception e) {
-            AppLogger.d(TAG, "Document not accessible documentId=" + documentId
-                    + " error=" + e.getClass().getSimpleName());
-            return false;
-        }
+        return AndroidExternalDirectoryPresence.documentProviderDirectoryPresence(context, documentId)
+                == DirectoryPresence.PRESENT;
+    }
+
+    @NonNull
+    public static DirectoryPresence externalStorageDirectoryPresence(
+            @NonNull Context context,
+            @NonNull String documentId,
+            @NonNull CancellationSignal signal
+    ) {
+        return AndroidExternalDirectoryPresence.check(context, documentId, signal);
+    }
+
+    public static boolean isDirectExternalDirectory(Context context, String documentId) {
+        return directDirectoryPresence(context, documentId) == DirectoryPresence.PRESENT;
+    }
+
+    public static DirectoryPresence directDirectoryPresence(Context context, String documentId) {
+        return AndroidExternalDirectoryPresence.directDirectoryPresence(context, documentId);
     }
 
     private static void addInitialUriIfSupported(@NonNull Intent intent, @Nullable Uri initialUri) {

@@ -33,15 +33,16 @@ public final class BRouterSegmentDependencies {
 
     public interface DocumentAccess {
         @NonNull
-        Uri buildExternalStorageDocumentUri(@NonNull String documentId);
-
-        @NonNull
         Uri buildExternalStorageTreeUri(@NonNull String documentId);
 
         boolean externalStorageDocumentExists(@NonNull Context context, @NonNull String documentId);
 
         @Nullable
         Uri childDocumentUri(@NonNull Context context, @NonNull Uri treeUri, @NonNull String displayName);
+
+        default String documentIdentity(Uri uri) {
+            return uri.toString();
+        }
 
         @Nullable
         BRouterSegmentReadFile openReadFile(@NonNull Context context, @NonNull Uri documentUri) throws IOException;

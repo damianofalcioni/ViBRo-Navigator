@@ -136,7 +136,7 @@ public class MainActivityWelcomeScreenTest {
                     TimeUnit.MILLISECONDS);
             AlertDialog accessPrompt = ShadowAlertDialog.getLatestAlertDialog();
             assertNotNull(accessPrompt);
-            assertTrue(String.valueOf(shadowOf(accessPrompt).getMessage()).contains("profiles2"));
+            assertTrue(String.valueOf(shadowOf(accessPrompt).getMessage()).contains("brouter"));
             assertNull(shadowOf(controller.get()).getNextStartedActivityForResult());
         }
     }
