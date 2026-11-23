@@ -319,3 +319,13 @@ Do not redo the completed template/metadata/intent integration merely because a 
   ```powershell
   .\gradlew.bat :app:testFdroidDebugUnitTest --tests '*NavigationSimulationArrivalTest' --tests '*NavigationSimulatorTest' :app:testGplayDebugUnitTest --tests '*NavigationSimulationArrivalTest' --tests '*NavigationSimulatorTest' --console=plain
   ```
+
+## Follow-up live navigation and car speed review (2026-11-23)
+
+- Reviewed `9699bb33` against `origin/main` at `2ba4dad3`. Found one further user-visible change. ViBRo lost its over-limit speed cue on the car display. The old Auto GPS status made the current speed bold above the limit. The move to host templates removed that GPS status line, and the remaining map badge shows the posted limit with the same styling at any speed. The probe compared 45 km/h and 55 km/h on a 50 km/h section. The shared speed check correctly detected the change, while the rendered badge and host template remained identical. The phone's speed cue still uses the shared check.
+- The live navigation checks passed 62 F-Droid and 83 Google Play tests in 41s, covering service lifecycle, route requests and replacement, location recovery, car ownership and viewport behavior. The focused car speed, viewport and guidance run passed 17 Google Play tests in 29s. Both runs had zero failures, errors, or skips. The temporary speed probe was removed after verification. Logs are `build/followup-live-navigation-review.log` and `build/android-auto-speed-cue-review.log`. Physical head-unit rendering remains unverified. Production code and the phone install were untouched. No Gradle invocation remains active.
+
+  ```powershell
+  .\gradlew.bat :app:testFdroidDebugUnitTest --tests '*NavigationLifecycleRobolectricTest' --tests '*NavigationService*Test' --tests '*NavigationRouteRequestManagerTest' :app:testGplayDebugUnitTest --tests '*NavigationLifecycleRobolectricTest' --tests '*NavigationService*Test' --tests '*NavigationRouteRequestManagerTest' --tests '*ViBRoCarHostNavigationTest' --tests '*ViBRoAutoStreetViewportGplayTest' --console=plain
+  .\gradlew.bat :app:testGplayDebugUnitTest --tests '*ViBRoAutoSpeedCueReviewProbeTest' --tests '*ViBRoAutoStreetViewportGplayTest' --tests '*ViBRoCarGuidanceGplayTest' --console=plain
+  ```
