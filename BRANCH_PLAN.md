@@ -236,3 +236,4 @@ Do not redo the completed template/metadata/intent integration merely because a 
   ```powershell
   .\gradlew.bat :app:testFdroidDebugUnitTest --tests '*AboutSettingsOrderRobolectricTest' --tests '*AboutSimulationSettingsTest' :app:testGplayDebugUnitTest --tests '*AboutSettingsOrderRobolectricTest' --tests '*AboutSimulationSettingsTest' :app:lintFdroidDebug :app:lintGplayDebug :app:complexityCheck :app:assembleFdroidDebug :app:assembleGplayDebug --continue --console=plain
   ```
+- On 2026-11-23, installed the verified Google Play debug APK from `a2d5a782` on the Huawei PRA-LX1 with `adb install -r`. This build includes the selected startup dialog wording and Advanced settings order. ADB confirmed `vibro.navigator.debug`, version `1.0.0` / code `1000000`.
