@@ -34,7 +34,7 @@ final class NavigationSimulationNotice {
         }
         dismiss();
         dialog = new AlertDialog.Builder(activity)
-                .setTitle(R.string.label_simulation)
+                .setTitle(R.string.nav_simulation_mode_title)
                 .setMessage(R.string.nav_simulation_started)
                 .setPositiveButton(android.R.string.ok, null)
                 .show();

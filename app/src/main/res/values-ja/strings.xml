@@ -591,7 +591,8 @@
     <string name="simulation_position_hint">緯度, 経度</string>
     <string name="simulation_config_help">設定は次回のナビゲーション開始時に適用されます。位置を空欄にすると端末の位置を使用します。速度0では位置を固定します。</string>
     <string name="simulation_info">移動せずにナビゲーションを試せます。両方のバージョンで利用できます。シミュレーション位置は選択したルートに沿って進み、ナビゲーションの一時停止中は止まります。実際のナビゲーションを開始する前に無効にしてください。</string>
-    <string name="nav_simulation_started">シミュレーションモードが有効なため、ナビゲーションはシミュレーションで行われます。</string>
+    <string name="nav_simulation_mode_title">シミュレーションモード</string>
+    <string name="nav_simulation_started">移動をシミュレーションしてナビゲーションをプレビューしています。</string>
     <string name="simulation_invalid_speed">0～300 km/h（0～186.41 mph）の速度を入力してください。</string>
     <string name="simulation_invalid_position">小数点と半角カンマを使って有効な緯度、経度を入力してください。</string>
     <string name="simulation_save">保存</string>

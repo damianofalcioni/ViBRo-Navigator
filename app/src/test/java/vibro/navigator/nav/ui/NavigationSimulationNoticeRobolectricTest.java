@@ -56,6 +56,7 @@ public class NavigationSimulationNoticeRobolectricTest {
                 AlertDialog notice = ShadowAlertDialog.getLatestAlertDialog();
                 assertNotNull(notice);
                 assertTrue(notice.isShowing());
+                assertEquals(screen.get().getString(R.string.nav_simulation_mode_title), shadowOf(notice).getTitle());
                 assertEquals(screen.get().getString(R.string.nav_simulation_started), shadowOf(notice).getMessage());
                 assertRegularText(screen.get(), R.id.nextDirectionText);
                 assertRegularText(screen.get(), R.id.gpsStatusText);

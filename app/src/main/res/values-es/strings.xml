@@ -600,7 +600,8 @@
     <string name="simulation_position_hint">Latitud, longitud</string>
     <string name="simulation_config_help">Los ajustes se aplican al iniciar de nuevo la navegación. Deja la posición vacía para usar la del dispositivo. La velocidad 0 mantiene la posición.</string>
     <string name="simulation_info">Prueba la navegación sin moverte. Disponible en ambas versiones. Las posiciones simuladas siguen la ruta seleccionada y se detienen al pausar la navegación. Desactiva esta opción antes de iniciar una navegación real.</string>
-    <string name="nav_simulation_started">La navegación es simulada porque el modo de simulación está activado.</string>
+    <string name="nav_simulation_mode_title">Modo de simulación</string>
+    <string name="nav_simulation_started">Estás viendo una vista previa de la navegación con movimiento simulado.</string>
     <string name="simulation_invalid_speed">Introduce una velocidad entre 0 y 300 km/h (0–186,41 mph).</string>
     <string name="simulation_invalid_position">Introduce latitud y longitud válidas con puntos decimales.</string>
     <string name="simulation_save">Guardar</string>

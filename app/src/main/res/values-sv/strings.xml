@@ -595,7 +595,8 @@
     <string name="simulation_position_hint">Latitud, longitud</string>
     <string name="simulation_config_help">Inställningarna gäller nästa gång navigationen startar. Lämna positionen tom för att använda enhetens plats. Hastighet 0 håller positionen stilla.</string>
     <string name="simulation_info">Prova navigation utan att röra dig. Tillgängligt i båda versionerna. Simulerade positioner följer den valda rutten och stannar när navigationen pausas. Stäng av detta innan du startar verklig navigation.</string>
-    <string name="nav_simulation_started">Navigeringen simuleras eftersom simuleringsläget är aktivt.</string>
+    <string name="nav_simulation_mode_title">Simuleringsläge</string>
+    <string name="nav_simulation_started">Du förhandsvisar navigeringen med simulerad rörelse.</string>
     <string name="simulation_invalid_speed">Ange en hastighet från 0 till 300 km/h (0–186,41 mph).</string>
     <string name="simulation_invalid_position">Ange giltig latitud och longitud med decimalpunkter.</string>
     <string name="simulation_save">Spara</string>

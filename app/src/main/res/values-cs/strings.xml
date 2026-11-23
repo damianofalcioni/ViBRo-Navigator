@@ -603,7 +603,8 @@
     <string name="simulation_position_hint">Zeměpisná šířka, délka</string>
     <string name="simulation_config_help">Nastavení se použije při příštím spuštění navigace. Prázdná poloha použije polohu zařízení. Rychlost 0 drží polohu na místě.</string>
     <string name="simulation_info">Vyzkoušejte navigaci bez pohybu. K dispozici v obou verzích. Simulované polohy sledují vybranou trasu a při pozastavení navigace se zastaví. Před skutečnou navigací tuto možnost vypněte.</string>
-    <string name="nav_simulation_started">Navigace je simulovaná, protože je zapnutý režim simulace.</string>
+    <string name="nav_simulation_mode_title">Režim simulace</string>
+    <string name="nav_simulation_started">Prohlížíte si náhled navigace se simulovaným pohybem.</string>
     <string name="simulation_invalid_speed">Zadejte rychlost od 0 do 300 km/h (0–186,41 mph).</string>
     <string name="simulation_invalid_position">Zadejte platnou zeměpisnou šířku a délku s desetinnými tečkami.</string>
     <string name="simulation_save">Uložit</string>

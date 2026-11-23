@@ -577,7 +577,8 @@
     <string name="simulation_position_hint">Breitengrad, Längengrad</string>
     <string name="simulation_config_help">Die Einstellungen gelten beim nächsten Navigationsstart. Ohne Startposition wird der Gerätestandort verwendet. Geschwindigkeit 0 hält die Position.</string>
     <string name="simulation_info">Navigation ohne Bewegung ausprobieren. In beiden Versionen verfügbar. Simulierte Positionen folgen der gewählten Route und halten bei pausierter Navigation an. Vor dem Start echter Navigation ausschalten.</string>
-    <string name="nav_simulation_started">Die Navigation wird simuliert, weil der Simulationsmodus aktiv ist.</string>
+    <string name="nav_simulation_mode_title">Simulationsmodus</string>
+    <string name="nav_simulation_started">Du siehst eine Vorschau der Navigation mit simulierter Bewegung.</string>
     <string name="simulation_invalid_speed">Eine Geschwindigkeit von 0 bis 300 km/h (0–186,41 mph) eingeben.</string>
     <string name="simulation_invalid_position">Gültigen Breitengrad und Längengrad mit Dezimalpunkt eingeben.</string>
     <string name="simulation_save">Speichern</string>
