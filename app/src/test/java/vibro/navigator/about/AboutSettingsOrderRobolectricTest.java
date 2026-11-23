@@ -48,6 +48,7 @@ public class AboutSettingsOrderRobolectricTest {
                 R.id.aboutSettingsAdvancedTitle,
                 R.id.aboutExternalStorageRow,
                 R.id.aboutFusedLocationRow,
+                R.id.aboutSimulationRow,
                 R.id.aboutLogEnabledRow,
                 R.id.aboutExportDatabaseRow,
                 R.id.aboutImportDatabaseRow,

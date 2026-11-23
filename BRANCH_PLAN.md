@@ -231,3 +231,8 @@ Do not redo the completed template/metadata/intent integration merely because a 
   ```powershell
   .\gradlew.bat :app:testFdroidDebugUnitTest --tests '*NavigationSimulationNoticeRobolectricTest' :app:testGplayDebugUnitTest --tests '*NavigationSimulationNoticeRobolectricTest' :app:lintFdroidDebug :app:lintGplayDebug :app:complexityCheck :app:assembleFdroidDebug :app:assembleGplayDebug --continue --console=plain
   ```
+- Simulation now appears immediately after Google Fused Location and before logging in Advanced settings. Both flavors passed five settings tests each, lint reported zero issues for both, PMD reported zero violations, and both debug APKs built in 1m54s. The local ignored log is `build/simulation-settings-order-validation.log`. No Gradle command remains active.
+
+  ```powershell
+  .\gradlew.bat :app:testFdroidDebugUnitTest --tests '*AboutSettingsOrderRobolectricTest' --tests '*AboutSimulationSettingsTest' :app:testGplayDebugUnitTest --tests '*AboutSettingsOrderRobolectricTest' --tests '*AboutSimulationSettingsTest' :app:lintFdroidDebug :app:lintGplayDebug :app:complexityCheck :app:assembleFdroidDebug :app:assembleGplayDebug --continue --console=plain
+  ```

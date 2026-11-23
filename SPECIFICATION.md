@@ -815,7 +815,7 @@ The navigation UI must show the following in large text:
 
 #### 4.5.9 Navigation simulation
 
-- Simulation is available in both Google Play and F-Droid. Place its row in Advanced settings immediately after Use external storage, ordered label, configuration button, switch, info button.
+- Simulation is available in both Google Play and F-Droid. Place its row in Advanced settings immediately after Google Fused Location, ordered label, configuration button, switch, info button.
 - Simulation is off by default. The configuration dialog accepts speed in the current km/h or mph display units, storing meters/second independently of that preference. Default speed is 50 km/h; accept 0–300 km/h (0 holds position). Validate localized decimal input without accepting trailing text, non-finite values or out-of-range speeds.
 - The optional initial GPS position accepts latitude, longitude in decimal degrees with decimal points. The adjacent map button uses the same POI map picker and icon as destination/stops. Preserve unsaved speed and position while choosing from the map, cancelling the picker, and recreating the Activity. Save and Cancel remain outside scrollable form content.
 - Sample the manual switch, speed and origin when navigation starts; configuration changes apply to the next navigation session. Blank origin uses a usable cached/device location, waiting for a fix if necessary. Explicit coordinates avoid waiting for a physical GPS fix. Device location services and the required Android location/notification permissions remain necessary for the existing location foreground service.
