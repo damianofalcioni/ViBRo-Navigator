@@ -53,7 +53,7 @@ public final class NavigationLocationController {
         this.fusedLocationUpdateClient = fusedLocationUpdateClient;
         this.fusedLocationUsePolicy = fusedLocationUsePolicy;
         this.elapsedRealtimeClock = elapsedRealtimeClock;
-        seeds = new NavigationLocationSeeds(providerAccess, fusedLocationUpdateClient);
+        seeds = new NavigationLocationSeeds(providerAccess, fusedLocationUpdateClient, elapsedRealtimeClock);
         this.acquisition = new NavigationLocationAcquisition(providerAccess, elapsedRealtimeClock,
                 interval -> requestLocationUpdates(interval, Math.min(DEFAULT_UPDATE_INTERVAL_MS, interval)));
         this.updateRequester = new NavigationLocationUpdateRequester(
@@ -247,7 +247,7 @@ public final class NavigationLocationController {
 
     @Nullable
     public NavigationLocation getBestStartupLastKnownLocation(long nowMs) {
-        return simulation.startup(() -> seeds.bestStartup(nowMs), seeds::finishSimulationOrigin);
+        return simulation.startup(() -> seeds.bestStartup(nowMs, simulation.enabled()), seeds::finishSimulationOrigin);
     }
 
     @NonNull

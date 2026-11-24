@@ -1,7 +1,6 @@
 package vibro.navigator.auto;
 
 import androidx.annotation.Nullable;
-import androidx.car.app.model.CarIcon;
 import androidx.car.app.model.DateTimeWithZone;
 import androidx.car.app.navigation.model.TravelEstimate;
 import androidx.car.app.navigation.model.Trip;
@@ -15,7 +14,7 @@ import vibro.navigator.nav.model.NavState;
 final class ViBRoCarTrip {
     private ViBRoCarTrip() { }
 
-    static Trip from(NavState state, boolean imperial, @Nullable CarIcon uTurnIcon) {
+    static Trip from(NavState state, boolean imperial, @Nullable ViBRoCarManeuvers.Icons icons) {
         Trip.Builder trip = new Trip.Builder();
         NavGuidanceStatus guidance = state.routeStatus.guidance;
         if (guidance.maneuvers.isEmpty()) {
@@ -27,7 +26,7 @@ final class ViBRoCarTrip {
             NavManeuver maneuver = guidance.maneuvers.get(index);
             boolean uncertain = index == 0 ? guidance.nextUncertain : index == 1 && guidance.afterNextUncertain;
             trip.addStep(ViBRoCarManeuvers.step(maneuver, ViBRoCarManeuvers.cue(maneuver.instruction, uncertain),
-                    uTurnIcon), stepEstimate(maneuver, nowMs, imperial));
+                    icons), stepEstimate(maneuver, nowMs, imperial));
         }
         return trip.build();
     }

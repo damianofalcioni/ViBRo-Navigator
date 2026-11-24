@@ -528,3 +528,16 @@ Do not redo the completed template/metadata/intent integration merely because a 
   $car = '--tests', 'vibro.navigator.auto.*', '--tests', 'vibro.navigator.android.automotive.*'
   .\gradlew.bat :app:testFdroidDebugUnitTest @shared :app:testGplayDebugUnitTest @shared @car --continue --console=plain
   ```
+
+## Fixes for the seven remaining findings (2026-11-24)
+
+- The user authorized fixing all seven open findings. Start from `d1f68ac8`. Preserve structured car guidance, cluster ownership, live tracking, and the existing simulation and notification behavior. The implementation covers beeline symbols, confirmed-arrival ETA, map visibility during destination search, phone GPS resources, simulation origin selection and decimal input, and entrance labels in car search.
+- All seven findings are fixed in code with regression coverage. The car template and cluster trip share a beeline icon. Confirmed arrival clears the destination ETA and stays stable as new fixes arrive. The car screen gates map updates on the navigation template and the surface while retaining the guidance binding. The car destination picker reuses phone entrance labels and carries the selected coordinates.
+- The phone GPS line and details dialog share localized resources. Simulation ranks eligible cached fixes and uses the selected app locale for speed display and entry. The speed draft retains its numeric locale across activity recreation, and coordinates continue to use decimal points.
+- The first focused run passed 89 F-Droid and 180 Google Play tests. It flagged a duplicated reflection literal in the new car lifecycle test. The first full invocation was cancelled after PMD flagged the cache time selection in the location controller. The literal was consolidated, the cache helper now owns the selection time, and the standalone complexity check passed.
+- Final verification passed in 10m46s with 2,313 F-Droid and 2,435 Google Play tests and zero failures, errors, or skips. Both debug lints and the complexity check reported zero issues. All four debug and release APKs built, and the F-Droid release classpath contains no Android for Cars or Google Play Services dependencies. The command below uses the existing local Gradle init script that sets the Google Play test heap to 3 GiB. The ignored log is `build/seven-regression-fixes-full-rerun.log`. No Gradle invocation remains active. No Android device or Desktop Head Unit was available. The updated manual checklist covers actual head-unit and cluster behavior.
+
+  ```powershell
+  $checks = ':app:complexityCheck', ':app:testFdroidDebugUnitTest', ':app:testGplayDebugUnitTest', ':app:lintFdroidDebug', ':app:lintGplayDebug', ':app:assembleFdroidDebug', ':app:assembleGplayDebug', ':app:assembleFdroidRelease', ':app:assembleGplayRelease'
+  .\gradlew.bat -I build/open-regression-fixes-test-heap.init.gradle @checks :app:dependencies --configuration fdroidReleaseRuntimeClasspath --max-workers=2 --continue --console=plain
+  ```

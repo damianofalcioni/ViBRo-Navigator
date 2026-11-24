@@ -61,6 +61,29 @@ public class NavigationLocationControllerSimulationTest {
     }
 
     @Test
+    public void blankOriginPrefersAnEligibleGpsCacheOverANewerInaccurateNetworkFix() {
+        SimulationTestDriver driver = new SimulationTestDriver(
+                () -> new NavigationSimulationPath(null, null, null, false), ignored -> { });
+        var config = new NavigationSimulationConfig(50 / 3.6f, null);
+        driver.source.configure(true, config);
+        String network = NavigationLocationProviders.NETWORK_PROVIDER;
+        FakeLocationProvider provider = new FakeLocationProvider(GPS, network);
+        provider.setLastKnown(startupFix(GPS, driver.nowMs() - 3_000, 5, 16.37));
+        provider.setLastKnown(startupFix(network, driver.nowMs() - 1_000, 40, 16.38));
+        NavigationLocationController controller = new NavigationLocationController(provider, new FakeGnssTracker(),
+                new FakeFusedLocationUpdateClient(), () -> false, driver::nowMs, driver.source);
+
+        controller.requestFastLocationUpdates();
+        NavigationLocation simulated = controller.getBestStartupLastKnownLocation(driver.nowMs());
+        assertEquals("simulation", simulated.getProvider());
+        assertEquals(16.37, simulated.getLongitude(), 0);
+        assertTrue(provider.requestedProviders.isEmpty());
+
+        driver.source.configure(false, config);
+        assertEquals(network, controller.getBestStartupLastKnownLocation(driver.nowMs()).getProvider());
+    }
+
+    @Test
     public void configuredOriginSkipsPhysicalProvidersAndPausesWithController() {
         List<NavigationLocation> fixes = new ArrayList<>();
         SimulationTestDriver driver = new SimulationTestDriver(
@@ -87,5 +110,14 @@ public class NavigationLocationControllerSimulationTest {
         controller.requestFastLocationUpdates();
         driver.advance(1000);
         assertEquals(2, fixes.size());
+    }
+
+    private static NavigationLocation startupFix(String provider, long timeMs, float accuracy, double longitude) {
+        NavigationLocation fix = new NavigationLocation(provider);
+        fix.setTime(System.currentTimeMillis(), timeMs);
+        fix.setAccuracy(accuracy);
+        fix.setLatitude(48.21);
+        fix.setLongitude(longitude);
+        return fix;
     }
 }

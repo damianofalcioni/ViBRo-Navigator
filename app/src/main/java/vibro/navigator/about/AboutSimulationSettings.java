@@ -20,7 +20,7 @@ final class AboutSimulationSettings {
 
     AboutSimulationSettings(Activity activity) { this.activity = activity; }
 
-    void restoreState(Bundle state) { draft.restore(state); }
+    void restoreState(Bundle state) { draft.restore(activity, state); }
 
     void configure() {
         Switch switchView = activity.findViewById(R.id.aboutSimulationSwitch);

@@ -142,6 +142,7 @@ final class ViBRoCarNavigationController {
     }
 
     void setMapVisible(boolean visible) {
+        if (mapVisible == visible) { return; }
         mapVisible = visible;
         if (navBinder != null) {
             navBinder.setCarNavigationClient(true, visible);

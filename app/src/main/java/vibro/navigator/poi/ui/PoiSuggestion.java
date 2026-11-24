@@ -66,7 +66,7 @@ public final class PoiSuggestion {
     }
 
     @NonNull
-    Poi selectedPoi(@NonNull Context context) {
+    public Poi selectedPoi(@NonNull Context context) {
         return selectedPoi(PoiTextResources.from(context));
     }
 

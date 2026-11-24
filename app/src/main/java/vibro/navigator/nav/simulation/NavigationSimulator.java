@@ -51,15 +51,18 @@ public final class NavigationSimulator {
     public boolean isWaitingForOrigin() { return enabled && position == null; }
 
     public boolean seed(@Nullable NavigationLocation location) {
-        long nowMs = clock.elapsedRealtimeMs();
-        if (!isWaitingForOrigin() || location == null || location.getAccuracy() <= 0
-                || location.getElapsedRealtimeOrTimeMs() > nowMs
-                || !LatLon.isValidCoordinate(location.getLatitude(), location.getLongitude())
-                || !NavigationStartupLocationSelector.isUsableForRouteStart(location, nowMs)) {
+        if (!isWaitingForOrigin() || !isUsableOrigin(location, clock.elapsedRealtimeMs())) {
             return false;
         }
         position = new LatLon(location.getLatitude(), location.getLongitude());
         return true;
+    }
+
+    public static boolean isUsableOrigin(@Nullable NavigationLocation location, long nowMs) {
+        return location != null && location.getAccuracy() > 0
+                && location.getElapsedRealtimeOrTimeMs() <= nowMs
+                && LatLon.isValidCoordinate(location.getLatitude(), location.getLongitude())
+                && NavigationStartupLocationSelector.isUsableForRouteStart(location, nowMs);
     }
 
     public boolean acceptPhysical(NavigationLocation location, LocationSink realOutput) {

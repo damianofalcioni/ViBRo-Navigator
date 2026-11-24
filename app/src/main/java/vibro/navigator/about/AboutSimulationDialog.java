@@ -3,11 +3,12 @@ package vibro.navigator.about;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.os.Build;
+import android.os.LocaleList;
+import android.text.method.TextKeyListener;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
-
-import java.util.Locale;
 
 import vibro.navigator.R;
 import vibro.navigator.map.MapPickerActivity;
@@ -33,6 +34,7 @@ final class AboutSimulationDialog {
         position = content.findViewById(R.id.simulationPosition);
         TextView label = content.findViewById(R.id.simulationSpeedLabel);
         label.setText(draft.imperial ? R.string.simulation_speed_mph : R.string.simulation_speed_kmh);
+        configureSpeedInput();
         speed.setText(draft.speed);
         position.setText(draft.position);
         AboutDeferredDialogAction.configure(activity, content.findViewById(R.id.simulationMapButton), () -> {
@@ -50,6 +52,16 @@ final class AboutSimulationDialog {
         });
     }
 
+    private void configureSpeedInput() {
+        int numericInputType = speed.getInputType();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            speed.setImeHintLocales(new LocaleList(draft.speedLocale));
+        }
+        // Keep the decimal keyboard and let the parser validate the complete value, including pasted input.
+        speed.setKeyListener(TextKeyListener.getInstance());
+        speed.setRawInputType(numericInputType);
+    }
+
     void show() {
         dialog.show();
         AboutDeferredDialogAction.configure(activity, dialog.getButton(AlertDialog.BUTTON_POSITIVE), this::save);
@@ -65,7 +77,7 @@ final class AboutSimulationDialog {
 
     private void save() {
         capture();
-        Float parsedSpeed = NavigationSimulationInput.parseSpeed(draft.speed, draft.imperial, Locale.getDefault());
+        Float parsedSpeed = NavigationSimulationInput.parseSpeed(draft.speed, draft.imperial, draft.speedLocale);
         if (parsedSpeed == null) {
             speed.setError(activity.getString(R.string.simulation_invalid_speed));
             return;

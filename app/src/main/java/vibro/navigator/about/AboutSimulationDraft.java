@@ -6,6 +6,7 @@ import android.os.Bundle;
 
 import java.util.Locale;
 
+import vibro.navigator.android.language.AndroidAppLanguage;
 import vibro.navigator.map.MapPickerActivity;
 import vibro.navigator.nav.simulation.NavigationSimulationInput;
 import vibro.navigator.poi.Poi;
@@ -14,16 +15,19 @@ import vibro.navigator.settings.AppSimulationSettings;
 
 final class AboutSimulationDraft {
     private static final String STATE = "simulation_draft";
+    private static final String SPEED_LANGUAGE = "speed_language";
     String speed = "";
     String position = "";
+    Locale speedLocale = Locale.ENGLISH;
     boolean imperial;
     boolean open;
     boolean picking;
 
     void load(Context context) {
         imperial = AppSettings.isImperialUnitsEnabled(context);
+        speedLocale = Locale.forLanguageTag(AndroidAppLanguage.effectiveLanguageTag(context));
         speed = NavigationSimulationInput.formatSpeed(AppSimulationSettings.read(context).speedMps,
-                imperial, Locale.getDefault());
+                imperial, speedLocale);
         position = AppSimulationSettings.positionText(context);
         picking = false;
     }
@@ -36,6 +40,7 @@ final class AboutSimulationDraft {
     void save(Bundle state) {
         Bundle value = new Bundle();
         value.putString("speed", speed);
+        value.putString(SPEED_LANGUAGE, speedLocale.toLanguageTag());
         value.putString("position", position);
         value.putBoolean("imperial", imperial);
         value.putBoolean("open", open);
@@ -43,10 +48,11 @@ final class AboutSimulationDraft {
         state.putBundle(STATE, value);
     }
 
-    void restore(Bundle state) {
+    void restore(Context context, Bundle state) {
         Bundle value = state == null ? null : state.getBundle(STATE);
         if (value == null) { return; }
         speed = value.getString("speed", "");
+        speedLocale = Locale.forLanguageTag(value.getString(SPEED_LANGUAGE, AndroidAppLanguage.effectiveLanguageTag(context)));
         position = value.getString("position", "");
         imperial = value.getBoolean("imperial");
         open = value.getBoolean("open");

@@ -8,7 +8,9 @@ import androidx.car.app.AppManager;
 import androidx.car.app.CarContext;
 import androidx.car.app.Screen;
 import androidx.car.app.model.Template;
+import androidx.car.app.navigation.model.NavigationTemplate;
 import androidx.lifecycle.DefaultLifecycleObserver;
+import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 
 import vibro.navigator.R;
@@ -47,6 +49,7 @@ public final class ViBRoCarScreen extends Screen {
 
     @Nullable
     private NavState currentState;
+    private boolean navigationTemplateShown;
 
     public ViBRoCarScreen(@NonNull CarContext carContext) {
         this(carContext, AndroidTaskScheduler.main());
@@ -69,7 +72,8 @@ public final class ViBRoCarScreen extends Screen {
         surfaceRenderer = new ViBRoAutoSurfaceRenderer(
                 carContext,
                 uiScheduler,
-                navigationController::setCompassStreetViewport
+                navigationController::setCompassStreetViewport,
+                this::updateMapVisibility
         );
         stopObservingIntegration = AppAndroidAutoSettings.observeIntegration(carContext, this::onIntegrationChanged);
 
@@ -78,7 +82,7 @@ public final class ViBRoCarScreen extends Screen {
             public void onStart(@NonNull LifecycleOwner owner) {
                 refreshCarConfiguration();
                 carContext.getCarService(AppManager.class).setSurfaceCallback(surfaceRenderer);
-                navigationController.setMapVisible(true);
+                updateMapVisibility();
                 uiScheduler.removeCallbacks(serviceAttachTicker);
                 uiScheduler.post(serviceAttachTicker);
                 incomingNavigation.retryPending();
@@ -87,7 +91,6 @@ public final class ViBRoCarScreen extends Screen {
             @Override
             public void onStop(@NonNull LifecycleOwner owner) {
                 uiScheduler.removeCallbacks(serviceAttachTicker);
-                navigationController.setMapVisible(false);
                 surfaceRenderer.clearSurface();
             }
 
@@ -120,6 +123,14 @@ public final class ViBRoCarScreen extends Screen {
     @Override
     @NonNull
     public Template onGetTemplate() {
+        Template template = buildTemplate();
+        navigationTemplateShown = template instanceof NavigationTemplate;
+        updateMapVisibility();
+        return template;
+    }
+
+    @NonNull
+    private Template buildTemplate() {
         if (!navigationController.ensureIntegrationEnabled()) {
             incomingNavigation.cancel();
             return templates.build(null);
@@ -133,6 +144,11 @@ public final class ViBRoCarScreen extends Screen {
             surfaceRenderer.setState(state);
         }
         return templates.build(state);
+    }
+
+    private void updateMapVisibility() {
+        navigationController.setMapVisible(navigationTemplateShown && surfaceRenderer.hasSurface()
+                && getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.STARTED));
     }
 
     private void applyCarTheme() {

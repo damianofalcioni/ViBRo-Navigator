@@ -18,9 +18,11 @@ import org.robolectric.RobolectricTestRunner;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import vibro.navigator.R;
 import vibro.navigator.poi.Poi;
+import vibro.navigator.poi.PoiDetails;
 
 @RunWith(RobolectricTestRunner.class)
 public class ViBRoCarDestinationTemplatesTest {
@@ -70,6 +72,26 @@ public class ViBRoCarDestinationTemplatesTest {
         Row first = (Row) result.getSingleList().getItems().get(0);
         first.getOnClickDelegate().sendClick(new OnDoneCallback() { });
         assertEquals("Place 0", actions.selected.name);
+    }
+
+    @Test
+    public void namedEntrancesAreDistinguishedAndRetainTheirCoordinates() throws Exception {
+        String station = "Central Station, Vienna";
+        Poi place = new Poi(station, 48.185, 16.376);
+        Poi main = new Poi(station, 48.1853, 16.3761, new PoiDetails(Map.of(), Map.of(), station, "main"));
+        Poi service = new Poi(station, 48.1847, 16.3763, new PoiDetails(Map.of(), Map.of(), station, "service"));
+        ListTemplate result = (ListTemplate) templates(2).build(List.of(place, main, service), false, 0, true, actions);
+        var rows = result.getSingleList().getItems();
+        assertEquals(station, ((Row) rows.get(0)).getTitle().toString());
+        assertEntrance((Row) rows.get(1), main, "Entrance: main - " + station);
+        assertEntrance((Row) rows.get(2), service, "Entrance: service - " + station);
+    }
+
+    private void assertEntrance(Row row, Poi source, String title) {
+        assertEquals(title, row.getTitle().toString());
+        row.getOnClickDelegate().sendClick(new OnDoneCallback() { });
+        assertEquals(title, actions.selected.displayLabel());
+        assertEquals(source.stableKey(), actions.selected.stableKey());
     }
 
     private ViBRoCarDestinationTemplates templates(int api) throws Exception {

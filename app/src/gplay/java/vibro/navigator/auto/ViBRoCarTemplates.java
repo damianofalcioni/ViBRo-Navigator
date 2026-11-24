@@ -30,14 +30,14 @@ final class ViBRoCarTemplates {
     private final CarContext carContext;
     @NonNull
     private final Actions actions;
-    private final CarIcon uTurnIcon;
+    private final ViBRoCarManeuvers.Icons maneuverIcons;
     private boolean lastPresentedImperial;
     @Nullable private ViBRoCarArrivalMinutes lastPresentedArrivals;
 
     ViBRoCarTemplates(@NonNull CarContext carContext, @NonNull Actions actions) {
         this.carContext = carContext;
         this.actions = actions;
-        uTurnIcon = ViBRoCarManeuvers.uTurnIcon(carContext);
+        maneuverIcons = ViBRoCarManeuvers.Icons.from(carContext);
         lastPresentedImperial = AppSettings.isImperialUnitsEnabled(carContext);
     }
 
@@ -98,7 +98,7 @@ final class ViBRoCarTemplates {
         NavigationTemplate.Builder builder = new NavigationTemplate.Builder()
                 .setActionStrip(buildNavigationActionStrip(state));
         ViBRoCarGuidance.apply(builder, state, new AndroidNavigationTextResources(carContext), observationTimeMs,
-                uTurnIcon);
+                maneuverIcons);
         if (carContext.getCarAppApiLevel() >= 2) {
             // Required by the host before it delivers scroll, pinch, or double-tap zoom.
             builder.setMapActionStrip(new ActionStrip.Builder().addAction(Action.PAN).build());

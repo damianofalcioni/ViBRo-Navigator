@@ -13,8 +13,9 @@ import androidx.car.app.model.Template;
 import java.util.List;
 
 import vibro.navigator.R;
-import vibro.navigator.android.language.AndroidAppLanguage;
+import vibro.navigator.android.language.AndroidLanguageContext;
 import vibro.navigator.poi.Poi;
+import vibro.navigator.poi.ui.PoiSuggestion;
 
 /** Host-only destination UI, including fallbacks for the declared Car API 1 minimum. */
 final class ViBRoCarDestinationTemplates {
@@ -25,8 +26,11 @@ final class ViBRoCarDestinationTemplates {
     }
 
     private final CarContext context;
+    private final AndroidLanguageContext localizedContext;
+
     ViBRoCarDestinationTemplates(CarContext context) {
         this.context = context;
+        localizedContext = new AndroidLanguageContext(context);
     }
 
     Template build(List<Poi> results, boolean loading, int message, boolean retryable, Actions actions) {
@@ -42,8 +46,9 @@ final class ViBRoCarDestinationTemplates {
         ItemList.Builder list = new ItemList.Builder();
         int count = Math.min(results.size(), hasActionStrip ? 5 : 4);
         for (Poi poi : results.subList(0, count)) {
-            list.addItem(new Row.Builder().setTitle(poi.displayLabel())
-                    .setOnClickListener(() -> actions.select(poi)).build());
+            Poi displayPoi = new PoiSuggestion(poi, false).selectedPoi(localizedContext);
+            list.addItem(new Row.Builder().setTitle(displayPoi.displayLabel())
+                    .setOnClickListener(() -> actions.select(displayPoi)).build());
         }
         if (!hasActionStrip) {
             list.addItem(new Row.Builder().setTitle(text(R.string.action_cancel))
@@ -72,5 +77,5 @@ final class ViBRoCarDestinationTemplates {
                 .setHeaderAction(Action.APP_ICON).build();
     }
 
-    private String text(int id) { return AndroidAppLanguage.getString(context, id); }
+    private String text(int id) { return localizedContext.getString(id); }
 }

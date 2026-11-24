@@ -3,7 +3,6 @@ package vibro.navigator.auto;
 import android.text.SpannableStringBuilder;
 
 import androidx.annotation.Nullable;
-import androidx.car.app.model.CarIcon;
 import androidx.car.app.model.DateTimeWithZone;
 import androidx.car.app.navigation.model.MessageInfo;
 import androidx.car.app.navigation.model.NavigationTemplate;
@@ -27,37 +26,43 @@ final class ViBRoCarGuidance {
     private ViBRoCarGuidance() { }
 
     static void apply(NavigationTemplate.Builder builder, NavState state, NavigationTextResources resources,
-            long observationTimeMs, CarIcon uTurnIcon) {
+            long observationTimeMs, ViBRoCarManeuvers.Icons icons) {
         NavGuidanceStatus guidance = state.routeStatus.guidance;
-        boolean paused = state.pauseStatus.paused;
-        boolean imperial = resources.isImperialUnitsEnabled();
         NavProgressStatus progress = state.routeStatus.progress;
-        TravelEstimate estimate = travelEstimate(progress.travelEstimate, imperial, observationTimeMs);
-        String detail = detail(progress, estimate, paused, resources);
-        if (!paused) {
-            detail = appendDetail(detail, stopProgress(progress, resources, observationTimeMs));
+        if (state.pauseStatus.paused || hasArrived(progress.travelEstimate)) {
+            builder.setNavigationInfo(messageInfo(guidance, progress.detailBlock, false));
+            return;
         }
-        if (!paused && !guidance.maneuvers.isEmpty()) {
-            builder.setNavigationInfo(routingInfo(guidance, detail, resources, uTurnIcon));
+
+        TravelEstimate estimate = travelEstimate(progress.travelEstimate, resources.isImperialUnitsEnabled(),
+                observationTimeMs);
+        String detail = appendDetail(detail(progress, estimate, resources), stopProgress(progress, resources,
+                observationTimeMs));
+        if (!guidance.maneuvers.isEmpty()) {
+            builder.setNavigationInfo(routingInfo(guidance, detail, resources, icons));
         } else {
-            builder.setNavigationInfo(messageInfo(guidance, detail, paused));
+            builder.setNavigationInfo(messageInfo(guidance, detail, true));
         }
-        if (estimate != null && !paused) {
+        if (estimate != null) {
             builder.setDestinationTravelEstimate(estimate);
         }
     }
 
-    private static MessageInfo messageInfo(NavGuidanceStatus guidance, String detail, boolean paused) {
+    private static boolean hasArrived(@Nullable NavTravelEstimate destination) {
+        return destination != null && destination.destinationReached;
+    }
+
+    private static MessageInfo messageInfo(NavGuidanceStatus guidance, String detail, boolean showFollowing) {
         String title = ViBRoCarManeuvers.cue(guidance.nextLine, guidance.nextUncertain);
         String text = detail;
-        if (!paused && !guidance.afterNextLine.isEmpty()) {
+        if (showFollowing && !guidance.afterNextLine.isEmpty()) {
             text += "\n" + ViBRoCarManeuvers.cue(guidance.afterNextLine, guidance.afterNextUncertain);
         }
         return new MessageInfo.Builder(title).setText(text).build();
     }
 
     private static RoutingInfo routingInfo(NavGuidanceStatus guidance, String detail,
-            NavigationTextResources resources, CarIcon uTurnIcon) {
+            NavigationTextResources resources, ViBRoCarManeuvers.Icons icons) {
         NavManeuver next = guidance.maneuvers.get(0);
         var cue = new SpannableStringBuilder(ViBRoCarManeuvers.cue(next.instruction, guidance.nextUncertain));
         ViBRoCarManeuvers.appendDuration(cue, next.timeSeconds, resources);
@@ -65,10 +70,10 @@ final class ViBRoCarGuidance {
             cue.append('\n').append(detail);
         }
         RoutingInfo.Builder routing = new RoutingInfo.Builder()
-                .setCurrentStep(ViBRoCarManeuvers.step(next, cue, uTurnIcon),
+                .setCurrentStep(ViBRoCarManeuvers.step(next, cue, icons),
                         ViBRoCarManeuvers.distance(next.distanceMeters, resources.isImperialUnitsEnabled()));
         if (guidance.maneuvers.size() > 1) {
-            routing.setNextStep(ViBRoCarManeuvers.followingStep(guidance, resources, uTurnIcon));
+            routing.setNextStep(ViBRoCarManeuvers.followingStep(guidance, resources, icons));
         } else if (!guidance.afterNextLine.isEmpty()) {
             // Direct guidance keeps the following road turn as a preview while the beeline owns cluster guidance.
             routing.setNextStep(new Step.Builder(ViBRoCarManeuvers.cue(
@@ -78,9 +83,9 @@ final class ViBRoCarGuidance {
     }
 
     private static String detail(NavProgressStatus progress, @Nullable TravelEstimate estimate,
-            boolean paused, NavigationTextResources resources) {
+            NavigationTextResources resources) {
         NavTravelEstimate destination = progress.travelEstimate;
-        if (paused || estimate != null || destination == null || !Double.isFinite(destination.distanceMeters)) {
+        if (estimate != null || destination == null || !Double.isFinite(destination.distanceMeters)) {
             return progress.detailBlock;
         }
         // The host's TravelEstimate requires an arrival timestamp. Display distance in the

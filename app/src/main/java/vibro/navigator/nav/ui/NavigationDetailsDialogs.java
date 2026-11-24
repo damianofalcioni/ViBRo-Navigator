@@ -5,17 +5,11 @@ import android.app.Activity;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.nav.format.AndroidNavigationTextResources;
-import vibro.navigator.nav.location.NavigationGpsStatusFormatter;
 import vibro.navigator.nav.model.NavState;
-import vibro.navigator.nav.presentation.NavStateComposer;
 import vibro.navigator.nav.service.NavigationServiceBinder;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
 final class NavigationDetailsDialogs {
-    @NonNull
-    private final Activity activity;
-    private final ElapsedRealtimeClock elapsedRealtimeClock;
     @NonNull
     private final NavigationGpsDetailsDialog gpsDetailsDialog;
     @NonNull
@@ -27,8 +21,6 @@ final class NavigationDetailsDialogs {
             @NonNull Activity activity,
             @NonNull ElapsedRealtimeClock elapsedRealtimeClock
     ) {
-        this.activity = activity;
-        this.elapsedRealtimeClock = elapsedRealtimeClock;
         gpsDetailsDialog = new NavigationGpsDetailsDialog(activity, elapsedRealtimeClock);
         directionsDetailsDialog = new NavigationDirectionsDetailsDialog(activity);
         tripStatsDialog = new NavigationTripStatsDialog(activity, elapsedRealtimeClock);
@@ -61,9 +53,7 @@ final class NavigationDetailsDialogs {
 
     @NonNull
     String gpsStatusLine(@Nullable NavState state) {
-        var display = state == null ? NavStateComposer.waiting(activity) : state;
-        return NavigationGpsStatusFormatter.statusLine(new AndroidNavigationTextResources(activity),
-                display.gpsStatus, elapsedRealtimeClock.elapsedRealtimeMs());
+        return gpsDetailsDialog.statusLine(state);
     }
 
     void dismissAll() {

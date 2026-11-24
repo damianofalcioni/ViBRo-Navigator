@@ -1,9 +1,12 @@
 package vibro.navigator.about;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.os.Looper;
 import android.widget.EditText;
 import android.widget.Switch;
+
+import androidx.test.core.app.ApplicationProvider;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,9 +14,11 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowAlertDialog;
 
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import vibro.navigator.R;
+import vibro.navigator.settings.AppLanguageSettings;
 import vibro.navigator.settings.AppSimulationSettings;
 
 import static org.junit.Assert.assertEquals;
@@ -72,6 +77,40 @@ public class AboutSimulationSettingsTest {
         ((EditText) dialog.findViewById(R.id.simulationSpeed)).setText("36");
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
         assertEquals(50 / 3.6, AppSimulationSettings.read(activity).speedMps, 0.01);
+    }
+
+    @Test
+    @Config(sdk = {23, 33})
+    public void speedUsesTheSelectedAppLanguageWithAnEnglishDevice() {
+        Locale previous = Locale.getDefault();
+        Locale.setDefault(Locale.US);
+        Context app = ApplicationProvider.getApplicationContext();
+        AppLanguageSettings.setSelectedLanguageTag(app, "de");
+        AppLanguageSettings.setUseSystemLanguageEnabled(app, false, "en");
+        AppSimulationSettings.save(app, 37.5f / 3.6f, "");
+        try (var controller = AboutActivityTestSupport.setupControllerWithSettings()) {
+            AboutActivity activity = controller.get();
+            AlertDialog dialog = open(activity);
+            EditText speed = dialog.findViewById(R.id.simulationSpeed);
+            assertEquals("37,5", speed.getText().toString());
+
+            speed.getText().replace(0, speed.length(), "42,5x");
+            save(dialog);
+            assertTrue(dialog.isShowing());
+            assertNotNull(speed.getError());
+
+            speed.getText().replace(0, speed.length(), "42,5");
+            save(dialog);
+            assertFalse(dialog.isShowing());
+            assertEquals(42.5 / 3.6, AppSimulationSettings.read(activity).speedMps, 0.01);
+        } finally {
+            Locale.setDefault(previous);
+        }
+    }
+
+    private static void save(AlertDialog dialog) {
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        shadowOf(Looper.getMainLooper()).idleFor(110, TimeUnit.MILLISECONDS);
     }
 
     static AlertDialog open(AboutActivity activity) {

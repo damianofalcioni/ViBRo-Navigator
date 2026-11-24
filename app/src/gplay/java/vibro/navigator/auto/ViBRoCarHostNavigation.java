@@ -2,7 +2,6 @@ package vibro.navigator.auto;
 
 import androidx.annotation.Nullable;
 import androidx.car.app.CarContext;
-import androidx.car.app.model.CarIcon;
 import androidx.car.app.navigation.NavigationManager;
 import androidx.car.app.navigation.NavigationManagerCallback;
 import androidx.car.app.navigation.model.Trip;
@@ -21,7 +20,7 @@ final class ViBRoCarHostNavigation implements NavigationManagerCallback {
         void updateNotification(NavState state);
         void clear();
         default boolean usesImperialDistances() { return false; }
-        @Nullable default CarIcon uTurnIcon() { return null; }
+        @Nullable default ViBRoCarManeuvers.Icons maneuverIcons() { return null; }
         default void dispose() { }
     }
 
@@ -77,7 +76,7 @@ final class ViBRoCarHostNavigation implements NavigationManagerCallback {
     }
 
     private void publishTrip(NavState state) {
-        Trip trip = ViBRoCarTrip.from(state, host.usesImperialDistances(), host.uTurnIcon());
+        Trip trip = ViBRoCarTrip.from(state, host.usesImperialDistances(), host.maneuverIcons());
         if (!ViBRoCarTrip.sameProgress(trip, lastTrip)) {
             lastTrip = trip;
             host.updateTrip(trip);
@@ -132,13 +131,13 @@ final class ViBRoCarHostNavigation implements NavigationManagerCallback {
         private final NavigationManager manager;
         private final AndroidCarNavigationNotifications notifications;
         private final CarContext context;
-        private final CarIcon uTurnIcon;
+        private final ViBRoCarManeuvers.Icons maneuverIcons;
 
         CarHost(CarContext context) {
             this.context = context;
             manager = context.getCarService(NavigationManager.class);
             notifications = new AndroidCarNavigationNotifications(context);
-            uTurnIcon = ViBRoCarManeuvers.uTurnIcon(context);
+            maneuverIcons = ViBRoCarManeuvers.Icons.from(context);
         }
 
         @Override public void started() { manager.navigationStarted(); }
@@ -147,7 +146,7 @@ final class ViBRoCarHostNavigation implements NavigationManagerCallback {
         @Override public void updateNotification(NavState state) { notifications.update(state); }
         @Override public void clear() { notifications.clear(); }
         @Override public boolean usesImperialDistances() { return AppSettings.isImperialUnitsEnabled(context); }
-        @Override public CarIcon uTurnIcon() { return uTurnIcon; }
+        @Override public ViBRoCarManeuvers.Icons maneuverIcons() { return maneuverIcons; }
         @Override public void dispose() { manager.clearNavigationManagerCallback(); }
     }
 }

@@ -10,7 +10,7 @@ record ViBRoCarArrivalMinutes(long destination, long stop) {
     static ViBRoCarArrivalMinutes from(NavState state) {
         var progress = state.routeStatus.progress;
         NavTravelEstimate estimate = progress.travelEstimate;
-        if (state.pauseStatus.paused || estimate == null) {
+        if (state.pauseStatus.paused || estimate == null || estimate.destinationReached) {
             return new ViBRoCarArrivalMinutes(UNAVAILABLE, UNAVAILABLE);
         }
         var nextStop = progress.nextStop;

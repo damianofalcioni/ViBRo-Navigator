@@ -20,6 +20,7 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
     private static final String TAG = "ViBRoAutoSurface";
     private final TaskScheduler uiScheduler;
     private final ViBRoAutoCompassStreetViewportSink compassStreetViewportSink;
+    private final Runnable surfaceChanged;
     private final ViBRoAutoSurfacePainter painter;
     private final Rect stableArea = new Rect();
     private final Runnable surfaceAnimationTicker = this::renderOnMainThread;
@@ -33,10 +34,12 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
     ViBRoAutoSurfaceRenderer(
             @NonNull CarContext carContext,
             @NonNull TaskScheduler uiScheduler,
-            @NonNull ViBRoAutoCompassStreetViewportSink compassStreetViewportSink
+            @NonNull ViBRoAutoCompassStreetViewportSink compassStreetViewportSink,
+            @NonNull Runnable surfaceChanged
     ) {
         this.compassStreetViewportSink = compassStreetViewportSink;
         this.uiScheduler = uiScheduler;
+        this.surfaceChanged = surfaceChanged;
         painter = new ViBRoAutoSurfacePainter(
                 carContext,
                 compassStreetViewportSink,
@@ -66,6 +69,11 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
         painter.resetCompass();
         compassStreetViewportSink.clearCompassStreetViewport();
         clearAnimationCallbacks();
+        surfaceChanged.run();
+    }
+
+    boolean hasSurface() {
+        return surfaceContainer != null && surfaceContainer.getSurface() != null;
     }
 
     void dispose() {
@@ -82,6 +90,7 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
     @Override
     public void onSurfaceAvailable(@NonNull SurfaceContainer surfaceContainer) {
         this.surfaceContainer = surfaceContainer;
+        surfaceChanged.run();
         render();
     }
 

@@ -89,7 +89,8 @@ public class ViBRoAutoStreetViewportGplayTest {
         ViBRoAutoSurfaceRenderer renderer = new ViBRoAutoSurfaceRenderer(
                 testCarContext(),
                 Runnable::run,
-                streetViewportSink
+                streetViewportSink,
+                () -> { }
         );
 
         streetViewportSink.lastCompassStreetViewport = movingCompassState();
@@ -227,7 +228,7 @@ public class ViBRoAutoStreetViewportGplayTest {
     public void destroyedOrInactiveSurfaceIgnoresHostGestures() throws Exception {
         RecordingStreetViewportSink viewport = new RecordingStreetViewportSink();
         ViBRoAutoSurfaceRenderer renderer = new ViBRoAutoSurfaceRenderer(testCarContext(),
-                Runnable::run, viewport);
+                Runnable::run, viewport, () -> { });
         renderer.setState(activeNavigationState(movingCompassState()));
         renderer.onScroll(100f, 0f);
         renderer.onScale(-1f, -1f, 2f);

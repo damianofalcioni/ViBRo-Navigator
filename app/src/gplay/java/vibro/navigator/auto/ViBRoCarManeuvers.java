@@ -4,6 +4,7 @@ import android.content.Context;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 
+import androidx.annotation.DrawableRes;
 import androidx.annotation.Nullable;
 import androidx.car.app.model.CarColor;
 import androidx.car.app.model.CarIcon;
@@ -21,9 +22,21 @@ import vibro.navigator.nav.format.NavigationDistanceUnit;
 import vibro.navigator.nav.format.NavigationMeasurementFormatter;
 import vibro.navigator.nav.format.NavigationTextFormatter;
 import vibro.navigator.nav.format.NavigationTextResources;
+import vibro.navigator.nav.route.RouteStartApproach;
 import vibro.navigator.nav.route.VoiceHint;
 
 final class ViBRoCarManeuvers {
+    record Icons(CarIcon uTurn, CarIcon beeline) {
+        static Icons from(Context context) {
+            return new Icons(icon(context, R.drawable.ic_auto_uturn), icon(context, R.drawable.ic_auto_beeline));
+        }
+
+        private static CarIcon icon(Context context, @DrawableRes int drawable) {
+            return new CarIcon.Builder(IconCompat.createWithResource(context, drawable))
+                    .setTint(CarColor.DEFAULT).build();
+        }
+    }
+
     // BRouter mode-9 commands; unknown and direct-to-target guidance must not invent road turns.
     private static final int[] TYPES = {
             Maneuver.TYPE_UNKNOWN, Maneuver.TYPE_STRAIGHT,
@@ -37,22 +50,17 @@ final class ViBRoCarManeuvers {
 
     private ViBRoCarManeuvers() { }
 
-    static CarIcon uTurnIcon(Context context) {
-        return new CarIcon.Builder(IconCompat.createWithResource(context, R.drawable.ic_auto_uturn))
-                .setTint(CarColor.DEFAULT).build();
+    static Step step(NavManeuver value, CharSequence cue, @Nullable Icons icons) {
+        return new Step.Builder(cue).setManeuver(maneuver(value.hint, icons)).build();
     }
 
-    static Step step(NavManeuver value, CharSequence cue, @Nullable CarIcon uTurnIcon) {
-        return new Step.Builder(cue).setManeuver(maneuver(value.hint, uTurnIcon)).build();
-    }
-
-    static Step followingStep(NavGuidanceStatus guidance, NavigationTextResources resources, CarIcon uTurnIcon) {
+    static Step followingStep(NavGuidanceStatus guidance, NavigationTextResources resources, Icons icons) {
         NavManeuver current = guidance.maneuvers.get(0);
         NavManeuver following = guidance.maneuvers.get(1);
         double seconds = following.timeSeconds - current.timeSeconds;
         if (!Double.isFinite(seconds) && !guidance.afterNextLine.isEmpty()) {
             // Shared cue includes the route timing fallback when live step times are unavailable.
-            return step(following, cue(guidance.afterNextLine, guidance.afterNextUncertain), uTurnIcon);
+            return step(following, cue(guidance.afterNextLine, guidance.afterNextUncertain), icons);
         }
 
         double meters = Math.max(0, following.distanceMeters - current.distanceMeters);
@@ -60,7 +68,7 @@ final class ViBRoCarManeuvers {
         appendMetric(text, NavigationMeasurementFormatter.formatDistance(resources, meters),
                 DistanceSpan.create(distance(meters, resources.isImperialUnitsEnabled())));
         appendDuration(text, Math.max(0, seconds), resources);
-        return step(following, text, uTurnIcon);
+        return step(following, text, icons);
     }
 
     static void appendDuration(SpannableStringBuilder cue, double seconds, NavigationTextResources resources) {
@@ -81,15 +89,26 @@ final class ViBRoCarManeuvers {
         return uncertain ? "≈ " + instruction : instruction;
     }
 
-    static Maneuver maneuver(VoiceHint hint, @Nullable CarIcon uTurnIcon) {
+    static Maneuver maneuver(VoiceHint hint, @Nullable Icons icons) {
         if (isRoundabout(hint)) {
             return roundaboutManeuver(hint);
         }
         Maneuver.Builder builder = new Maneuver.Builder(type(hint.command));
-        if (hint.command == 15 && uTurnIcon != null) {
-            builder.setIcon(uTurnIcon);
+        CarIcon icon = maneuverIcon(hint.command, icons);
+        if (icon != null) {
+            builder.setIcon(icon);
         }
         return builder.build();
+    }
+
+    @Nullable
+    private static CarIcon maneuverIcon(int command, @Nullable Icons icons) {
+        if (icons == null) { return null; }
+        return switch (command) {
+            case 15 -> icons.uTurn();
+            case RouteStartApproach.BEELINE_COMMAND -> icons.beeline();
+            default -> null;
+        };
     }
 
     private static Maneuver roundaboutManeuver(VoiceHint hint) {
