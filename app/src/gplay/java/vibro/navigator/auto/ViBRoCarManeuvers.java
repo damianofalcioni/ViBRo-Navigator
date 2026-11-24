@@ -1,14 +1,20 @@
 package vibro.navigator.auto;
 
+import android.content.Context;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 
+import androidx.annotation.Nullable;
+import androidx.car.app.model.CarColor;
+import androidx.car.app.model.CarIcon;
 import androidx.car.app.model.Distance;
 import androidx.car.app.model.DistanceSpan;
 import androidx.car.app.model.DurationSpan;
 import androidx.car.app.navigation.model.Maneuver;
 import androidx.car.app.navigation.model.Step;
+import androidx.core.graphics.drawable.IconCompat;
 
+import vibro.navigator.R;
 import vibro.navigator.nav.model.NavManeuver;
 import vibro.navigator.nav.model.NavGuidanceStatus;
 import vibro.navigator.nav.format.NavigationDistanceUnit;
@@ -31,33 +37,37 @@ final class ViBRoCarManeuvers {
 
     private ViBRoCarManeuvers() { }
 
-    static Step step(NavManeuver value, boolean uncertain) {
-        return step(value, cue(value.instruction, uncertain));
+    static CarIcon uTurnIcon(Context context) {
+        return new CarIcon.Builder(IconCompat.createWithResource(context, R.drawable.ic_auto_uturn))
+                .setTint(CarColor.DEFAULT).build();
     }
 
-    static Step step(NavManeuver value, CharSequence cue) {
-        return new Step.Builder(cue).setManeuver(maneuver(value.hint)).build();
+    static Step step(NavManeuver value, CharSequence cue, @Nullable CarIcon uTurnIcon) {
+        return new Step.Builder(cue).setManeuver(maneuver(value.hint, uTurnIcon)).build();
     }
 
-    static Step followingStep(NavGuidanceStatus guidance, NavigationTextResources resources) {
+    static Step followingStep(NavGuidanceStatus guidance, NavigationTextResources resources, CarIcon uTurnIcon) {
         NavManeuver current = guidance.maneuvers.get(0);
         NavManeuver following = guidance.maneuvers.get(1);
         double seconds = following.timeSeconds - current.timeSeconds;
         if (!Double.isFinite(seconds) && !guidance.afterNextLine.isEmpty()) {
             // Shared cue includes the route timing fallback when live step times are unavailable.
-            return step(following, cue(guidance.afterNextLine, guidance.afterNextUncertain));
+            return step(following, cue(guidance.afterNextLine, guidance.afterNextUncertain), uTurnIcon);
         }
 
         double meters = Math.max(0, following.distanceMeters - current.distanceMeters);
         SpannableStringBuilder text = new SpannableStringBuilder(cue(following.instruction, guidance.afterNextUncertain));
         appendMetric(text, NavigationMeasurementFormatter.formatDistance(resources, meters),
                 DistanceSpan.create(distance(meters, resources.isImperialUnitsEnabled())));
-        if (Double.isFinite(seconds)) {
-            double remaining = Math.max(0, seconds);
-            appendMetric(text, NavigationTextFormatter.formatTimeSeconds(resources, remaining),
-                    DurationSpan.create(Math.round(remaining)));
+        appendDuration(text, Math.max(0, seconds), resources);
+        return step(following, text, uTurnIcon);
+    }
+
+    static void appendDuration(SpannableStringBuilder cue, double seconds, NavigationTextResources resources) {
+        if (Double.isFinite(seconds) && seconds >= 0) {
+            appendMetric(cue, NavigationTextFormatter.formatTimeSeconds(resources, seconds),
+                    DurationSpan.create(Math.round(seconds)));
         }
-        return step(following, text);
     }
 
     private static void appendMetric(SpannableStringBuilder cue, String fallback, Object span) {
@@ -71,16 +81,24 @@ final class ViBRoCarManeuvers {
         return uncertain ? "≈ " + instruction : instruction;
     }
 
-    static Maneuver maneuver(VoiceHint hint) {
-        int type = type(hint.command);
-        if (isRoundabout(hint) && hint.exitNumber == 0) {
-            type = hint.command == 13 ? Maneuver.TYPE_ROUNDABOUT_ENTER_CCW : Maneuver.TYPE_ROUNDABOUT_ENTER_CW;
+    static Maneuver maneuver(VoiceHint hint, @Nullable CarIcon uTurnIcon) {
+        if (isRoundabout(hint)) {
+            return roundaboutManeuver(hint);
         }
-        Maneuver.Builder builder = new Maneuver.Builder(type);
-        if ((hint.command == 13 || hint.command == 14) && hint.exitNumber != 0) {
-            builder.setRoundaboutExitNumber(Math.abs(hint.exitNumber));
+        Maneuver.Builder builder = new Maneuver.Builder(type(hint.command));
+        if (hint.command == 15 && uTurnIcon != null) {
+            builder.setIcon(uTurnIcon);
         }
         return builder.build();
+    }
+
+    private static Maneuver roundaboutManeuver(VoiceHint hint) {
+        if (hint.exitNumber != 0) {
+            return new Maneuver.Builder(type(hint.command))
+                    .setRoundaboutExitNumber(Math.abs(hint.exitNumber)).build();
+        }
+        int entry = hint.command == 13 ? Maneuver.TYPE_ROUNDABOUT_ENTER_CCW : Maneuver.TYPE_ROUNDABOUT_ENTER_CW;
+        return new Maneuver.Builder(entry).build();
     }
 
     private static boolean isRoundabout(VoiceHint hint) {

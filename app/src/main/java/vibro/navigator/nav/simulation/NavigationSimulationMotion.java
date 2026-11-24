@@ -7,7 +7,7 @@ import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
 
-/** Continuous route cursor, retained across pause and re-anchored only when geometry changes. */
+/** Continuous route cursor, retained across pause and re-anchored after direct guidance or route changes. */
 final class NavigationSimulationMotion {
     @Nullable private GeoJsonRoute route;
     @Nullable private PolylineIndex index;
@@ -28,16 +28,20 @@ final class NavigationSimulationMotion {
             return toward(position, path.directTarget, meters);
         }
         if (path.route == null || path.route.track.isEmpty()) { return position; }
-        prepareRoute(position, path.route);
+        prepareRoute(position, path.route, path.minimumRouteSegmentIndex);
         return advanceRoute(position, path.barrier, meters);
     }
 
-    private void prepareRoute(LatLon position, GeoJsonRoute nextRoute) {
-        if (route != nextRoute || direct) {
+    private void prepareRoute(LatLon position, GeoJsonRoute nextRoute, int minimumSegment) {
+        boolean routeChanged = route != nextRoute;
+        if (routeChanged) {
             route = nextRoute;
-            index = new PolylineIndex(route.track);
-            PolylineIndex.Match match = index.match(position, -1);
-            along = match == null ? 0 : match.alongTrackMeters;
+            index = new PolylineIndex(nextRoute.track);
+        }
+        double minimumDistance = index.distanceAtPointIndex(minimumSegment);
+        if (routeChanged || direct || along < minimumDistance) {
+            PolylineIndex.Match match = index.matchFromSegmentIndex(position, minimumSegment);
+            along = match == null ? minimumDistance : Math.max(minimumDistance, match.alongTrackMeters);
             direct = false;
         }
     }

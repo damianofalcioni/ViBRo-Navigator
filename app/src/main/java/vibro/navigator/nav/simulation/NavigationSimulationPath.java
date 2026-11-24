@@ -11,12 +11,19 @@ public final class NavigationSimulationPath {
     @Nullable public final LatLon directTarget;
     @Nullable public final NavigationSimulationBarrier barrier;
     public final boolean reached;
+    public final int minimumRouteSegmentIndex;
 
     public NavigationSimulationPath(@Nullable GeoJsonRoute route, @Nullable LatLon directTarget,
             @Nullable NavigationSimulationBarrier barrier, boolean reached) {
+        this(route, directTarget, barrier, reached, -1);
+    }
+
+    public NavigationSimulationPath(@Nullable GeoJsonRoute route, @Nullable LatLon directTarget,
+            @Nullable NavigationSimulationBarrier barrier, boolean reached, int minimumRouteSegmentIndex) {
         this.route = route;
         this.directTarget = directTarget;
         this.barrier = barrier;
         this.reached = reached;
+        this.minimumRouteSegmentIndex = minimumRouteSegmentIndex;
     }
 }

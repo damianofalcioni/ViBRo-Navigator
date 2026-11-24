@@ -14,17 +14,19 @@ import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
-/** The navigation surface contains map/route content; the host template owns guidance and controls. */
+/** The navigation surface contains the map and its overlays. */
 final class ViBRoAutoSurfacePainter {
     private final CarContext carContext;
     private final RectF overlayBounds = new RectF();
     private final ViBRoAutoCompassPainter compassPainter;
+    private final ViBRoAutoGpsStatusPainter gpsStatusPainter;
 
     ViBRoAutoSurfacePainter(@NonNull CarContext carContext,
             @NonNull ViBRoAutoCompassStreetViewportSink viewportSink,
             @NonNull ElapsedRealtimeClock clock) {
         this.carContext = carContext;
         compassPainter = new ViBRoAutoCompassPainter(carContext, viewportSink, clock);
+        gpsStatusPainter = new ViBRoAutoGpsStatusPainter(carContext, clock);
     }
 
     void draw(@NonNull Canvas canvas, @NonNull SurfaceContainer container,
@@ -38,6 +40,7 @@ final class ViBRoAutoSurfacePainter {
         overlayBounds.set(area);
         compassPainter.draw(canvas, state, area.left, area.top, area.width(), area.height(),
                 true, overlayBounds, scale);
+        gpsStatusPainter.draw(canvas, area, state.gpsStatus, scale);
     }
 
     boolean handleClick(float x, float y, @NonNull NavState state) {
@@ -58,6 +61,7 @@ final class ViBRoAutoSurfacePainter {
 
     void refreshTheme() {
         compassPainter.refreshTheme();
+        gpsStatusPainter.refreshTheme();
     }
 
     void resetCompass() {

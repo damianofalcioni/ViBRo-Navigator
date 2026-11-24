@@ -420,15 +420,15 @@ Do not redo the completed template/metadata/intent integration merely because a 
   .\gradlew.bat :app:testGplayDebugUnitTest --tests '*ViBRoCarLiveCueReviewProbeTest' --tests '*ViBRoCarGuidanceGplayTest' --tests '*ViBRoAutoSpeedLimitTest' --tests '*ViBRoAutoStreetViewportGplayTest' :app:testFdroidDebugUnitTest --tests '*NavigationSessionRouteStateTest' --tests '*NavigationArrivalLifecycleTest' --continue --console=plain
   ```
 
-## Planned Android Auto GPS status line (2026-11-24)
+## Android Auto GPS status line request (2026-11-24)
 
 - The user chose to restore the phone's full compact GPS status line on the Android Auto navigation display. This replaces the proposed standalone current-speed readout. Show current speed, elevation, horizontal GPS accuracy, satellites used in the fix, and the live countdown to the next position evaluation. Reuse the phone's formatting, units, and unavailable-value behavior.
 - Keep the posted speed-limit badge and its over-limit highlight. Check on a head unit that the full line fits the available area in day and night themes and that the countdown updates while the map is visible.
-- Status is planned. The current request authorizes a branch-plan update only. Implementation requires a separate request.
+- The initial request was for a plan update. The implementation authorized later is recorded under Fixes for open regressions.
 
-## Pending Android Auto time to maneuver (2026-11-24)
+## Android Auto time to maneuver request (2026-11-24)
 
-- Implementation is pending. Show the estimated time to the current maneuver in the main Android Auto instruction text when a duration is available. Apply this to ordinary turns and direct guidance, including the approach to a snapped route start. Keep the native distance beside the maneuver symbol.
+- Show the estimated time to the current maneuver in the main Android Auto instruction text when a duration is available. Apply this to ordinary turns and direct guidance, including the approach to a snapped route start. Keep the native distance beside the maneuver symbol.
 
 ## Follow-up route replacement and simulation review (2026-11-24)
 
@@ -439,4 +439,30 @@ Do not redo the completed template/metadata/intent integration merely because a 
   $shared = '--tests', '*NavigationServiceInitialRouteTest', '--tests', '*NavigationServiceSimulationTest', '--tests', '*NavigationRouteRequestManagerTest', '--tests', '*NavigationSessionLocationReplacementTest', '--tests', '*NavigationSessionRouteStateDeviationTest', '--tests', '*NavigationSimulationArrivalTest', '--tests', '*NavigationSimulatorTest'
   $car = '--tests', '*ViBRoCarIncomingNavigationGplayTest', '--tests', '*ViBRoCarHostNavigationTest', '--tests', '*ViBRoCarDestinationLoadTest'
   .\gradlew.bat :app:testFdroidDebugUnitTest @shared :app:testGplayDebugUnitTest @shared @car --continue --console=plain
+  ```
+
+## Fixes for open regressions (2026-11-24)
+
+- The user authorized implementing the open findings after `286ac68a`. Restore the full compact GPS line on Android Auto, show time to the current maneuver and the first road cue following a beeline, refresh visible arrival clocks, restore the neutral U-turn symbol, and keep the simulator beyond a completed off-road detour. Retain the previously agreed navigation behavior and keep the changes on the working branch.
+- The car map uses the phone's status and countdown formatter. The navigation card sends duration as cue text and retains the host distance field. The next road cue during a beeline is a preview on the main card. A U-turn with no prescribed side supplies a neutral symbol in the host step. The main template compares arrival minutes against the last published card and cluster publication still compares relative progress. Simulated movement resumes using the live domain's completed-beeline segment boundary.
+- The focused rerun passed 27 F-Droid and 59 Google Play tests plus the complexity check. It covered the off-road stop, current and following cues, arrival refresh, U-turn icon, and GPS line fit and countdown. The initial focused run found two complexity violations that were resolved for the rerun. Logs are `build/open-regression-fixes-focused.log` and `build/open-regression-fixes-focused-rerun.log`.
+- The combined run passed 2,309 F-Droid tests, both lints, complexity, and all four debug and release APK builds. The F-Droid release runtime classpath contains no Android for Cars or Google Play Services dependencies. Google Play had one outdated maneuver-cue assertion and a Java heap exhaustion in the translation test. Updated the assertion for the restored duration. The isolated Google Play rerun passed all 2,428 tests in 4m17s with a temporary 3 GiB test heap. Complexity passed and both debug lint reports were empty. All final tests had zero failures, errors or skips. Logs are `build/open-regression-fixes-full.log` and `build/open-regression-fixes-gplay-rerun.log`. No Gradle invocation remains active.
+- No ADB device or Desktop Head Unit was available. The head-unit checklist covers GPS layout, cue placement, arrival clocks, and the neutral U-turn icon. Some instrument clusters can omit unknown maneuver types, including a neutral U-turn with a supplied icon.
+
+  ```powershell
+  $checks = ':app:complexityCheck', ':app:testFdroidDebugUnitTest', ':app:testGplayDebugUnitTest', ':app:lintFdroidDebug', ':app:lintGplayDebug', ':app:assembleFdroidDebug', ':app:assembleGplayDebug', ':app:assembleFdroidRelease', ':app:assembleGplayRelease'
+  .\gradlew.bat @checks :app:dependencies --configuration fdroidReleaseRuntimeClasspath --continue --console=plain
+  $initScript = @'
+  gradle.projectsEvaluated {
+      allprojects {
+          tasks.withType(Test).configureEach {
+              if (name == 'testGplayDebugUnitTest') {
+                  maxHeapSize = '3g'
+              }
+          }
+      }
+  }
+  '@
+  Set-Content -LiteralPath build/open-regression-fixes-test-heap.init.gradle -Encoding ascii -Value $initScript
+  .\gradlew.bat -I build/open-regression-fixes-test-heap.init.gradle :app:testGplayDebugUnitTest :app:lintGplayDebug :app:complexityCheck --continue --console=plain
   ```

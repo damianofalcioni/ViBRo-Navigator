@@ -77,6 +77,10 @@ final class NavigationRouteBeelineState {
         return activeLeg != null;
     }
 
+    int minimumRouteSegmentIndex() {
+        return minimumRouteSegmentIndex;
+    }
+
     @Nullable
     LatLon target() {
         if (activeLeg == null) {
@@ -104,9 +108,10 @@ final class NavigationRouteBeelineState {
             @NonNull NavigationLocation location,
             @NonNull PolylineIndex.Match fallbackMatch
     ) {
-        if (polylineIndex == null || minimumRouteSegmentIndex < 0) {
+        if (minimumRouteSegmentIndex < 0) {
             return fallbackMatch;
         }
+        // The boundary can only be set by a completed leg on an installed route.
         PolylineIndex.Match constrained = polylineIndex.matchFromSegmentIndex(
                 new LatLon(location.getLatitude(), location.getLongitude()),
                 minimumRouteSegmentIndex

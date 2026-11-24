@@ -126,7 +126,7 @@ public class ViBRoCarAppServiceSettingsGplayTest {
         NavigationTemplate active = (NavigationTemplate) templates.build(CarNavigationTestStates.active(false, false));
         androidx.car.app.navigation.model.RoutingInfo routing =
                 (androidx.car.app.navigation.model.RoutingInfo) active.getNavigationInfo();
-        assertEquals("Turn right", routing.getCurrentStep().getCue().toString());
+        assertEquals("Turn right · 12 s", routing.getCurrentStep().getCue().toString());
         assertEquals(120, routing.getCurrentDistance().getDisplayDistance(), 0);
         assertEquals(50, active.getDestinationTravelEstimate().getRemainingTimeSeconds());
         assertEquals(3, active.getActionStrip().getActions().size());

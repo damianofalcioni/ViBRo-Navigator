@@ -1,10 +1,14 @@
 package vibro.navigator.auto;
 
+import android.text.SpannableStringBuilder;
+
 import androidx.annotation.Nullable;
+import androidx.car.app.model.CarIcon;
 import androidx.car.app.model.DateTimeWithZone;
 import androidx.car.app.navigation.model.MessageInfo;
 import androidx.car.app.navigation.model.NavigationTemplate;
 import androidx.car.app.navigation.model.RoutingInfo;
+import androidx.car.app.navigation.model.Step;
 import androidx.car.app.navigation.model.TravelEstimate;
 
 import java.util.TimeZone;
@@ -23,7 +27,7 @@ final class ViBRoCarGuidance {
     private ViBRoCarGuidance() { }
 
     static void apply(NavigationTemplate.Builder builder, NavState state, NavigationTextResources resources,
-            long observationTimeMs) {
+            long observationTimeMs, CarIcon uTurnIcon) {
         NavGuidanceStatus guidance = state.routeStatus.guidance;
         boolean paused = state.pauseStatus.paused;
         boolean imperial = resources.isImperialUnitsEnabled();
@@ -34,7 +38,7 @@ final class ViBRoCarGuidance {
             detail = appendDetail(detail, stopProgress(progress, resources, observationTimeMs));
         }
         if (!paused && !guidance.maneuvers.isEmpty()) {
-            builder.setNavigationInfo(routingInfo(guidance, detail, resources));
+            builder.setNavigationInfo(routingInfo(guidance, detail, resources, uTurnIcon));
         } else {
             builder.setNavigationInfo(messageInfo(guidance, detail, paused));
         }
@@ -53,14 +57,22 @@ final class ViBRoCarGuidance {
     }
 
     private static RoutingInfo routingInfo(NavGuidanceStatus guidance, String detail,
-            NavigationTextResources resources) {
+            NavigationTextResources resources, CarIcon uTurnIcon) {
         NavManeuver next = guidance.maneuvers.get(0);
-        String cue = appendDetail(ViBRoCarManeuvers.cue(next.instruction, guidance.nextUncertain), detail);
+        var cue = new SpannableStringBuilder(ViBRoCarManeuvers.cue(next.instruction, guidance.nextUncertain));
+        ViBRoCarManeuvers.appendDuration(cue, next.timeSeconds, resources);
+        if (!detail.isEmpty()) {
+            cue.append('\n').append(detail);
+        }
         RoutingInfo.Builder routing = new RoutingInfo.Builder()
-                .setCurrentStep(ViBRoCarManeuvers.step(next, cue),
+                .setCurrentStep(ViBRoCarManeuvers.step(next, cue, uTurnIcon),
                         ViBRoCarManeuvers.distance(next.distanceMeters, resources.isImperialUnitsEnabled()));
         if (guidance.maneuvers.size() > 1) {
-            routing.setNextStep(ViBRoCarManeuvers.followingStep(guidance, resources));
+            routing.setNextStep(ViBRoCarManeuvers.followingStep(guidance, resources, uTurnIcon));
+        } else if (!guidance.afterNextLine.isEmpty()) {
+            // Direct guidance keeps the following road turn as a preview while the beeline owns cluster guidance.
+            routing.setNextStep(new Step.Builder(ViBRoCarManeuvers.cue(
+                    guidance.afterNextLine, guidance.afterNextUncertain)).build());
         }
         return routing.build();
     }

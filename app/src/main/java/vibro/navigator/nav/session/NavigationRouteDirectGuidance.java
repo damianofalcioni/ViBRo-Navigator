@@ -71,6 +71,10 @@ final class NavigationRouteDirectGuidance {
         return state.activeDirectTarget();
     }
 
+    int minimumRouteSegmentIndex() {
+        return state.minimumRouteSegmentIndex();
+    }
+
     boolean skipActiveTarget(@Nullable NavigationLocation location, long nowMs) {
         return targetSkipper.skipActiveTarget(location, nowMs);
     }

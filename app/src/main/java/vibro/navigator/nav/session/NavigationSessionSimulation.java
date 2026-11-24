@@ -14,7 +14,8 @@ public final class NavigationSessionSimulation {
         if (request.routingMode != NavigationRoutingMode.STRAIGHT_LINE) {
             NavigationSessionRouteState state = session.components.routeState;
             return new NavigationSimulationPath(state.currentRoute(), state.components.directGuidance.activeTarget(),
-                    state.components.intermediateArrivalTracker.nextSimulationBarrier(), state.isDestinationReached());
+                    state.components.intermediateArrivalTracker.nextSimulationBarrier(), state.isDestinationReached(),
+                    state.components.directGuidance.minimumRouteSegmentIndex());
         }
         StraightLineNavigationState state = session.components.straightLineState;
         LatLon target = StraightLineNavigationProgress.nextTarget(request,

@@ -150,10 +150,10 @@ public class ViBRoCarHostNavigationTest {
     @Test
     public void roundaboutDirectionAndUnknownCommandsDoNotInventRoadTurns() {
         assertEquals(Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW,
-                ViBRoCarManeuvers.maneuver(new VoiceHint(0, 13, 3, 0, 0)).getType());
-        assertEquals(3, ViBRoCarManeuvers.maneuver(new VoiceHint(0, 14, -3, 0, 0)).getRoundaboutExitNumber());
+                ViBRoCarManeuvers.maneuver(new VoiceHint(0, 13, 3, 0, 0), null).getType());
+        assertEquals(3, ViBRoCarManeuvers.maneuver(new VoiceHint(0, 14, -3, 0, 0), null).getRoundaboutExitNumber());
         assertEquals(Maneuver.TYPE_ROUNDABOUT_ENTER_CCW,
-                ViBRoCarManeuvers.maneuver(new VoiceHint(0, 13, 0, 0, 0)).getType());
+                ViBRoCarManeuvers.maneuver(new VoiceHint(0, 13, 0, 0, 0), null).getType());
         assertEquals(Maneuver.TYPE_UNKNOWN, ViBRoCarManeuvers.type(16));
         assertEquals(Maneuver.TYPE_UNKNOWN, ViBRoCarManeuvers.type(-1));
         assertEquals(Maneuver.TYPE_DESTINATION, ViBRoCarManeuvers.type(101));

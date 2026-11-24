@@ -18,7 +18,7 @@ import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.settings.AppAndroidAutoSettings;
 
-// Host templates own guidance and actions; only map/route content belongs on the custom surface.
+// Host templates own guidance and actions. Map overlays are drawn on the custom surface.
 public final class ViBRoCarScreen extends Screen {
 
     private static final String TAG = "ViBRoCarScreen";

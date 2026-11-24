@@ -6,6 +6,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
+import vibro.navigator.nav.format.AndroidNavigationTextResources;
+import vibro.navigator.nav.location.NavigationGpsStatusFormatter;
 import vibro.navigator.nav.location.NavigationGpsTelemetryFormatter;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.presentation.NavStateComposer;
@@ -49,16 +51,8 @@ final class NavigationGpsDetailsDialog {
 
     @NonNull
     String nextEvaluationValue(@Nullable NavState state) {
-        if (state == null) {
-            return activity.getString(R.string.nav_status_unavailable);
-        }
-        long deadlineElapsedMs = state.gpsStatus.nextEvaluationDeadlineElapsedMs;
-        long remainingMs = Math.max(0L, deadlineElapsedMs - elapsedRealtimeClock.elapsedRealtimeMs());
-        if (deadlineElapsedMs == NavState.NO_DEADLINE || remainingMs <= 0L) {
-            return activity.getString(R.string.nav_status_unavailable);
-        }
-        long remainingSeconds = (long) Math.ceil(remainingMs / 1000.0);
-        return activity.getString(R.string.format_nav_next_position_check_value, remainingSeconds);
+        return NavigationGpsStatusFormatter.nextEvaluationValue(new AndroidNavigationTextResources(activity),
+                state == null ? null : state.gpsStatus, elapsedRealtimeClock.elapsedRealtimeMs());
     }
 
 }

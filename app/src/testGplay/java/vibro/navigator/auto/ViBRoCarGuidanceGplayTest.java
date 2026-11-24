@@ -2,6 +2,7 @@ package vibro.navigator.auto;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -18,6 +19,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
+import java.util.List;
 
 import vibro.navigator.nav.format.NavigationTextFormatter;
 import vibro.navigator.nav.model.NavGuidanceStatus;
@@ -57,7 +59,7 @@ public class ViBRoCarGuidanceGplayTest {
         assertEquals(feet, routing(imperial).getCurrentDistance());
         assertEquals(Distance.create(1.5, Distance.UNIT_MILES_P1),
                 imperial.getDestinationTravelEstimate().getRemainingDistance());
-        assertEquals(feet, ViBRoCarTrip.from(state, true).getStepTravelEstimates().get(0).getRemainingDistance());
+        assertEquals(feet, ViBRoCarTrip.from(state, true, null).getStepTravelEstimates().get(0).getRemainingDistance());
     }
 
     @Test
@@ -70,7 +72,7 @@ public class ViBRoCarGuidanceGplayTest {
         assertEquals(Maneuver.TYPE_TURN_NORMAL_RIGHT, info.getCurrentStep().getManeuver().getType());
         assertEquals(Distance.create(120, Distance.UNIT_METERS), info.getCurrentDistance());
         assertTrue(info.getCurrentStep().getCue().toString().contains(warning));
-        assertEquals("Turn right", ViBRoCarTrip.from(state, false).getSteps().get(0).getCue().toString());
+        assertEquals("Turn right", ViBRoCarTrip.from(state, false, null).getSteps().get(0).getCue().toString());
     }
 
     @Test
@@ -92,10 +94,11 @@ public class ViBRoCarGuidanceGplayTest {
                 base.pauseStatus, base.tripStatus);
 
         RoutingInfo info = routing(template(state));
-        Trip trip = ViBRoCarTrip.from(state, false);
-        assertEquals("≈ Turn right", info.getCurrentStep().getCue().toString());
+        Trip trip = ViBRoCarTrip.from(state, false, null);
+        assertEquals("≈ Turn right · 12 s", info.getCurrentStep().getCue().toString());
         assertEquals("≈ Turn left · 20 m · 3 s", info.getNextStep().getCue().toString());
-        assertEquals(info.getCurrentStep(), trip.getSteps().get(0));
+        assertEquals(info.getCurrentStep().getManeuver(), trip.getSteps().get(0).getManeuver());
+        assertEquals("≈ Turn right", trip.getSteps().get(0).getCue().toString());
         assertEquals("≈ Turn left", trip.getSteps().get(1).getCue().toString());
         assertEquals(Distance.create(140, Distance.UNIT_METERS),
                 trip.getStepTravelEstimates().get(1).getRemainingDistance());
@@ -114,20 +117,51 @@ public class ViBRoCarGuidanceGplayTest {
     }
 
     @Test
-    public void observationTimeAloneDoesNotInvalidateTemplatesEvenWithStops() {
+    public void templateRefreshesWhenAnArrivalMinuteChangesFromTheLastPublishedView() {
         ViBRoCarTemplates templates = new ViBRoCarTemplates(context, () -> { });
         NavStopEstimate stop = new NavStopEstimate("Stop 1", 350, 90.0);
-        NavTravelEstimate estimate = base.routeStatus.progress.travelEstimate;
-        NavState first = withProgress(estimate, stop);
-        NavState updated = withProgress(new NavTravelEstimate(estimate.distanceMeters, estimate.timeSeconds,
-                estimate.observationWallTimeMs + 60_000, false), stop);
-        assertFalse(templates.requiresInvalidation(first, updated));
-        assertTrue(templates.requiresInvalidation(updated,
-                withProgress(estimate, new NavStopEstimate(stop.label(), 300, 85.0))));
+        long start = 1_700_000_040_000L;
+        NavState first = withProgress(new NavTravelEstimate(500, 90, start, false), stop);
+        NavState shortlyAfter = withProgress(new NavTravelEstimate(500, 90, start + 10_000, false), stop);
+        NavState updated = withProgress(new NavTravelEstimate(500, 90, start + 120_000, false), stop);
+        NavState nextFix = withProgress(new NavTravelEstimate(500, 90, start + 121_000, false), stop);
+        templates.build(first);
+        assertFalse(templates.requiresInvalidation(first, shortlyAfter));
+        assertTrue(templates.requiresInvalidation(updated, nextFix));
 
-        templates.build(updated);
+        templates.build(nextFix);
+        assertFalse(templates.requiresInvalidation(updated, nextFix));
         AppSettings.setImperialUnitsEnabled(context, true);
-        assertTrue(templates.requiresInvalidation(updated, updated));
+        assertTrue(templates.requiresInvalidation(nextFix, nextFix));
+    }
+
+    @Test
+    public void directGuidanceShowsApproachTimeAndTheFollowingRoadCue() {
+        var direct = new NavManeuver(new VoiceHint(0, 16, 0, 0, 0), "Beeline", 95, 40);
+        var guidance = new NavGuidanceStatus("Beeline", "Turn left after joining the road").withManeuvers(List.of(direct));
+        var state = withGuidance(guidance);
+        RoutingInfo info = routing(template(state));
+
+        assertEquals("Beeline · 40 s", info.getCurrentStep().getCue().toString());
+        assertEquals(Distance.create(95, Distance.UNIT_METERS), info.getCurrentDistance());
+        assertEquals(guidance.afterNextLine, info.getNextStep().getCue().toString());
+        assertEquals(1, ViBRoCarTrip.from(state, false, null).getSteps().size());
+    }
+
+    @Test
+    public void uTurnWithoutASideGetsAnIconAndAnUnavailableDurationStaysHidden() {
+        var uTurn = new NavManeuver(new VoiceHint(0, 15, 0, 0, 180), "U-turn", 95, Double.NaN);
+        var state = withGuidance(new NavGuidanceStatus("U-turn", "").withManeuvers(List.of(uTurn)));
+        var step = routing(template(state)).getCurrentStep();
+        assertEquals("U-turn", step.getCue().toString());
+        assertEquals(Maneuver.TYPE_UNKNOWN, step.getManeuver().getType());
+        assertNotNull(step.getManeuver().getIcon());
+        assertEquals(step.getManeuver(), ViBRoCarTrip.from(state, false, ViBRoCarManeuvers.uTurnIcon(context))
+                .getSteps().get(0).getManeuver());
+    }
+
+    private NavState withGuidance(NavGuidanceStatus guidance) {
+        return new NavState(base.routeStatus.withGuidance(guidance), base.gpsStatus, base.pauseStatus, base.tripStatus);
     }
 
     private NavState withTravelEstimate(double meters, double seconds) {

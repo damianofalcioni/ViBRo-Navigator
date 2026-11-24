@@ -3,6 +3,7 @@ package vibro.navigator.nav.session;
 import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import vibro.navigator.R;
 import vibro.navigator.geo.LatLon;
@@ -12,6 +13,8 @@ import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavigationRoutingMode;
 import vibro.navigator.nav.route.GeoJsonRoute;
+import vibro.navigator.nav.route.RouteStartApproach;
+import vibro.navigator.nav.route.VoiceHint;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.nav.simulation.NavigationSimulationConfig;
 import vibro.navigator.nav.simulation.SimulationTestDriver;
@@ -133,11 +136,48 @@ public class NavigationSimulationArrivalTest {
         return session;
     }
 
+    @Test
+    public void simulationContinuesAlongTheRoadAfterReturningFromAnOffRoadStop() {
+        LatLon junction = new LatLon(0, 0.001);
+        LatLon stop = new LatLon(0.0008, junction.lon);
+        LatLon end = new LatLon(0, 0.003);
+        var session = new NavigationSession();
+        session.loadRequest(new NavigationRequest("trekking", "End", end, List.of(stop)));
+        var resources = TestNavigationTextResources.metric();
+        assertTrue(NavigationSessionResourceAdapter.start(session, resources, 100_000));
+        var driver = driver(session, NavigationSimulationConfig.DEFAULT_SPEED_MPS);
+        NavigationSessionResourceAdapter.onRawLocationChanged(session, resources, driver.source.currentFix(),
+                driver.nowMs());
+        var request = session.prepareRouteRequest(true, driver.nowMs());
+        assertNotNull(request);
+        var route = new GeoJsonRoute(List.of(ORIGIN, junction, stop, junction, end), List.of(
+                new VoiceHint(1, RouteStartApproach.BEELINE_COMMAND, 0, 89, 0),
+                new VoiceHint(2, RouteStartApproach.BEELINE_COMMAND, 0, 89, 0)), 200, 510);
+        NavigationSessionResourceAdapter.applyRouteResult(session, resources, request, route, driver.nowMs());
+
+        boolean returned = false;
+        for (int tick = 0; tick < 80 && !NavigationSessionSimulation.path(session).reached; tick++) {
+            driver.advance(1_000);
+            var path = NavigationSessionSimulation.path(session);
+            if (path.minimumRouteSegmentIndex >= 3) {
+                returned = true;
+                assertTrue("The simulator stays near the road after rejoining it",
+                        driver.source.currentFix().getLatitude() < 0.0001);
+            }
+        }
+        assertTrue(returned);
+        assertTrue(NavigationSessionSimulation.path(session).reached);
+    }
+
     private static SimulationTestDriver driver(NavigationSession session) {
+        return driver(session, 10);
+    }
+
+    private static SimulationTestDriver driver(NavigationSession session, float speedMps) {
         SimulationTestDriver driver = new SimulationTestDriver(() -> NavigationSessionSimulation.path(session),
                 fix -> NavigationSessionResourceAdapter.onRawLocationChanged(session, TestNavigationTextResources.metric(),
                         fix, fix.getElapsedRealtimeMs()));
-        driver.source.configure(true, new NavigationSimulationConfig(10, ORIGIN));
+        driver.source.configure(true, new NavigationSimulationConfig(speedMps, ORIGIN));
         driver.source.start();
         return driver;
     }

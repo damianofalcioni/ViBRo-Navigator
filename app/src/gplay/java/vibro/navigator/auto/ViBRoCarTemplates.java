@@ -30,11 +30,14 @@ final class ViBRoCarTemplates {
     private final CarContext carContext;
     @NonNull
     private final Actions actions;
+    private final CarIcon uTurnIcon;
     private boolean lastPresentedImperial;
+    @Nullable private ViBRoCarArrivalMinutes lastPresentedArrivals;
 
     ViBRoCarTemplates(@NonNull CarContext carContext, @NonNull Actions actions) {
         this.carContext = carContext;
         this.actions = actions;
+        uTurnIcon = ViBRoCarManeuvers.uTurnIcon(carContext);
         lastPresentedImperial = AppSettings.isImperialUnitsEnabled(carContext);
     }
 
@@ -42,8 +45,10 @@ final class ViBRoCarTemplates {
     Template build(@Nullable NavState state) {
         lastPresentedImperial = AppSettings.isImperialUnitsEnabled(carContext);
         if (!usesNavigationTemplate(state)) {
+            lastPresentedArrivals = null;
             return buildNoActiveNavigationTemplate();
         }
+        lastPresentedArrivals = ViBRoCarArrivalMinutes.from(state);
         var estimate = state.routeStatus.progress.travelEstimate;
         return buildNavigationTemplate(state, estimate == null ? 0 : estimate.observationWallTimeMs);
     }
@@ -54,10 +59,20 @@ final class ViBRoCarTemplates {
             return true;
         }
         if (!active) { return false; }
-        // The template uses real observation time when published. It compares relative progress here.
+        // Compare the arrival clocks to the last published view so small updates can accumulate.
         return lastPresentedImperial != AppSettings.isImperialUnitsEnabled(carContext)
-                || (!sameTemplateInputs(previous, next)
-                    && !buildNavigationTemplate(previous, 0).equals(buildNavigationTemplate(next, 0)));
+                || hasChangedArrivalMinutes(previous, next)
+                || hasChangedRelativeProgress(previous, next);
+    }
+
+    private boolean hasChangedArrivalMinutes(NavState previous, NavState next) {
+        var published = lastPresentedArrivals == null ? ViBRoCarArrivalMinutes.from(previous) : lastPresentedArrivals;
+        return !published.equals(ViBRoCarArrivalMinutes.from(next));
+    }
+
+    private boolean hasChangedRelativeProgress(NavState previous, NavState next) {
+        return !sameTemplateInputs(previous, next)
+                && !buildNavigationTemplate(previous, 0).equals(buildNavigationTemplate(next, 0));
     }
 
     private static boolean sameTemplateInputs(NavState previous, NavState next) {
@@ -82,7 +97,8 @@ final class ViBRoCarTemplates {
     private Template buildNavigationTemplate(@NonNull NavState state, long observationTimeMs) {
         NavigationTemplate.Builder builder = new NavigationTemplate.Builder()
                 .setActionStrip(buildNavigationActionStrip(state));
-        ViBRoCarGuidance.apply(builder, state, new AndroidNavigationTextResources(carContext), observationTimeMs);
+        ViBRoCarGuidance.apply(builder, state, new AndroidNavigationTextResources(carContext), observationTimeMs,
+                uTurnIcon);
         if (carContext.getCarAppApiLevel() >= 2) {
             // Required by the host before it delivers scroll, pinch, or double-tap zoom.
             builder.setMapActionStrip(new ActionStrip.Builder().addAction(Action.PAN).build());
