@@ -388,3 +388,12 @@ Do not redo the completed template/metadata/intent integration merely because a 
   $carTests = '--tests', '*ViBRoCarIncomingNavigationGplayTest', '--tests', '*ViBRoCarHostNavigationTest', '--tests', '*ViBRoCarScreenLifecycleTest'
   .\gradlew.bat :app:testFdroidDebugUnitTest @sharedTests :app:testGplayDebugUnitTest @sharedTests @carTests --continue --console=plain
   ```
+
+## Follow-up Android Auto ETA review (2026-11-24)
+
+- Reviewed the production source at `48c81e53` after the documentation-only commit `295ba552`. Found an additional Android Auto regression during a traffic stop on a routed trip. BRouter's route-model duration remains known and steady while the vehicle is stopped. The shared destination and next-stop arrival clocks therefore move later with each new observation. The car template comparison substitutes the same wall time for both snapshots, so it discards even minute-level changes to the ETA the driver sees. The prior Auto status block displayed the actual updated shared values. Preserve routine snapshot deduplication while allowing a material change to the last published arrival clocks to refresh the template.
+- A temporary Robolectric probe used 120 successive stationary route snapshots and confirmed that the screen would request no template refresh even though the next-stop text and destination arrival timestamp had moved two minutes. The focused run passed 28 F-Droid and 17 Google Play tests in 21s, with zero failures, errors or skips. The probe was removed. Production code and the phone install were untouched. Head-unit rendering remains unverified. The local ignored log is `build/traffic-eta-regression-review.log`. No Gradle invocation remains active.
+
+  ```powershell
+  .\gradlew.bat :app:testGplayDebugUnitTest --tests '*ViBRoCarTrafficEtaReviewProbeTest' --tests '*ViBRoCarGuidanceGplayTest' --tests '*ViBRoCarHostNavigationTest' :app:testFdroidDebugUnitTest --tests '*NavStateTest' --tests '*RouteTimeEstimatorTest' --continue --console=plain
+  ```
