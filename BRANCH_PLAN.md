@@ -466,3 +466,14 @@ Do not redo the completed template/metadata/intent integration merely because a 
   Set-Content -LiteralPath build/open-regression-fixes-test-heap.init.gradle -Encoding ascii -Value $initScript
   .\gradlew.bat -I build/open-regression-fixes-test-heap.init.gradle :app:testGplayDebugUnitTest :app:lintGplayDebug :app:complexityCheck --continue --console=plain
   ```
+
+## Follow-up review after the open regression fixes (2026-11-24)
+
+- Reviewed `98b83ad7` against `main` at `2ba4dad3` for additional regressions in ordinary use. One Android Auto finding remains open. When a driver starts away from a routable road or approaches an off-road stop, the main car turn card loses the beeline symbol that the previous car screen displayed. The car adapter sends BRouter command 16 as `TYPE_UNKNOWN` without an icon in both the navigation template and cluster trip. The localized cue, distance, and available duration are still present. AndroidX allows a custom icon for this type and documents that some clusters skip unknown maneuvers. [AndroidX current-step icon](https://developer.android.com/reference/androidx/car/app/navigation/model/RoutingInfo.Builder#setCurrentStep(androidx.car.app.navigation.model.Step,androidx.car.app.model.Distance)) and [AndroidX cluster guidance](https://developer.android.com/reference/androidx/car/app/navigation/NavigationManager#updateTrip(androidx.car.app.navigation.model.Trip)).
+- The focused run passed 18 F-Droid and 107 Google Play tests in 1m26s with zero failures, errors, or skips. A temporary Robolectric probe confirmed the symbol in shared guidance and its absence from both emitted car models. The probe was removed. The local ignored log is `build/current-branch-additional-review.log`. `git diff --check main...HEAD` passed. Physical head-unit rendering remains unverified. No Gradle invocation remains active.
+
+  ```powershell
+  $shared = '--tests', '*NavigationSimulationArrivalTest', '--tests', '*NavigationServiceInitialRouteTest', '--tests', '*NavigationServiceUiVisibilityTest', '--tests', '*NavigationGpsDetailsDialog*Test'
+  $car = '--tests', 'vibro.navigator.auto.*', '--tests', '*AndroidAutoGuidanceNotificationsTest'
+  .\gradlew.bat :app:testFdroidDebugUnitTest @shared :app:testGplayDebugUnitTest @shared @car --continue --console=plain
+  ```
