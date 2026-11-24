@@ -419,3 +419,9 @@ Do not redo the completed template/metadata/intent integration merely because a 
   ```powershell
   .\gradlew.bat :app:testGplayDebugUnitTest --tests '*ViBRoCarLiveCueReviewProbeTest' --tests '*ViBRoCarGuidanceGplayTest' --tests '*ViBRoAutoSpeedLimitTest' --tests '*ViBRoAutoStreetViewportGplayTest' :app:testFdroidDebugUnitTest --tests '*NavigationSessionRouteStateTest' --tests '*NavigationArrivalLifecycleTest' --continue --console=plain
   ```
+
+## Planned Android Auto GPS status line (2026-11-24)
+
+- The user chose to restore the phone's full compact GPS status line on the Android Auto navigation display. This replaces the proposed standalone current-speed readout. Show current speed, elevation, horizontal GPS accuracy, satellites used in the fix, and the live countdown to the next position evaluation. Reuse the phone's formatting, units, and unavailable-value behavior.
+- Keep the posted speed-limit badge and its over-limit highlight. Check on a head unit that the full line fits the available area in day and night themes and that the countdown updates while the map is visible.
+- Status is planned. The current request authorizes a branch-plan update only. Implementation requires a separate request.
