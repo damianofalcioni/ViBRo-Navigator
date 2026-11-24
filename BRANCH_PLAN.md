@@ -541,3 +541,14 @@ Do not redo the completed template/metadata/intent integration merely because a 
   $checks = ':app:complexityCheck', ':app:testFdroidDebugUnitTest', ':app:testGplayDebugUnitTest', ':app:lintFdroidDebug', ':app:lintGplayDebug', ':app:assembleFdroidDebug', ':app:assembleGplayDebug', ':app:assembleFdroidRelease', ':app:assembleGplayRelease'
   .\gradlew.bat -I build/open-regression-fixes-test-heap.init.gradle @checks :app:dependencies --configuration fdroidReleaseRuntimeClasspath --max-workers=2 --continue --console=plain
   ```
+
+## Review after the seven regression fixes (2026-11-24)
+
+- Reviewed `652c79b6` against `main` at `2ba4dad3` for additional regressions in ordinary workflows. The pass covered Android Auto destination search and replacement, host ownership, guidance and arrival, map visibility, projected notifications, and shared phone location and simulation behavior. No additional meaningful regression was confirmed.
+- Focused verification passed 41 F-Droid and 138 Google Play tests with zero failures, errors, or skips. `git diff --check main...HEAD` passed. The ignored log is `build/current-head-ordinary-regression-review.log`. No Gradle invocation remains active. No device or Desktop Head Unit was available, so head-unit rendering and wearable mirroring remain unverified.
+
+  ```powershell
+  $shared = '--tests', '*NavigationSimulationArrivalTest', '--tests', '*NavigationSimulatorTest', '--tests', '*NavigationServiceUiVisibilityTest', '--tests', '*NavigationServiceInitialRouteTest', '--tests', '*NavigationLifecycleRobolectricTest', '--tests', '*NavigationGpsStatusResourcesRobolectricTest'
+  $car = '--tests', 'vibro.navigator.auto.*', '--tests', 'vibro.navigator.android.automotive.*', '--tests', '*AndroidAutoGuidanceNotificationsTest'
+  .\gradlew.bat :app:testFdroidDebugUnitTest @shared :app:testGplayDebugUnitTest @shared @car --max-workers=2 --continue --console=plain
+  ```
