@@ -10,6 +10,9 @@ import androidx.car.app.navigation.model.Trip;
 import org.junit.Test;
 
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.model.NavProgressStatus;
+import vibro.navigator.nav.model.NavTravelEstimate;
+import vibro.navigator.nav.presentation.NavStateComposer;
 import vibro.navigator.nav.route.VoiceHint;
 
 public class ViBRoCarHostNavigationTest {
@@ -64,7 +67,34 @@ public class ViBRoCarHostNavigationTest {
         navigation.close();
         navigation.close();
         assertEquals(3, host.ends);
-        assertTrue(host.clears >= 3);
+        assertEquals(3, host.clears);
+    }
+
+    @Test
+    public void observationTimeDoesNotRepublishTripAndOnlyCueChangesRepostNotification() {
+        RecordingHost host = new RecordingHost();
+        ViBRoCarHostNavigation navigation = new ViBRoCarHostNavigation(host, () -> { });
+        NavState initial = CarNavigationTestStates.active(false, false);
+        NavProgressStatus progress = initial.routeStatus.progress;
+        NavTravelEstimate estimate = progress.travelEstimate;
+        NavState later = new NavState(initial.routeStatus.withProgress(new NavProgressStatus(
+                progress.destinationLine, progress.stopProgressBlock, progress.detailBlock,
+                new NavTravelEstimate(estimate.distanceMeters, estimate.timeSeconds,
+                        estimate.observationWallTimeMs + 60_000, false))),
+                initial.gpsStatus, initial.pauseStatus, initial.tripStatus);
+
+        navigation.update(initial);
+        navigation.update(later);
+        assertEquals(1, host.updates);
+        assertEquals(1, host.notificationUpdates);
+
+        navigation.update(NavStateComposer.withNotice(later, "Retained route"));
+        assertEquals(1, host.updates);
+        assertEquals(1, host.notificationUpdates);
+
+        navigation.update(CarNavigationTestStates.loading());
+        assertEquals(2, host.updates);
+        assertEquals(2, host.notificationUpdates);
     }
 
     @Test
@@ -133,6 +163,7 @@ public class ViBRoCarHostNavigationTest {
         private int starts;
         private int ends;
         private int updates;
+        private int notificationUpdates;
         private int clears;
         private Trip trip;
         private NavState state;
@@ -143,7 +174,8 @@ public class ViBRoCarHostNavigationTest {
             if (onStart != null) { onStart.run(); }
         }
         @Override public void ended() { ends++; }
-        @Override public void update(Trip trip, NavState state) { updates++; this.trip = trip; this.state = state; }
+        @Override public void updateTrip(Trip trip) { updates++; this.trip = trip; }
+        @Override public void updateNotification(NavState state) { notificationUpdates++; this.state = state; }
         @Override public void clear() { clears++; }
     }
 }

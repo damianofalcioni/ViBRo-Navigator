@@ -29,6 +29,7 @@ import vibro.navigator.nav.model.NavRouteStatus;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.ui.NavigationActivity;
+import vibro.navigator.settings.AppNotificationSettings;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = {23, 33})
@@ -43,19 +44,22 @@ public class AndroidCarNavigationNotificationsGplayTest {
                 new NotificationCompat.Builder(context, NavigationService.CHANNEL_ID_ALERT)
                         .setSmallIcon(R.drawable.ic_notification).setContentText("Wearable alert").build());
         AndroidCarNavigationNotifications notifications = new AndroidCarNavigationNotifications(context);
+        AppNotificationSettings.setNavigationNotificationsEnabled(context, false);
         notifications.update(state("Turn left"));
         Notification notification = shadowOf(manager).getNotification(AndroidCarNavigationNotifications.NOTIFICATION_ID);
         assertEquals(NotificationCompat.CATEGORY_NAVIGATION, notification.category);
         assertTrue((notification.flags & Notification.FLAG_ONGOING_EVENT) != 0);
-        assertEquals("Turn left", notification.extras.getCharSequence(Notification.EXTRA_TEXT).toString());
+        assertEquals(context.getString(R.string.notification_nav_running_text),
+                notification.extras.getCharSequence(Notification.EXTRA_TEXT).toString());
         assertTrue(shadowOf(notification.contentIntent).getSavedIntent()
                 .getBooleanExtra(NavigationActivity.EXTRA_RESUME_EXISTING, false));
         CarAppExtender extension = new CarAppExtender(notification);
+        assertEquals("Turn left", extension.getContentText().toString());
         assertEquals(NotificationManagerCompat.IMPORTANCE_LOW, extension.getImportance());
         assertNotEquals(notification.contentIntent, extension.getContentIntent());
         notifications.update(state("Turn right"));
-        assertEquals("Turn right", shadowOf(manager).getNotification(AndroidCarNavigationNotifications.NOTIFICATION_ID)
-                .extras.getCharSequence(Notification.EXTRA_TEXT).toString());
+        assertEquals("Turn right", new CarAppExtender(shadowOf(manager)
+                .getNotification(AndroidCarNavigationNotifications.NOTIFICATION_ID)).getContentText().toString());
         notifications.clear();
         assertEquals(1, manager.getActiveNotifications().length);
         assertEquals(NavigationService.NOTIFICATION_ID_TURN, manager.getActiveNotifications()[0].getId());

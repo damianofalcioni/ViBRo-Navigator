@@ -107,17 +107,7 @@ public final class NavStateComposer {
                 input.targets,
                 input.textResources
         );
-        String stopProgress = NavStateTextFactory.buildStopProgress(
-                input.route,
-                input.index,
-                input.routeProgress.alongTrackMeters,
-                input.routeProgress.currentSegmentIndex,
-                input.motion.etaSpeedMps,
-                input.timing.nowMs,
-                input.destinationReached,
-                input.targets,
-                input.textResources
-        );
+        var nextStop = NavTravelEstimateFactory.nextStop(input);
         NavGpsTelemetry gpsTelemetry = NavigationGpsTelemetryFormatter.format(
                 input.textResources,
                 input.motion.speedMps,
@@ -131,7 +121,7 @@ public final class NavStateComposer {
                 : NavCompassStateFactory.buildCompassState(input.compassInput);
         NavState state = create(
                 destination,
-                stopProgress,
+                NavStateTextFactory.formatStopProgress(input.textResources, nextStop, input.timing.nowMs),
                 gpsTelemetry.compactLine,
                 input.timing.nextEvaluationDeadlineElapsedMs,
                 "",
@@ -141,7 +131,7 @@ public final class NavStateComposer {
                 false,
                 gpsTelemetry
         );
-        return NavStateResourceComposer.withTravelEstimate(state, input);
+        return NavStateResourceComposer.withTravelEstimate(state, input, nextStop);
     }
 
     @NonNull

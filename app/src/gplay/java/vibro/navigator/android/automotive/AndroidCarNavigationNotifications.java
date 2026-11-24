@@ -45,11 +45,12 @@ public final class AndroidCarNavigationNotifications {
         Notification notification = new NotificationCompat.Builder(context, NavigationService.CHANNEL_ID_NAV)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(AndroidAppLanguage.getString(context, R.string.app_name))
-                .setContentText(state.routeStatus.guidance.nextLine)
+                .setContentText(AndroidAppLanguage.getString(context, R.string.notification_nav_running_text))
                 .setCategory(NotificationCompat.CATEGORY_NAVIGATION)
                 .setOngoing(true).setOnlyAlertOnce(true).setSilent(true)
                 .setContentIntent(contentIntent)
                 .extend(new CarAppExtender.Builder().setContentIntent(carIntent)
+                        .setContentText(state.routeStatus.guidance.nextLine)
                         .setImportance(NotificationManagerCompat.IMPORTANCE_LOW).build()).build();
         manager.notify(NOTIFICATION_ID, notification);
     }

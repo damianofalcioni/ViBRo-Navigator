@@ -11,7 +11,7 @@ import android.net.Uri;
 import androidx.car.app.CarContext;
 import androidx.car.app.OnDoneCallback;
 import androidx.car.app.model.ListTemplate;
-import androidx.car.app.model.MessageTemplate;
+import androidx.car.app.model.PaneTemplate;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -87,7 +87,7 @@ public class ViBRoCarIncomingNavigationGplayTest {
         access.ready = false;
         incoming.handle(intent("google.navigation:q=48.2,16.3"));
         drain();
-        assertTrue(incoming.template() instanceof MessageTemplate);
+        assertTrue(incoming.template() instanceof PaneTemplate);
         access.ready = true;
         incoming.retryPending();
         drain();
@@ -101,8 +101,7 @@ public class ViBRoCarIncomingNavigationGplayTest {
         assertNull(incoming.template());
 
         access.results.get(0).finished(true);
-        MessageTemplate setup = (MessageTemplate) incoming.template();
-        assertEquals(context.getString(R.string.auto_setup_required), setup.getMessage().toString());
+        assertEquals(context.getString(R.string.auto_setup_required), statusText());
         retryAction();
         drain();
         assertEquals(2, access.started.size());
@@ -140,18 +139,38 @@ public class ViBRoCarIncomingNavigationGplayTest {
     @Test
     public void stalledSearchExpiresAndExplicitRetryCanResolveTheSameQuery() {
         incoming.handle(intent(ADDRESS_URI));
-        assertTrue(((MessageTemplate) incoming.template()).isLoading());
+        assertEquals(context.getString(R.string.msg_map_poi_loading), statusText());
         assertEquals(9_000L, scheduler.delayMs);
         nowMs = 9_000;
         scheduler.delayed.remove().run();
         assertTimeout();
         incoming.retryPending(); // Foregrounding must not silently retry a timeout.
-        assertFalse(((MessageTemplate) incoming.template()).isLoading());
+        assertTimeout();
         retryAction();
         drain();
         assertTrue(incoming.template() instanceof ListTemplate);
         assertEquals(1, access.searches);
         assertTrue(scheduler.delayed.isEmpty());
+    }
+
+    @Test
+    @SuppressWarnings("deprecation") // Check the refresh identity used by API 1/2 hosts.
+    public void consecutiveTimeoutsKeepTheSameStatusPaneIdentity() {
+        incoming.handle(intent(ADDRESS_URI));
+        PaneTemplate initial = statusTemplate();
+        for (int attempt = 0; attempt < 3; attempt++) {
+            assertEquals(context.getString(R.string.msg_map_poi_loading), statusText());
+            nowMs += ViBRoCarDestinationLoad.TIMEOUT_MS;
+            scheduler.delayed.remove().run();
+            assertTimeout();
+            PaneTemplate timeout = statusTemplate();
+            assertEquals(initial.getTitle(), timeout.getTitle());
+            assertEquals(initial.getPane().getRows().get(0).getTitle(), timeout.getPane().getRows().get(0).getTitle());
+            retryAction();
+        }
+        drain();
+        assertTrue(incoming.template() instanceof ListTemplate);
+        assertEquals(1, access.searches);
     }
 
     @Test
@@ -206,11 +225,11 @@ public class ViBRoCarIncomingNavigationGplayTest {
     @Test
     public void oldHostActionsCannotCancelOrReplaceANewerDestination() {
         incoming.handle(intent(ADDRESS_URI));
-        MessageTemplate previous = (MessageTemplate) incoming.template();
+        PaneTemplate previous = statusTemplate();
         drain();
         ListTemplate oldResults = (ListTemplate) incoming.template();
         incoming.handle(intent("geo:0,0?q=48.4,16.4"));
-        previous.getActions().get(0).getOnClickDelegate().sendClick(new OnDoneCallback() { });
+        previous.getPane().getActions().get(0).getOnClickDelegate().sendClick(new OnDoneCallback() { });
         ((androidx.car.app.model.Row) oldResults.getSingleList().getItems().get(0))
                 .getOnClickDelegate().sendClick(new OnDoneCallback() { });
         drain();
@@ -220,14 +239,20 @@ public class ViBRoCarIncomingNavigationGplayTest {
     }
 
     private void assertTimeout() {
-        MessageTemplate template = (MessageTemplate) incoming.template();
-        assertFalse(template.isLoading());
-        assertEquals(context.getString(R.string.auto_destination_timeout), template.getMessage().toString());
-        assertEquals(2, template.getActions().size());
+        assertEquals(context.getString(R.string.auto_destination_timeout), statusText());
+        assertEquals(2, statusTemplate().getPane().getActions().size());
     }
 
     private void retryAction() {
-        ((MessageTemplate) incoming.template()).getActions().get(1).getOnClickDelegate().sendClick(new OnDoneCallback() { });
+        statusTemplate().getPane().getActions().get(1).getOnClickDelegate().sendClick(new OnDoneCallback() { });
+    }
+
+    private PaneTemplate statusTemplate() {
+        return (PaneTemplate) incoming.template();
+    }
+
+    private String statusText() {
+        return statusTemplate().getPane().getRows().get(0).getTexts().get(0).toString();
     }
 
     private void drain() {

@@ -42,15 +42,14 @@ final class NavigationIntermediateArrivalTracker {
     ) {
         destinations.clear();
         arrivalConfirmation.reset();
-        for (LatLon stop : stops) {
-            PolylineIndex.Match match = polylineIndex.match(stop, -1);
-            if (match != null) {
-                destinations.add(new IntermediateDestination(
-                        stop,
-                        trackIndexAtOrAfter(polylineIndex, route.track.size(), match.alongTrackMeters),
-                        match.alongTrackMeters
-                ));
-            }
+        List<Double> stopDistances = polylineIndex.matchStopDistancesInOrder(stops);
+        for (int i = 0; i < stopDistances.size(); i++) {
+            double alongTrackMeters = stopDistances.get(i);
+            destinations.add(new IntermediateDestination(
+                    stops.get(i),
+                    trackIndexAtOrAfter(polylineIndex, route.track.size(), alongTrackMeters),
+                    alongTrackMeters
+            ));
         }
         nextDestinationIndex = 0;
         routeApplied = true;

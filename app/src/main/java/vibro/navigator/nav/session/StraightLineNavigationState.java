@@ -12,6 +12,7 @@ import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.compass.StraightLineNavCompassStateFactory;
+import vibro.navigator.nav.format.NavStateTextFactory;
 import vibro.navigator.nav.guidance.NavigationArrivalTurnEvents;
 import vibro.navigator.nav.guidance.NavigationArrivalConfirmation;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
@@ -126,6 +127,8 @@ final class StraightLineNavigationState {
         }
 
         NavCompassState compassState = buildCompassState(request, snapshot, acceptedFixes);
+        var nextStop = StraightLineNavigationProgressText.nextStopEstimate(
+                request, snapshot, destinationReached, nextStopIndex);
         NavState state = new NavState(
                 new NavRouteStatus(
                         StraightLineNavigationGuidanceText.buildStatus(
@@ -141,15 +144,12 @@ final class StraightLineNavigationState {
                                         destinationReached,
                                         nextStopIndex
                                 ),
-                                StraightLineNavigationProgressText.buildStopProgressBlock(
-                                        request,
-                                        snapshot,
-                                        destinationReached,
-                                        nextStopIndex
-                                ),
+                                NavStateTextFactory.formatStopProgress(
+                                        snapshot.textResources, nextStop, snapshot.nowMs),
                                 "",
                                 StraightLineNavigationProgress.travelEstimate(
-                                        request, snapshot, destinationReached, nextStopIndex)
+                                        request, snapshot, destinationReached, nextStopIndex),
+                                nextStop
                         ),
                         compassState,
                         null,

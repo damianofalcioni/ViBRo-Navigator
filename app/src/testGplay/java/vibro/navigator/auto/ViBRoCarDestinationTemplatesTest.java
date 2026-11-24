@@ -8,7 +8,7 @@ import static org.junit.Assert.assertTrue;
 import androidx.car.app.CarContext;
 import androidx.car.app.OnDoneCallback;
 import androidx.car.app.model.ListTemplate;
-import androidx.car.app.model.MessageTemplate;
+import androidx.car.app.model.PaneTemplate;
 import androidx.car.app.model.Row;
 
 import org.junit.Test;
@@ -28,21 +28,25 @@ public class ViBRoCarDestinationTemplatesTest {
 
     @Test
     public void apiOneLoadingUsesTextWithoutAnUnsupportedSpinner() throws Exception {
-        MessageTemplate loading = (MessageTemplate) templates(1).build(Collections.emptyList(), true, 0, true, actions);
-        assertFalse(loading.isLoading());
-        assertFalse(loading.getMessage().toString().isEmpty());
-        assertEquals(1, loading.getActions().size());
+        PaneTemplate loading = (PaneTemplate) templates(1).build(Collections.emptyList(), true, 0, true, actions);
+        assertFalse(loading.getPane().isLoading());
+        assertFalse(loading.getPane().getRows().get(0).getTexts().get(0).toString().isEmpty());
+        assertEquals(1, loading.getPane().getActions().size());
     }
 
     @Test
-    public void newerHostsShowLoadingAndRetryRemainsExplicit() throws Exception {
+    @SuppressWarnings("deprecation") // Assert template refresh compatibility on older hosts.
+    public void statusChangesRefreshTheSameHostTemplateAndRetryRemainsExplicit() throws Exception {
         ViBRoCarDestinationTemplates templates = templates(2);
-        MessageTemplate loading = (MessageTemplate) templates.build(Collections.emptyList(), true, 0, true, actions);
-        assertTrue(loading.isLoading());
-        assertEquals(1, loading.getActions().size());
-        MessageTemplate timeout = (MessageTemplate) templates.build(Collections.emptyList(), false,
+        PaneTemplate loading = (PaneTemplate) templates.build(Collections.emptyList(), true, 0, true, actions);
+        assertEquals(1, loading.getPane().getActions().size());
+        PaneTemplate timeout = (PaneTemplate) templates.build(Collections.emptyList(), false,
                 R.string.auto_destination_timeout, true, actions);
-        timeout.getActions().get(1).getOnClickDelegate().sendClick(new OnDoneCallback() { });
+        assertEquals(loading.getTitle(), timeout.getTitle());
+        assertEquals(loading.getPane().getRows().get(0).getTitle(), timeout.getPane().getRows().get(0).getTitle());
+        assertEquals(1, timeout.getPane().getRows().size());
+        assertFalse(loading.getPane().getRows().get(0).getTexts().equals(timeout.getPane().getRows().get(0).getTexts()));
+        timeout.getPane().getActions().get(1).getOnClickDelegate().sendClick(new OnDoneCallback() { });
         assertEquals(1, actions.retries);
     }
 

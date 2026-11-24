@@ -16,7 +16,8 @@ final class ViBRoCarHostNavigation implements NavigationManagerCallback {
     interface Host {
         void started();
         void ended();
-        void update(Trip trip, NavState state);
+        void updateTrip(Trip trip);
+        void updateNotification(NavState state);
         void clear();
         default boolean usesImperialDistances() { return false; }
         default void dispose() { }
@@ -29,7 +30,7 @@ final class ViBRoCarHostNavigation implements NavigationManagerCallback {
     private boolean disposed;
     private long updateRevision;
     @Nullable private Trip lastTrip;
-    private String lastGuidanceLine = "";
+    @Nullable private String lastGuidanceLine;
 
     ViBRoCarHostNavigation(CarContext context, Runnable stopNavigation) {
         this(new CarHost(context), stopNavigation);
@@ -60,19 +61,32 @@ final class ViBRoCarHostNavigation implements NavigationManagerCallback {
             navigating = true;
             host.started();
         }
-        if (!navigating || activeRevision != updateRevision) {
+        if (!ownsUpdate(activeRevision)) {
             return; // Host start may revoke ownership or synchronously replace state in auto-drive.
         }
         publishTrip(state);
+        if (ownsUpdate(activeRevision)) {
+            publishNotification(state);
+        }
+    }
+
+    private boolean ownsUpdate(long revision) {
+        return navigating && revision == updateRevision;
     }
 
     private void publishTrip(NavState state) {
         Trip trip = ViBRoCarTrip.from(state, host.usesImperialDistances());
-        String guidanceLine = state.routeStatus.guidance.nextLine;
-        if (!trip.equals(lastTrip) || !guidanceLine.equals(lastGuidanceLine)) {
+        if (!ViBRoCarTrip.sameProgress(trip, lastTrip)) {
             lastTrip = trip;
+            host.updateTrip(trip);
+        }
+    }
+
+    private void publishNotification(NavState state) {
+        String guidanceLine = state.routeStatus.guidance.nextLine;
+        if (!guidanceLine.equals(lastGuidanceLine)) {
             lastGuidanceLine = guidanceLine;
-            host.update(trip, state);
+            host.updateNotification(state);
         }
     }
 
@@ -85,13 +99,18 @@ final class ViBRoCarHostNavigation implements NavigationManagerCallback {
     }
 
     void close() {
-        boolean wasNavigating = navigating;
-        navigating = false;
-        lastTrip = null;
-        host.clear();
-        if (wasNavigating) {
+        if (clearActiveGuidance()) {
             host.ended();
         }
+    }
+
+    private boolean clearActiveGuidance() {
+        if (!navigating) { return false; }
+        navigating = false;
+        lastTrip = null;
+        lastGuidanceLine = null;
+        host.clear();
+        return true;
     }
 
     void dispose() {
@@ -103,9 +122,7 @@ final class ViBRoCarHostNavigation implements NavigationManagerCallback {
     @Override
     public void onStopNavigation() {
         if (disposed) { return; }
-        navigating = false; // The host has already withdrawn navigation ownership.
-        lastTrip = null;
-        host.clear();
+        clearActiveGuidance(); // The host has already withdrawn navigation ownership.
         stopNavigation.run();
     }
 
@@ -122,10 +139,8 @@ final class ViBRoCarHostNavigation implements NavigationManagerCallback {
 
         @Override public void started() { manager.navigationStarted(); }
         @Override public void ended() { manager.navigationEnded(); }
-        @Override public void update(Trip trip, NavState state) {
-            notifications.update(state);
-            manager.updateTrip(trip);
-        }
+        @Override public void updateTrip(Trip trip) { manager.updateTrip(trip); }
+        @Override public void updateNotification(NavState state) { notifications.update(state); }
         @Override public void clear() { notifications.clear(); }
         @Override public boolean usesImperialDistances() { return AppSettings.isImperialUnitsEnabled(context); }
         @Override public void dispose() { manager.clearNavigationManagerCallback(); }

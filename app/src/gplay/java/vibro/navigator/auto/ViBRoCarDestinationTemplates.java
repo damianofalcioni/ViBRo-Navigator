@@ -5,7 +5,8 @@ import androidx.car.app.model.Action;
 import androidx.car.app.model.ActionStrip;
 import androidx.car.app.model.ItemList;
 import androidx.car.app.model.ListTemplate;
-import androidx.car.app.model.MessageTemplate;
+import androidx.car.app.model.Pane;
+import androidx.car.app.model.PaneTemplate;
 import androidx.car.app.model.Row;
 import androidx.car.app.model.Template;
 
@@ -31,7 +32,7 @@ final class ViBRoCarDestinationTemplates {
     Template build(List<Poi> results, boolean loading, int message, boolean retryable, Actions actions) {
         Action cancel = new Action.Builder().setTitle(text(R.string.action_cancel))
                 .setOnClickListener(actions::cancel).build();
-        return results.isEmpty() ? messageTemplate(cancel, loading, message, retryable, actions)
+        return results.isEmpty() ? statusTemplate(cancel, loading, message, retryable, actions)
                 : resultTemplate(results, cancel, actions);
     }
 
@@ -58,16 +59,17 @@ final class ViBRoCarDestinationTemplates {
     }
 
     @SuppressWarnings("deprecation") // Header setters support the retained Car API 1 hosts.
-    private Template messageTemplate(Action cancel, boolean loading, int message, boolean retryable, Actions actions) {
-        MessageTemplate.Builder builder = new MessageTemplate.Builder(
-                text(loading ? R.string.msg_map_poi_loading : message))
-                .setTitle(text(R.string.auto_title)).setHeaderAction(Action.APP_ICON).addAction(cancel);
-        if (context.getCarAppApiLevel() >= 2) { builder.setLoading(loading); }
+    private Template statusTemplate(Action cancel, boolean loading, int message, boolean retryable, Actions actions) {
+        // Pane refreshes keep their title and row titles. Only status text and actions change on retry.
+        Pane.Builder pane = new Pane.Builder().addAction(cancel).addRow(new Row.Builder()
+                .setTitle(text(R.string.hint_search_destination))
+                .addText(text(loading ? R.string.msg_map_poi_loading : message)).build());
         if (!loading && retryable) {
-            builder.addAction(new Action.Builder().setTitle(text(R.string.auto_retry))
+            pane.addAction(new Action.Builder().setTitle(text(R.string.auto_retry))
                     .setOnClickListener(actions::retry).build());
         }
-        return builder.build();
+        return new PaneTemplate.Builder(pane.build()).setTitle(text(R.string.auto_title))
+                .setHeaderAction(Action.APP_ICON).build();
     }
 
     private String text(int id) { return AndroidAppLanguage.getString(context, id); }

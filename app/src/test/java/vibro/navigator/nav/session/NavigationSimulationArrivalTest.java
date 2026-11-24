@@ -4,9 +4,11 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
 
+import vibro.navigator.R;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.format.TestNavigationTextResources;
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavigationRoutingMode;
 import vibro.navigator.nav.route.GeoJsonRoute;
@@ -81,6 +83,47 @@ public class NavigationSimulationArrivalTest {
         for (int i = 0; i < 80; i++) { driver.advance(1000); }
         assertTrue(session.components.routeState.remainingIntermediateStops(Collections.singletonList(STOP)).isEmpty());
         assertTrue(session.components.routeState.isDestinationReached());
+    }
+
+    @Test
+    public void simulatorFollowsReturnLegWhenLaterStopWasPassedOnOutboundLeg() {
+        LatLon laterStop = new LatLon(0.002, 0);
+        LatLon firstStop = new LatLon(0.004, 0);
+        LatLon eastCorner = new LatLon(firstStop.lat, 0.004);
+        LatLon southCorner = new LatLon(laterStop.lat, eastCorner.lon);
+        LatLon end = new LatLon(laterStop.lat, -0.002);
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest("car", "End", end, Arrays.asList(firstStop, laterStop)));
+        var resources = TestNavigationTextResources.metric();
+        assertTrue(NavigationSessionResourceAdapter.start(session, resources, 100_000));
+        SimulationTestDriver driver = driver(session);
+        NavigationSessionResourceAdapter.onRawLocationChanged(session, resources,
+                driver.source.currentFix(), driver.nowMs());
+        NavigationRouteRequestSnapshot snapshot = session.prepareRouteRequest(true, driver.nowMs());
+        assertNotNull(snapshot);
+        GeoJsonRoute route = new GeoJsonRoute(Arrays.asList(ORIGIN, laterStop, firstStop,
+                eastCorner, southCorner, laterStop, end), Collections.emptyList(), 180, 1_800);
+        NavigationSessionResourceAdapter.applyRouteResult(session, resources, snapshot, route, driver.nowMs());
+
+        double firstBarrier = NavigationSessionSimulation.path(session).barrier.alongTrackMeters;
+        for (int tick = 0; tick < 100 && NavigationSessionSimulation.path(session).barrier.position == firstStop; tick++) {
+            driver.advance(1_000);
+        }
+        var nextBarrier = NavigationSessionSimulation.path(session).barrier;
+        assertEquals(laterStop, nextBarrier.position);
+        assertTrue(nextBarrier.alongTrackMeters > firstBarrier);
+        driver.advance(1_000);
+        NavigationLocation nextFix = driver.source.currentFix();
+        assertEquals(firstStop.lat, nextFix.getLatitude(), 0.000001);
+        assertTrue(nextFix.getLongitude() > firstStop.lon);
+        for (int tick = 0; tick < 4; tick++) {
+            driver.advance(1_000);
+        }
+        var nextStop = NavigationSessionResourceAdapter.buildState(session, resources, NavState.NO_DEADLINE, driver.nowMs(),
+                null, null, null).routeStatus.progress.nextStop;
+        assertNotNull(nextStop);
+        assertEquals(resources.getString(R.string.format_stop_label, 2), nextStop.label());
+        assertTrue(nextStop.distanceMeters() > 500);
     }
 
     private static NavigationSession session(NavigationRoutingMode mode) {

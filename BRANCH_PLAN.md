@@ -347,3 +347,22 @@ Do not redo the completed template/metadata/intent integration merely because a 
   ```powershell
   .\gradlew.bat :app:testFdroidDebugUnitTest --tests '*NavigationLocationController*Test' --tests '*LiveLocationHysteresisReplayTest' --tests '*StationaryDeskLogReplayTest' --tests '*PolylineIndexTest' --tests '*AboutSimulation*Test' :app:testGplayDebugUnitTest --tests '*NavigationLocationController*Test' --tests '*LiveLocationHysteresisReplayTest' --tests '*StationaryDeskLogReplayTest' --tests '*PolylineIndexTest' --tests '*AboutSimulation*Test' --tests '*ViBRoCarAppServiceSettingsGplayTest' --console=plain
   ```
+
+## Fixes for the remaining review findings (2026-11-24)
+
+- The user authorized fixing the nine open findings above. The accepted wording of simulated phone and wearable alerts remains in effect. Started from `06333577` with the user's `1.0.1` version update in place.
+- Implemented native car guidance with next-stop progress, retained-route warnings and relative following-turn metrics. Template and cluster publication ignore timestamp-only differences. Car notifications update independently with the instruction and carry that instruction in the car extension. The phone-facing text is generic. Restored the over-limit badge cue.
+- Destination retry and setup transitions refresh a stable host status pane. Car service attachment polling now stops with the screen. The active binding keeps receiving cluster updates when covered, and the integration preference observer handles disabling from the phone. The simulator, arrival tracking and display guidance share stop locations matched in requested order.
+- The focused run passed 30 F-Droid and 121 Google Play tests and the complexity check. The full run before the final shared stop-matching adjustment passed 2,308 F-Droid and 2,424 Google Play tests with zero failures, errors, or skips. Both debug lints reported no issues, and both flavors built debug and release APKs. The ignored logs are `build/followup-regression-fixes-focused-rerun.log` and `build/followup-regression-fixes-full.log`.
+- Final verification passed 517 F-Droid and 600 Google Play tests with zero failures, errors, or skips. Complexity passed, both debug lints reported no issues, and all four debug and release APKs were rebuilt. The rerun took 4m 15s and its ignored log is `build/followup-regression-fixes-final-rerun.log`. No Gradle invocation remains active. Phone installation and physical head-unit verification remain pending because no device or Desktop Head Unit was available.
+
+  ```powershell
+  $checks = ':app:lintFdroidDebug', ':app:lintGplayDebug', ':app:assembleFdroidDebug', ':app:assembleGplayDebug', ':app:assembleFdroidRelease', ':app:assembleGplayRelease'
+  .\gradlew.bat :app:complexityCheck :app:testFdroidDebugUnitTest :app:testGplayDebugUnitTest @checks --continue --console=plain
+  $sharedTests = @()
+  foreach ($pattern in 'vibro.navigator.nav.session.*', 'vibro.navigator.nav.guidance.*', 'vibro.navigator.nav.presentation.*', '*CompassRouteGeometryFactoryTest', '*PolylineIndexTest', '*NavigationSimulatorTest') {
+      $sharedTests += '--tests', $pattern
+  }
+  $carTests = '--tests', 'vibro.navigator.auto.*', '--tests', '*AndroidCarNavigationNotificationsGplayTest'
+  .\gradlew.bat :app:complexityCheck :app:testFdroidDebugUnitTest @sharedTests :app:testGplayDebugUnitTest @sharedTests @carTests @checks --continue --console=plain
+  ```

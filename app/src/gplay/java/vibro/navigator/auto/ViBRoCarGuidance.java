@@ -10,6 +10,7 @@ import androidx.car.app.navigation.model.TravelEstimate;
 import java.util.TimeZone;
 
 import vibro.navigator.R;
+import vibro.navigator.nav.format.NavStateTextFactory;
 import vibro.navigator.nav.format.NavigationMeasurementFormatter;
 import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.model.NavGuidanceStatus;
@@ -21,15 +22,19 @@ import vibro.navigator.nav.model.NavTravelEstimate;
 final class ViBRoCarGuidance {
     private ViBRoCarGuidance() { }
 
-    static void apply(NavigationTemplate.Builder builder, NavState state, NavigationTextResources resources) {
+    static void apply(NavigationTemplate.Builder builder, NavState state, NavigationTextResources resources,
+            long observationTimeMs) {
         NavGuidanceStatus guidance = state.routeStatus.guidance;
         boolean paused = state.pauseStatus.paused;
         boolean imperial = resources.isImperialUnitsEnabled();
         NavProgressStatus progress = state.routeStatus.progress;
-        TravelEstimate estimate = travelEstimate(progress.travelEstimate, imperial);
+        TravelEstimate estimate = travelEstimate(progress.travelEstimate, imperial, observationTimeMs);
         String detail = detail(progress, estimate, paused, resources);
-        if (!paused && detail.isEmpty() && !guidance.maneuvers.isEmpty()) {
-            builder.setNavigationInfo(routingInfo(guidance, imperial));
+        if (!paused) {
+            detail = appendDetail(detail, stopProgress(progress, resources, observationTimeMs));
+        }
+        if (!paused && !guidance.maneuvers.isEmpty()) {
+            builder.setNavigationInfo(routingInfo(guidance, detail, resources));
         } else {
             builder.setNavigationInfo(messageInfo(guidance, detail, paused));
         }
@@ -47,13 +52,15 @@ final class ViBRoCarGuidance {
         return new MessageInfo.Builder(title).setText(text).build();
     }
 
-    private static RoutingInfo routingInfo(NavGuidanceStatus guidance, boolean imperial) {
+    private static RoutingInfo routingInfo(NavGuidanceStatus guidance, String detail,
+            NavigationTextResources resources) {
         NavManeuver next = guidance.maneuvers.get(0);
+        String cue = appendDetail(ViBRoCarManeuvers.cue(next.instruction, guidance.nextUncertain), detail);
         RoutingInfo.Builder routing = new RoutingInfo.Builder()
-                .setCurrentStep(ViBRoCarManeuvers.step(next, guidance.nextUncertain),
-                        ViBRoCarManeuvers.distance(next.distanceMeters, imperial));
+                .setCurrentStep(ViBRoCarManeuvers.step(next, cue),
+                        ViBRoCarManeuvers.distance(next.distanceMeters, resources.isImperialUnitsEnabled()));
         if (guidance.maneuvers.size() > 1) {
-            routing.setNextStep(ViBRoCarManeuvers.step(guidance.maneuvers.get(1), guidance.afterNextUncertain));
+            routing.setNextStep(ViBRoCarManeuvers.followingStep(guidance, resources));
         }
         return routing.build();
     }
@@ -68,17 +75,28 @@ final class ViBRoCarGuidance {
         // guidance card while there is no trustworthy time to supply.
         String distance = resources.getString(R.string.nav_destination_label) + " "
                 + NavigationMeasurementFormatter.formatDistance(resources, destination.distanceMeters);
-        return progress.detailBlock.isEmpty() ? distance : progress.detailBlock + "\n" + distance;
+        return appendDetail(progress.detailBlock, distance);
+    }
+
+    private static String stopProgress(NavProgressStatus progress, NavigationTextResources resources, long nowMs) {
+        return progress.nextStop == null ? progress.stopProgressBlock
+                : NavStateTextFactory.formatStopProgress(resources, progress.nextStop, nowMs);
+    }
+
+    private static String appendDetail(String text, String detail) {
+        if (detail.isEmpty()) { return text; }
+        return text.isEmpty() ? detail : text + "\n" + detail;
     }
 
     @Nullable
-    private static TravelEstimate travelEstimate(@Nullable NavTravelEstimate value, boolean imperial) {
+    private static TravelEstimate travelEstimate(@Nullable NavTravelEstimate value, boolean imperial,
+            long observationTimeMs) {
         if (value == null || !Double.isFinite(value.timeSeconds) || value.timeSeconds < 0) {
             return null;
         }
         long seconds = (long) Math.ceil(value.timeSeconds);
         return new TravelEstimate.Builder(ViBRoCarManeuvers.distance(value.distanceMeters, imperial),
-                DateTimeWithZone.create(value.observationWallTimeMs + seconds * 1_000L, TimeZone.getDefault()))
+                DateTimeWithZone.create(observationTimeMs + seconds * 1_000L, TimeZone.getDefault()))
                 .setRemainingTimeSeconds(seconds).build();
     }
 }

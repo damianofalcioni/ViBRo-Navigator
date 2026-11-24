@@ -16,6 +16,7 @@ import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.settings.AppAndroidAutoSettings;
 
 // Host templates own guidance and actions; only map/route content belongs on the custom surface.
 public final class ViBRoCarScreen extends Screen {
@@ -30,6 +31,7 @@ public final class ViBRoCarScreen extends Screen {
     private final ViBRoCarIncomingNavigation incomingNavigation;
     private final TaskScheduler uiScheduler;
     private final ViBRoAutoSurfaceRenderer surfaceRenderer;
+    private final Runnable stopObservingIntegration;
     private final Runnable serviceAttachTicker = new Runnable() {
         @Override
         public void run() {
@@ -69,6 +71,7 @@ public final class ViBRoCarScreen extends Screen {
                 uiScheduler,
                 navigationController::setCompassStreetViewport
         );
+        stopObservingIntegration = AppAndroidAutoSettings.observeIntegration(carContext, this::onIntegrationChanged);
 
         getLifecycle().addObserver(new DefaultLifecycleObserver() {
             @Override
@@ -76,9 +79,6 @@ public final class ViBRoCarScreen extends Screen {
                 refreshCarConfiguration();
                 carContext.getCarService(AppManager.class).setSurfaceCallback(surfaceRenderer);
                 navigationController.setMapVisible(true);
-                if (navigationController.ensureIntegrationEnabled()) {
-                    navigationController.bind();
-                }
                 uiScheduler.removeCallbacks(serviceAttachTicker);
                 uiScheduler.post(serviceAttachTicker);
                 incomingNavigation.retryPending();
@@ -86,12 +86,14 @@ public final class ViBRoCarScreen extends Screen {
 
             @Override
             public void onStop(@NonNull LifecycleOwner owner) {
+                uiScheduler.removeCallbacks(serviceAttachTicker);
                 navigationController.setMapVisible(false);
                 surfaceRenderer.clearSurface();
             }
 
             @Override
             public void onDestroy(@NonNull LifecycleOwner owner) {
+                stopObservingIntegration.run();
                 uiScheduler.removeCallbacks(serviceAttachTicker);
                 incomingNavigation.dispose();
                 hostNavigation.dispose();
@@ -99,6 +101,13 @@ public final class ViBRoCarScreen extends Screen {
                 surfaceRenderer.dispose();
             }
         });
+    }
+
+    private void onIntegrationChanged() {
+        if (!navigationController.ensureIntegrationEnabled()) {
+            incomingNavigation.cancel();
+            invalidate();
+        }
     }
 
     public void handleIntent(@NonNull Intent intent) {

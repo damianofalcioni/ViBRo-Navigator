@@ -1,11 +1,20 @@
 package vibro.navigator.auto;
 
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+
 import androidx.car.app.model.Distance;
+import androidx.car.app.model.DistanceSpan;
+import androidx.car.app.model.DurationSpan;
 import androidx.car.app.navigation.model.Maneuver;
 import androidx.car.app.navigation.model.Step;
 
 import vibro.navigator.nav.model.NavManeuver;
+import vibro.navigator.nav.model.NavGuidanceStatus;
 import vibro.navigator.nav.format.NavigationDistanceUnit;
+import vibro.navigator.nav.format.NavigationMeasurementFormatter;
+import vibro.navigator.nav.format.NavigationTextFormatter;
+import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.route.VoiceHint;
 
 final class ViBRoCarManeuvers {
@@ -23,7 +32,39 @@ final class ViBRoCarManeuvers {
     private ViBRoCarManeuvers() { }
 
     static Step step(NavManeuver value, boolean uncertain) {
-        return new Step.Builder(cue(value.instruction, uncertain)).setManeuver(maneuver(value.hint)).build();
+        return step(value, cue(value.instruction, uncertain));
+    }
+
+    static Step step(NavManeuver value, CharSequence cue) {
+        return new Step.Builder(cue).setManeuver(maneuver(value.hint)).build();
+    }
+
+    static Step followingStep(NavGuidanceStatus guidance, NavigationTextResources resources) {
+        NavManeuver current = guidance.maneuvers.get(0);
+        NavManeuver following = guidance.maneuvers.get(1);
+        double seconds = following.timeSeconds - current.timeSeconds;
+        if (!Double.isFinite(seconds) && !guidance.afterNextLine.isEmpty()) {
+            // Shared cue includes the route timing fallback when live step times are unavailable.
+            return step(following, cue(guidance.afterNextLine, guidance.afterNextUncertain));
+        }
+
+        double meters = Math.max(0, following.distanceMeters - current.distanceMeters);
+        SpannableStringBuilder text = new SpannableStringBuilder(cue(following.instruction, guidance.afterNextUncertain));
+        appendMetric(text, NavigationMeasurementFormatter.formatDistance(resources, meters),
+                DistanceSpan.create(distance(meters, resources.isImperialUnitsEnabled())));
+        if (Double.isFinite(seconds)) {
+            double remaining = Math.max(0, seconds);
+            appendMetric(text, NavigationTextFormatter.formatTimeSeconds(resources, remaining),
+                    DurationSpan.create(Math.round(remaining)));
+        }
+        return step(following, text);
+    }
+
+    private static void appendMetric(SpannableStringBuilder cue, String fallback, Object span) {
+        cue.append(" · ");
+        int start = cue.length();
+        cue.append(fallback);
+        cue.setSpan(span, start, cue.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     }
 
     static String cue(String instruction, boolean uncertain) {

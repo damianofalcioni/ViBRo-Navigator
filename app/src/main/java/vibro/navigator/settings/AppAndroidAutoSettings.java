@@ -29,6 +29,17 @@ public final class AppAndroidAutoSettings {
                 .apply();
     }
 
+    public static Runnable observeIntegration(@NonNull Context context, @NonNull Runnable changed) {
+        SharedPreferences preferences = prefs(context);
+        SharedPreferences.OnSharedPreferenceChangeListener listener = (source, key) -> {
+            if (key == null || KEY_ANDROID_AUTO_INTEGRATION_ENABLED.equals(key)) {
+                changed.run();
+            }
+        };
+        preferences.registerOnSharedPreferenceChangeListener(listener);
+        return () -> preferences.unregisterOnSharedPreferenceChangeListener(listener);
+    }
+
     @NonNull
     private static SharedPreferences prefs(@NonNull Context context) {
         return context.getSharedPreferences(AppSettings.PREFS, Context.MODE_PRIVATE);

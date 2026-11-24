@@ -16,6 +16,7 @@ import vibro.navigator.R;
 import vibro.navigator.android.language.AndroidAppLanguage;
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.settings.AppSettings;
 
 final class ViBRoCarTemplates {
     interface Actions {
@@ -29,28 +30,34 @@ final class ViBRoCarTemplates {
     private final CarContext carContext;
     @NonNull
     private final Actions actions;
+    private boolean lastPresentedImperial;
 
     ViBRoCarTemplates(@NonNull CarContext carContext, @NonNull Actions actions) {
         this.carContext = carContext;
         this.actions = actions;
+        lastPresentedImperial = AppSettings.isImperialUnitsEnabled(carContext);
     }
 
     @NonNull
     Template build(@Nullable NavState state) {
+        lastPresentedImperial = AppSettings.isImperialUnitsEnabled(carContext);
         if (!usesNavigationTemplate(state)) {
             return buildNoActiveNavigationTemplate();
         }
-        return buildNavigationTemplate(state);
+        var estimate = state.routeStatus.progress.travelEstimate;
+        return buildNavigationTemplate(state, estimate == null ? 0 : estimate.observationWallTimeMs);
     }
 
     boolean requiresInvalidation(@Nullable NavState previous, @Nullable NavState next) {
-        if (usesNavigationTemplate(previous) != usesNavigationTemplate(next)) {
+        boolean active = usesNavigationTemplate(next);
+        if (usesNavigationTemplate(previous) != active) {
             return true;
         }
-        if (next != null && previous != null && sameTemplateInputs(previous, next)) {
-            return false;
-        }
-        return next != null && previous != null && !build(previous).equals(build(next));
+        if (!active) { return false; }
+        // The template uses real observation time when published. It compares relative progress here.
+        return lastPresentedImperial != AppSettings.isImperialUnitsEnabled(carContext)
+                || (!sameTemplateInputs(previous, next)
+                    && !buildNavigationTemplate(previous, 0).equals(buildNavigationTemplate(next, 0)));
     }
 
     private static boolean sameTemplateInputs(NavState previous, NavState next) {
@@ -72,10 +79,10 @@ final class ViBRoCarTemplates {
     }
 
     @NonNull
-    private Template buildNavigationTemplate(@NonNull NavState state) {
+    private Template buildNavigationTemplate(@NonNull NavState state, long observationTimeMs) {
         NavigationTemplate.Builder builder = new NavigationTemplate.Builder()
                 .setActionStrip(buildNavigationActionStrip(state));
-        ViBRoCarGuidance.apply(builder, state, new AndroidNavigationTextResources(carContext));
+        ViBRoCarGuidance.apply(builder, state, new AndroidNavigationTextResources(carContext), observationTimeMs);
         if (carContext.getCarAppApiLevel() >= 2) {
             // Required by the host before it delivers scroll, pinch, or double-tap zoom.
             builder.setMapActionStrip(new ActionStrip.Builder().addAction(Action.PAN).build());

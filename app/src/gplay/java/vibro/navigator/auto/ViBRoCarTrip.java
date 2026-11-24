@@ -1,5 +1,6 @@
 package vibro.navigator.auto;
 
+import androidx.annotation.Nullable;
 import androidx.car.app.model.DateTimeWithZone;
 import androidx.car.app.navigation.model.TravelEstimate;
 import androidx.car.app.navigation.model.Trip;
@@ -27,6 +28,26 @@ final class ViBRoCarTrip {
             trip.addStep(ViBRoCarManeuvers.step(maneuver, uncertain), stepEstimate(maneuver, nowMs, imperial));
         }
         return trip.build();
+    }
+
+    static boolean sameProgress(Trip current, @Nullable Trip previous) {
+        if (previous == null || current.isLoading() != previous.isLoading()
+                || !current.getSteps().equals(previous.getSteps())) {
+            return false;
+        }
+        var currentEstimates = current.getStepTravelEstimates();
+        var previousEstimates = previous.getStepTravelEstimates();
+        for (int index = 0; index < currentEstimates.size(); index++) {
+            if (!sameEstimate(currentEstimates.get(index), previousEstimates.get(index))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean sameEstimate(TravelEstimate current, TravelEstimate previous) {
+        return current.getRemainingDistance().equals(previous.getRemainingDistance())
+                && current.getRemainingTimeSeconds() == previous.getRemainingTimeSeconds();
     }
 
     private static TravelEstimate stepEstimate(NavManeuver maneuver, long nowMs, boolean imperial) {

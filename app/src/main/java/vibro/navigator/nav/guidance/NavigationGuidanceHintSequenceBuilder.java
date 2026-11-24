@@ -62,11 +62,8 @@ final class NavigationGuidanceHintSequenceBuilder {
             @NonNull PolylineIndex polylineIndex,
             @NonNull List<LatLon> intermediateStops
     ) {
-        for (LatLon stop : intermediateStops) {
-            PolylineIndex.Match match = polylineIndex.match(stop, -1);
-            if (match != null) {
-                addIntermediateArrivalHint(candidates, route, polylineIndex, match);
-            }
+        for (double alongTrackMeters : polylineIndex.matchStopDistancesInOrder(intermediateStops)) {
+            addIntermediateArrivalHint(candidates, route, polylineIndex, alongTrackMeters);
         }
     }
 
@@ -74,13 +71,13 @@ final class NavigationGuidanceHintSequenceBuilder {
             @NonNull List<GuidanceHintCandidate> candidates,
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
-            @NonNull PolylineIndex.Match match
+            double alongTrackMeters
     ) {
-        int trackIndex = trackIndexAtOrAfter(polylineIndex, route.track.size(), match.alongTrackMeters);
+        int trackIndex = trackIndexAtOrAfter(polylineIndex, route.track.size(), alongTrackMeters);
         candidates.add(new GuidanceHintCandidate(
                 new VoiceHint(trackIndex, 101, 0, 0.0, 0),
                 -1,
-                match.alongTrackMeters,
+                alongTrackMeters,
                 arrivalSortPriority(101)
         ));
     }

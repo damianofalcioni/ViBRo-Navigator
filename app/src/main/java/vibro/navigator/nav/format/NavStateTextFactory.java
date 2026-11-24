@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 import vibro.navigator.R;
 import vibro.navigator.nav.model.NavGuidanceStatus;
 import vibro.navigator.nav.model.NavManeuver;
+import vibro.navigator.nav.model.NavStopEstimate;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.VoiceHint;
@@ -255,38 +256,10 @@ public final class NavStateTextFactory {
     }
 
     @NonNull
-    public static String buildStopProgress(
-            @NonNull GeoJsonRoute route,
-            @NonNull PolylineIndex index,
-            double alongTrackMeters,
-            int currentSegmentIndex,
-            float speedMps,
-            long nowMs,
-            boolean destinationReached,
-            @NonNull List<NavTarget> targets,
-            @NonNull NavigationTextResources textResources
-    ) {
-        if (destinationReached) {
-            return "";
-        }
-        int lastStopIndex = Math.max(0, targets.size() - 1);
-        for (int i = 0; i < lastStopIndex; i++) {
-            NavTarget t = targets.get(i);
-            double distTo = Math.max(0.0, t.alongTrackMeters - alongTrackMeters);
-            if (distTo <= 0.0) {
-                continue;
-            }
-            Double secTo = RouteTimeEstimator.estimateSecondsToAlongTrack(
-                    route,
-                    index,
-                    alongTrackMeters,
-                    currentSegmentIndex,
-                    t.alongTrackMeters,
-                    speedMps
-            );
-            return buildProgressLine(textResources, t.label, distTo, secTo, nowMs);
-        }
-        return "";
+    public static String formatStopProgress(@NonNull NavigationTextResources resources,
+            @Nullable NavStopEstimate stop, long nowMs) {
+        return stop == null ? "" : buildProgressLine(resources, stop.label(), stop.distanceMeters(),
+                stop.timeSeconds(), nowMs);
     }
 
     @NonNull

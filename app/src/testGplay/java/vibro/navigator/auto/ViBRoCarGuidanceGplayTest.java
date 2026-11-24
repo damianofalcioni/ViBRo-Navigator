@@ -1,12 +1,13 @@
 package vibro.navigator.auto;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import androidx.car.app.CarContext;
 import androidx.car.app.model.Distance;
-import androidx.car.app.navigation.model.MessageInfo;
+import androidx.car.app.navigation.model.Maneuver;
 import androidx.car.app.navigation.model.NavigationTemplate;
 import androidx.car.app.navigation.model.RoutingInfo;
 import androidx.car.app.navigation.model.Trip;
@@ -18,11 +19,13 @@ import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
 
+import vibro.navigator.nav.format.NavigationTextFormatter;
 import vibro.navigator.nav.model.NavGuidanceStatus;
 import vibro.navigator.nav.model.NavManeuver;
 import vibro.navigator.nav.model.NavProgressStatus;
 import vibro.navigator.nav.model.NavRouteStatus;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.model.NavStopEstimate;
 import vibro.navigator.nav.model.NavTravelEstimate;
 import vibro.navigator.nav.presentation.NavStateComposer;
 import vibro.navigator.nav.route.VoiceHint;
@@ -63,9 +66,10 @@ public class ViBRoCarGuidanceGplayTest {
         NavState state = NavStateComposer.withNotice(base, warning);
         NavigationTemplate car = template(state);
 
-        MessageInfo message = (MessageInfo) car.getNavigationInfo();
-        assertEquals(base.routeStatus.guidance.nextLine, message.getTitle().toString());
-        assertEquals(warning, message.getText().toString());
+        RoutingInfo info = routing(car);
+        assertEquals(Maneuver.TYPE_TURN_NORMAL_RIGHT, info.getCurrentStep().getManeuver().getType());
+        assertEquals(Distance.create(120, Distance.UNIT_METERS), info.getCurrentDistance());
+        assertTrue(info.getCurrentStep().getCue().toString().contains(warning));
         assertEquals("Turn right", ViBRoCarTrip.from(state, false).getSteps().get(0).getCue().toString());
     }
 
@@ -75,9 +79,7 @@ public class ViBRoCarGuidanceGplayTest {
         NavigationTemplate car = template(state);
 
         assertNull(car.getDestinationTravelEstimate());
-        MessageInfo message = (MessageInfo) car.getNavigationInfo();
-        assertEquals(base.routeStatus.guidance.nextLine, message.getTitle().toString());
-        assertTrue(message.getText().toString().contains("500 m"));
+        assertTrue(routing(car).getCurrentStep().getCue().toString().contains("500 m"));
     }
 
     @Test
@@ -92,14 +94,48 @@ public class ViBRoCarGuidanceGplayTest {
         RoutingInfo info = routing(template(state));
         Trip trip = ViBRoCarTrip.from(state, false);
         assertEquals("≈ Turn right", info.getCurrentStep().getCue().toString());
-        assertEquals("≈ Turn left", info.getNextStep().getCue().toString());
+        assertEquals("≈ Turn left · 20 m · 3 s", info.getNextStep().getCue().toString());
         assertEquals(info.getCurrentStep(), trip.getSteps().get(0));
-        assertEquals(info.getNextStep(), trip.getSteps().get(1));
+        assertEquals("≈ Turn left", trip.getSteps().get(1).getCue().toString());
+        assertEquals(Distance.create(140, Distance.UNIT_METERS),
+                trip.getStepTravelEstimates().get(1).getRemainingDistance());
+    }
+
+    @Test
+    public void stopProgressAndFinalDestinationEstimateCoexist() {
+        NavStopEstimate stop = new NavStopEstimate("Stop 2", 350, 90.0);
+        NavState state = withProgress(new NavTravelEstimate(1_200, 140, 1_700_000_000_000L, false), stop);
+        NavigationTemplate car = template(state);
+        String cue = routing(car).getCurrentStep().getCue().toString();
+        assertTrue(cue.contains(stop.label()));
+        assertTrue(cue.contains("350 m"));
+        assertTrue(cue.contains(NavigationTextFormatter.formatEta(1_700_000_090_000L)));
+        assertEquals(140, car.getDestinationTravelEstimate().getRemainingTimeSeconds());
+    }
+
+    @Test
+    public void observationTimeAloneDoesNotInvalidateTemplatesEvenWithStops() {
+        ViBRoCarTemplates templates = new ViBRoCarTemplates(context, () -> { });
+        NavStopEstimate stop = new NavStopEstimate("Stop 1", 350, 90.0);
+        NavTravelEstimate estimate = base.routeStatus.progress.travelEstimate;
+        NavState first = withProgress(estimate, stop);
+        NavState updated = withProgress(new NavTravelEstimate(estimate.distanceMeters, estimate.timeSeconds,
+                estimate.observationWallTimeMs + 60_000, false), stop);
+        assertFalse(templates.requiresInvalidation(first, updated));
+        assertTrue(templates.requiresInvalidation(updated,
+                withProgress(estimate, new NavStopEstimate(stop.label(), 300, 85.0))));
+
+        templates.build(updated);
+        AppSettings.setImperialUnitsEnabled(context, true);
+        assertTrue(templates.requiresInvalidation(updated, updated));
     }
 
     private NavState withTravelEstimate(double meters, double seconds) {
-        NavRouteStatus route = base.routeStatus.withProgress(new NavProgressStatus("Destination", "", "",
-                new NavTravelEstimate(meters, seconds, 1_700_000_000_000L, false)));
+        return withProgress(new NavTravelEstimate(meters, seconds, 1_700_000_000_000L, false), null);
+    }
+
+    private NavState withProgress(NavTravelEstimate estimate, NavStopEstimate stop) {
+        NavRouteStatus route = base.routeStatus.withProgress(new NavProgressStatus("Destination", "", "", estimate, stop));
         return new NavState(route, base.gpsStatus, base.pauseStatus, base.tripStatus);
     }
 

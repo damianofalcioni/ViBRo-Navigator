@@ -16,16 +16,18 @@ import vibro.navigator.nav.model.NavPauseStatus;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.model.NavManeuver;
 import vibro.navigator.nav.model.NavProgressStatus;
+import vibro.navigator.nav.model.NavStopEstimate;
 
 public final class NavStateResourceComposer {
     private NavStateResourceComposer() {
     }
 
     @NonNull
-    public static NavState withTravelEstimate(@NonNull NavState state, @NonNull NavStateBuildInput input) {
+    static NavState withTravelEstimate(@NonNull NavState state, @NonNull NavStateBuildInput input,
+            @Nullable NavStopEstimate nextStop) {
         NavProgressStatus progress = state.routeStatus.progress;
         return new NavState(state.routeStatus.withProgress(new NavProgressStatus(progress.destinationLine,
-                progress.stopProgressBlock, progress.detailBlock, NavTravelEstimateFactory.from(input))),
+                progress.stopProgressBlock, progress.detailBlock, NavTravelEstimateFactory.from(input), nextStop)),
                 state.gpsStatus, state.pauseStatus, state.tripStatus);
     }
 
