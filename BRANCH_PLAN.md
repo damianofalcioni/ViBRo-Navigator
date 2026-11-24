@@ -517,3 +517,14 @@ Do not redo the completed template/metadata/intent integration merely because a 
   $car = '--tests', '*ViBRoCarEntranceResultReviewProbeTest', '--tests', '*ViBRoCarDestinationTemplatesTest', '--tests', '*ViBRoCarIncomingNavigationGplayTest', '--tests', '*ViBRoCarHostNavigationTest', '--tests', '*ViBRoCarScreenLifecycleTest', '--tests', '*AndroidAutoGuidanceNotificationsTest'
   .\gradlew.bat :app:testFdroidDebugUnitTest @shared :app:testGplayDebugUnitTest @shared @car --continue --console=plain
   ```
+
+## Follow-up guidance settings and notification review (2026-11-24)
+
+- Reviewed `22572075` against `main` at `2ba4dad3`, focusing on ordinary guidance settings, maneuver speech, projection notification behavior, and shared phone/car navigation actions. No additional meaningful regression was confirmed in this pass. Previously recorded findings remain open.
+- Focused verification passed 63 F-Droid and 157 Google Play tests in 1m18s with zero failures, errors, or skips. `git diff --check main...HEAD` passed. The local ignored log is `build/guidance-settings-followup-review.log`. No Gradle invocation remains active. Head-unit rendering and wearable mirroring remain unverified.
+
+  ```powershell
+  $shared = '--tests', '*NavigationForegroundControllerTest', '--tests', '*Notification*Test', '--tests', '*NavigationManeuverSpeechFormatterTest', '--tests', '*NavigationCompassModeControllerTest', '--tests', '*NavigationInstructionMetric*Test', '--tests', '*NavigationLifecycleRobolectricTest', '--tests', '*NavigationSettingsButtonRobolectricTest'
+  $car = '--tests', 'vibro.navigator.auto.*', '--tests', 'vibro.navigator.android.automotive.*'
+  .\gradlew.bat :app:testFdroidDebugUnitTest @shared :app:testGplayDebugUnitTest @shared @car --continue --console=plain
+  ```
