@@ -494,3 +494,15 @@ Do not redo the completed template/metadata/intent integration merely because a 
   $car = '--tests', '*ViBRoCarArrivalAndVisibilityReviewProbeTest', '--tests', '*ViBRoAutoGpsStatusPainterTest'
   .\gradlew.bat :app:testFdroidDebugUnitTest @shared :app:testGplayDebugUnitTest @shared @car --continue --console=plain
   ```
+
+## Follow-up simulation startup and localization review (2026-11-24)
+
+- Reviewed `c63cf10c` against `main` at `2ba4dad3` for additional ordinary-use regressions. Two shared simulation findings are open in both flavors. Previously recorded Android Auto and phone rendering findings remain open.
+- Simulation with a blank origin can wait for a fresh fix despite having a usable cached GPS fix. The generic startup cache selector admits fixes up to 50 m accuracy and prefers a newer fix. The simulator rejects the selected result if its accuracy exceeds 25 m and never sees the older eligible candidate. A probe reproduced this with a three-second-old 5 m GPS fix and a one-second-old 40 m network fix. This differs from the previously fixed acceptance of an inaccurate live origin. Apply the simulator's route-start eligibility checks to each cached candidate before ranking them and preserve the live navigation cache policy.
+- The Simulation speed dialog uses the device's default numeric locale with a manually selected app language. On an English device with German selected in ViBRo, a saved fractional speed appears with a period and entering a comma decimal fails validation. Use the effective app locale to format the draft and parse its speed. Keep the coordinate field's decimal-point format.
+- Focused verification passed 65 F-Droid and 65 Google Play tests in 38s with zero failures, errors, or skips. Two temporary probes reproduced both findings in each flavor and were removed. The local ignored log is `build/simulation-startup-and-locale-regression-review.log`. `git diff --check main...HEAD` passed. No Gradle invocation remains active.
+
+  ```powershell
+  $shared = '--tests', '*NavigationSimulationCachedOriginReviewProbeTest', '--tests', '*AboutSimulationLocaleReviewProbeTest', '--tests', '*NavigationLocationController*Test', '--tests', '*NavigationStartupLocationSelectorTest', '--tests', '*NavigationSimulationArrivalTest', '--tests', '*NavigationSimulatorTest', '--tests', '*AboutSimulation*Test'
+  .\gradlew.bat :app:testFdroidDebugUnitTest @shared :app:testGplayDebugUnitTest @shared --continue --console=plain
+  ```
