@@ -397,3 +397,15 @@ Do not redo the completed template/metadata/intent integration merely because a 
   ```powershell
   .\gradlew.bat :app:testGplayDebugUnitTest --tests '*ViBRoCarTrafficEtaReviewProbeTest' --tests '*ViBRoCarGuidanceGplayTest' --tests '*ViBRoCarHostNavigationTest' :app:testFdroidDebugUnitTest --tests '*NavStateTest' --tests '*RouteTimeEstimatorTest' --continue --console=plain
   ```
+
+## Follow-up navigation lifecycle and U-turn review (2026-11-24)
+
+- Reviewed production source at `48c81e53` after the documentation-only commit `4539d05e`. Found one additional regression in Android Auto for a standard 180-degree reversal on the same road. BRouter emits command 15 for a U-turn with no prescribed side. The previous car display drew the shared U-turn symbol and text. The new car adapter sends `TYPE_UNKNOWN` without a maneuver icon and keeps the U-turn text. The cluster trip receives the same unknown maneuver. AndroidX documents that some instrument clusters can skip unknown maneuvers, so verify cluster rendering separately. [BRouter command generation](https://github.com/abrensch/brouter/blob/master/brouter-core/src/main/java/btools/router/VoiceHint.java#L95-L103) and [AndroidX cluster guidance](https://developer.android.com/reference/androidx/car/app/navigation/NavigationManager#updateTrip(androidx.car.app.navigation.model.Trip)).
+- Lifecycle checks passed for 30 F-Droid and 72 Google Play tests in 1m23s, covering pause/resume, arrival, foreground notifications, car binding visibility, the simulation notice, and street viewport state. The focused Google Play rerun passed 21 tests in 18s. A temporary Robolectric probe confirmed that the symbol was present in shared guidance and absent from the emitted head-unit and cluster maneuver data. The probe was removed. No production code or phone install changed. Physical head-unit and cluster rendering remain unverified. Local ignored logs are `build/navigation-lifecycle-followup-review.log` and `build/car-u-turn-regression-review-rerun.log`. No Gradle invocation remains active.
+
+  ```powershell
+  $shared = '--tests', '*NavigationLifecycleRobolectricTest', '--tests', '*NavigationArrivalLifecycleTest', '--tests', '*NavigationForegroundControllerTest', '--tests', '*NavigationServiceUiVisibilityTest', '--tests', '*NavigationSimulationNoticeRobolectricTest'
+  $car = '--tests', '*AndroidCarNavigationNotificationsGplayTest', '--tests', '*AndroidAutoGuidanceNotificationsTest', '--tests', '*ViBRoCarHostNavigationTest', '--tests', '*ViBRoCarScreenLifecycleTest', '--tests', '*ViBRoAutoStreetViewportGplayTest', '--tests', '*ViBRoCarIncomingNavigationGplayTest'
+  .\gradlew.bat :app:testFdroidDebugUnitTest @shared :app:testGplayDebugUnitTest @shared @car --continue --console=plain
+  .\gradlew.bat :app:testGplayDebugUnitTest --tests '*ViBRoCarUTurnReviewProbeTest' --tests '*ViBRoCarGuidanceGplayTest' --tests '*ViBRoCarHostNavigationTest' --tests '*VoiceHintMapperTest' --console=plain
+  ```
