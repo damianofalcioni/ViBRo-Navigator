@@ -429,3 +429,14 @@ Do not redo the completed template/metadata/intent integration merely because a 
 ## Pending Android Auto time to maneuver (2026-11-24)
 
 - Implementation is pending. Show the estimated time to the current maneuver in the main Android Auto instruction text when a duration is available. Apply this to ordinary turns and direct guidance, including the approach to a snapped route start. Keep the native distance beside the maneuver symbol.
+
+## Follow-up route replacement and simulation review (2026-11-24)
+
+- Reviewed `e5771295` against `main` at `2ba4dad3`. The pass covered destination replacement while routing, route result ownership and recovery, deviation rerouting, simulator activation and stop, and arrival sequencing. No additional meaningful regression was confirmed in those workflows. Prior findings and planned Android Auto work remain open.
+- The focused run passed 59 F-Droid and 90 Google Play tests in 24s with zero failures, errors or skips. `git diff --check main...HEAD` passed. No ADB device or Desktop Head Unit was available for physical validation. The ignored log is `build/route-replacement-followup-review.log`. No Gradle invocation remains active.
+
+  ```powershell
+  $shared = '--tests', '*NavigationServiceInitialRouteTest', '--tests', '*NavigationServiceSimulationTest', '--tests', '*NavigationRouteRequestManagerTest', '--tests', '*NavigationSessionLocationReplacementTest', '--tests', '*NavigationSessionRouteStateDeviationTest', '--tests', '*NavigationSimulationArrivalTest', '--tests', '*NavigationSimulatorTest'
+  $car = '--tests', '*ViBRoCarIncomingNavigationGplayTest', '--tests', '*ViBRoCarHostNavigationTest', '--tests', '*ViBRoCarDestinationLoadTest'
+  .\gradlew.bat :app:testFdroidDebugUnitTest @shared :app:testGplayDebugUnitTest @shared @car --continue --console=plain
+  ```
