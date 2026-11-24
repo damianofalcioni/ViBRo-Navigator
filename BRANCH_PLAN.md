@@ -366,3 +366,14 @@ Do not redo the completed template/metadata/intent integration merely because a 
   $carTests = '--tests', 'vibro.navigator.auto.*', '--tests', '*AndroidCarNavigationNotificationsGplayTest'
   .\gradlew.bat :app:complexityCheck :app:testFdroidDebugUnitTest @sharedTests :app:testGplayDebugUnitTest @sharedTests @carTests @checks --continue --console=plain
   ```
+
+## Follow-up branch review (2026-11-24)
+
+- Reviewed `48c81e53` against `main` at `2ba4dad3`, focusing on common navigation workflows and findings beyond those already fixed. One additional Android Auto regression is open.
+- When BRouter snaps the route start away from the current position, the car turn card drops the time to reach the road and the first turn after joining it. The previous car painter displayed the shared current and following cues. The current `NavigationSessionRouteDisplayState` keeps both lines and supplies a single structured beeline maneuver. `ViBRoCarGuidance` uses that maneuver's instruction and distance and only renders a following step when a second structured maneuver exists. The shared phone guidance still includes both cues. Preserve the beeline as the active maneuver and present the available approach time and following cue in the host template.
+- The full F-Droid and Google Play unit-test suites passed on the reviewed commit in 7m58s, with 2,308 and 2,424 tests respectively and zero failures, errors or skips. The focused Google Play run passed 15 tests in 37s, including a temporary Robolectric probe that built a snapped route-start state and confirmed the omissions in the emitted navigation template. The probe was removed. `git diff --check main...HEAD` passed. Production code and the phone install were untouched. Physical head-unit verification remains pending. Local ignored logs are `build/current-head-regression-review.log` and `build/current-head-beeline-review.log`. No Gradle invocation remains active.
+
+  ```powershell
+  .\gradlew.bat :app:testFdroidDebugUnitTest :app:testGplayDebugUnitTest --continue --console=plain
+  .\gradlew.bat :app:testGplayDebugUnitTest --tests '*ViBRoCarApproachReviewProbeTest' --tests '*ViBRoCarGuidanceGplayTest' --tests '*NavigationRouteStartApproachStateTest' --console=plain
+  ```
