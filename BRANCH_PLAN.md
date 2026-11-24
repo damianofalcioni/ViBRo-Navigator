@@ -506,3 +506,14 @@ Do not redo the completed template/metadata/intent integration merely because a 
   $shared = '--tests', '*NavigationSimulationCachedOriginReviewProbeTest', '--tests', '*AboutSimulationLocaleReviewProbeTest', '--tests', '*NavigationLocationController*Test', '--tests', '*NavigationStartupLocationSelectorTest', '--tests', '*NavigationSimulationArrivalTest', '--tests', '*NavigationSimulatorTest', '--tests', '*AboutSimulation*Test'
   .\gradlew.bat :app:testFdroidDebugUnitTest @shared :app:testGplayDebugUnitTest @shared --continue --console=plain
   ```
+
+## Follow-up Android Auto destination result review (2026-11-24)
+
+- Reviewed `1bfae197` against `main` at `2ba4dad3`. One additional finding is open in Google Play. The car address picker shows a place and its OpenStreetMap entrances with identical row titles and no distinguishing text. `OsmNominatimSearchParser` returns entrance coordinates and types alongside the parent place while deliberately reusing the parent label. The phone picker uses `PoiSuggestion` to show the localized entrance type. `ViBRoCarDestinationTemplates` uses only `Poi.displayLabel()`, so a driver can select the service entrance while intending to go to the main entrance. Carry entrance labels into the car rows and keep the chosen coordinates.
+- A temporary Robolectric probe passed a station, its main entrance, and its service entrance through the production response parser, built the car list, and invoked all three row actions. The emitted rows were visually identical and selected different coordinates. The phone picker labels distinguished all three. The focused run passed 37 F-Droid and 70 Google Play tests in 49s, including destination replacement, car lifecycle, and projection notification tests, with zero failures, errors, or skips. The probe was removed. The ignored log is `build/android-auto-search-results-followup-review.log`. `git diff --check main...HEAD` passed. Physical head-unit rendering remains unverified. No Gradle invocation remains active.
+
+  ```powershell
+  $shared = '--tests', '*OsmNominatimClientTest', '--tests', '*PoiSuggestion*Test', '--tests', '*NavigationLifecycleRobolectricTest'
+  $car = '--tests', '*ViBRoCarEntranceResultReviewProbeTest', '--tests', '*ViBRoCarDestinationTemplatesTest', '--tests', '*ViBRoCarIncomingNavigationGplayTest', '--tests', '*ViBRoCarHostNavigationTest', '--tests', '*ViBRoCarScreenLifecycleTest', '--tests', '*AndroidAutoGuidanceNotificationsTest'
+  .\gradlew.bat :app:testFdroidDebugUnitTest @shared :app:testGplayDebugUnitTest @shared @car --continue --console=plain
+  ```
