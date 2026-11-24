@@ -377,3 +377,14 @@ Do not redo the completed template/metadata/intent integration merely because a 
   .\gradlew.bat :app:testFdroidDebugUnitTest :app:testGplayDebugUnitTest --continue --console=plain
   .\gradlew.bat :app:testGplayDebugUnitTest --tests '*ViBRoCarApproachReviewProbeTest' --tests '*ViBRoCarGuidanceGplayTest' --tests '*NavigationRouteStartApproachStateTest' --console=plain
   ```
+
+## Follow-up simulation handoff review (2026-11-24)
+
+- Reviewed the production source at `48c81e53` again after the documentation-only commit `742c7089`. Found an additional regression in the shared simulator on a routed trip with an off-road intermediate stop. BRouter's normal route augmentation adds a beeline from the road to the stop and a second leg back to the same road point. Once the service completes the return leg, the simulator uses an unrestricted polyline match. The overlapping geometry can place its cursor back on the completed outbound leg, so it retraces the detour before continuing to the destination. Live route logic already constrains the match to the completed beeline's endpoint or later. This differs from the previously fixed case of passing a later on-road stop early.
+- The temporary integration probe reproduced the repeat detour in both flavors at the default 50 km/h with an approximately 89 m off-road leg and at 30 km/h with an approximately 111 m leg. The final focused run passed 26 F-Droid and 50 Google Play tests in 26s with zero failures, errors or skips. It also covered arrival, car destination handling, host ownership and screen lifecycle. The probe was removed after verification. Production code and the phone install were untouched. Head-unit verification remains pending. The local ignored log is `build/simulation-spur-regression-final-review.log`. No Gradle invocation remains active.
+
+  ```powershell
+  $sharedTests = '--tests', '*NavigationSimulationSpurReviewProbeTest', '--tests', '*NavigationSimulationArrivalTest', '--tests', '*NavigationRouteBeelineStateTest', '--tests', '*NavigationSimulatorTest'
+  $carTests = '--tests', '*ViBRoCarIncomingNavigationGplayTest', '--tests', '*ViBRoCarHostNavigationTest', '--tests', '*ViBRoCarScreenLifecycleTest'
+  .\gradlew.bat :app:testFdroidDebugUnitTest @sharedTests :app:testGplayDebugUnitTest @sharedTests @carTests --continue --console=plain
+  ```
