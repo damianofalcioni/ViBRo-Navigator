@@ -477,3 +477,20 @@ Do not redo the completed template/metadata/intent integration merely because a 
   $car = '--tests', 'vibro.navigator.auto.*', '--tests', '*AndroidAutoGuidanceNotificationsTest'
   .\gradlew.bat :app:testFdroidDebugUnitTest @shared :app:testGplayDebugUnitTest @shared @car --continue --console=plain
   ```
+
+## Follow-up arrival, destination search, and phone rendering review (2026-11-24)
+
+- Reviewed `3b9a117b` against `main` at `2ba4dad3`. Three additional findings are open. The beeline icon finding remains open above.
+- The Android Auto template still sends a destination ETA after confirmed arrival. `ViBRoCarGuidance` converts the confirmed-arrival estimate into a zero-distance, zero-time card whose arrival timestamp comes from the latest observation. Two minutes of subsequent fixes move that timestamp two minutes later and trigger another template refresh. The previous car UI showed the arrival confirmation alone. Suppress the destination estimate and its minute-based invalidation after confirmed arrival.
+- Searching for a replacement destination during an active route leaves the car map marked visible while a search pane or result list occupies the same `Screen`. Even surface destruction leaves the visibility flag set. With the phone display off, this allows unnecessary compass UI snapshots at up to ten per second while the map is hidden. Track map visibility independently of the car screen lifecycle and retain car guidance updates during search. [Android for Cars map-capable templates](https://developer.android.com/training/cars/apps/library/draw-maps)
+- The phone GPS line creates a localized Android configuration context on every render in both flavors, including renders driven by compass samples. The renderer performs this work before checking whether the line changed. The previous phone path reused its localized activity. A probe counted 40 configuration contexts across 40 identical reads. Reuse the localized resources across GPS status updates. Device performance and power impact were not measured.
+- The first focused run passed 24 F-Droid and 114 Google Play tests in 1m15s. The second passed 4 F-Droid and 7 Google Play tests in 49s. Both completed with zero failures, errors, or skips. Temporary Robolectric probes reproduced all three findings and were removed. The local ignored logs are `build/arrival-display-visibility-regression-review.log` and `build/navigation-gps-render-regression-review.log`. `git diff --check main...HEAD` passed. Head-unit rendering remains unverified. No Gradle invocation remains active.
+
+  ```powershell
+  $shared = '--tests', '*NavigationLifecycleRobolectricTest', '--tests', '*NavigationArrivalLifecycleTest', '--tests', '*NavigationServiceUiVisibilityTest'
+  $car = '--tests', 'vibro.navigator.auto.*', '--tests', '*AndroidAutoGuidanceNotificationsTest'
+  .\gradlew.bat :app:testFdroidDebugUnitTest @shared :app:testGplayDebugUnitTest @shared @car --continue --console=plain
+  $shared = '--tests', '*NavigationGpsStatusResourcesReviewProbeTest', '--tests', '*NavigationInstructionMetricRobolectricTest', '--tests', '*NavigationLandscapeTextLayoutRobolectricTest'
+  $car = '--tests', '*ViBRoCarArrivalAndVisibilityReviewProbeTest', '--tests', '*ViBRoAutoGpsStatusPainterTest'
+  .\gradlew.bat :app:testFdroidDebugUnitTest @shared :app:testGplayDebugUnitTest @shared @car --continue --console=plain
+  ```
