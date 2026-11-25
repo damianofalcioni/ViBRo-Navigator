@@ -108,15 +108,14 @@ final class ViBRoCarTemplates {
 
     @NonNull
     private ActionStrip buildNavigationActionStrip(@NonNull NavState state) {
-        ActionStrip.Builder strip = new ActionStrip.Builder()
-                .addAction(new Action.Builder().setTitle(text(R.string.action_stop_navigation))
-                        .setOnClickListener(actions::onStopNavigation).build())
-                .addAction(iconAction(state.pauseStatus.paused ? R.drawable.ic_play : R.drawable.ic_pause,
-                        actions::onTogglePaused));
+        ActionStrip.Builder strip = new ActionStrip.Builder();
         if (state.routeStatus.blockedRoadActionAvailable && !state.pauseStatus.paused) {
             strip.addAction(iconAction(R.drawable.ic_blocked_road, actions::onBlockedRoad));
         }
-        return strip.build();
+        return strip.addAction(iconAction(R.drawable.ic_stop, actions::onStopNavigation))
+                .addAction(iconAction(state.pauseStatus.paused ? R.drawable.ic_play : R.drawable.ic_pause,
+                        actions::onTogglePaused))
+                .build();
     }
 
     private Action iconAction(int drawable, Runnable action) {

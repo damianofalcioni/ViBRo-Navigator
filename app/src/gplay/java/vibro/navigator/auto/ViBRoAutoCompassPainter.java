@@ -80,10 +80,12 @@ final class ViBRoAutoCompassPainter {
         int measuredWidth = Math.max(1, compassView.getMeasuredWidth());
         int measuredHeight = Math.max(1, compassView.getMeasuredHeight());
         compassView.layout(0, 0, measuredWidth, measuredHeight);
-        bounds.set(left, top, left + measuredWidth, top + measuredHeight);
+        float drawLeft = left + (width - measuredWidth) / 2f;
+        float drawTop = top + (height - measuredHeight) / 2f;
+        bounds.set(drawLeft, drawTop, drawLeft + measuredWidth, drawTop + measuredHeight);
         int saveCount = canvas.save();
-        canvas.clipRect(left, top, left + measuredWidth, top + measuredHeight);
-        canvas.translate(left, top);
+        canvas.clipRect(bounds);
+        canvas.translate(drawLeft, drawTop);
         compassView.draw(canvas);
         canvas.restoreToCount(saveCount);
         overlayPainter.draw(canvas, state, overlayBounds, scale);

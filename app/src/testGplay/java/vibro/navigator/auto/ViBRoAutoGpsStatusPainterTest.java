@@ -36,18 +36,20 @@ public class ViBRoAutoGpsStatusPainterTest {
         String gps = "50 km/h ↑130 m • 4 m • (8)";
         var status = new NavGpsStatus(gps, 4_000L);
 
-        painter.draw(canvas, area, status, 1f);
+        painter.draw(canvas, area, status, 1f, true);
         StaticLayout first = getField(painter, "layout");
         assertEquals(gps + " • 3 s", first.getText().toString());
         assertTrue(first.getLineCount() > 1);
+        assertEquals(210, Color.alpha(bitmap.getPixel(area.left + 9, area.top + 14)));
+        assertEquals(Color.TRANSPARENT, bitmap.getPixel(area.left - 1, area.top + 14));
         assertEquals(Color.TRANSPARENT, bitmap.getPixel(area.centerX(), area.bottom));
 
         now[0] = 3_000L;
-        painter.draw(canvas, area, status, 1f);
+        painter.draw(canvas, area, status, 1f, true);
         StaticLayout countdown = getField(painter, "layout");
         assertEquals(gps + " • 1 s", countdown.getText().toString());
 
-        painter.draw(canvas, area, new NavGpsStatus(gps, NavState.NO_DEADLINE), 1f);
+        painter.draw(canvas, area, new NavGpsStatus(gps, NavState.NO_DEADLINE), 1f, false);
         StaticLayout unavailable = getField(painter, "layout");
         assertEquals(gps + " • --", unavailable.getText().toString());
     }

@@ -18,6 +18,7 @@ import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
 /** Displays the navigation fix status inside the map's stable area. */
 final class ViBRoAutoGpsStatusPainter {
+    private static final int FULLSCREEN_PANEL_ALPHA = 210;
     private final CarContext context;
     private final ElapsedRealtimeClock clock;
     private final AndroidNavigationTextResources textResources;
@@ -39,15 +40,20 @@ final class ViBRoAutoGpsStatusPainter {
         layout = null;
     }
 
-    void draw(Canvas canvas, Rect area, NavGpsStatus status, float scale) {
+    float draw(Canvas canvas, Rect area, NavGpsStatus status, float scale, boolean fullscreenRoute) {
         float inset = ViBRoAutoRenderScale.dp(context, 8f, scale);
         int maxWidth = (int) (area.width() - 4 * inset);
         if (maxWidth <= 0) {
-            return;
+            return 0f;
         }
         StaticLayout text = layout(status, maxWidth, ViBRoAutoRenderScale.sp(context, 16f, scale));
-        float left = area.exactCenterX() - text.getWidth() / 2f;
-        float top = area.bottom - text.getHeight() - 2 * inset;
+        float panelHeight = text.getHeight() + 2 * inset;
+        if (panelHeight >= area.height()) {
+            return 0f;
+        }
+        float left = area.left + 2 * inset;
+        float top = area.top + inset;
+        background.setAlpha(fullscreenRoute ? FULLSCREEN_PANEL_ALPHA : 255);
         int save = canvas.save();
         canvas.clipRect(area);
         canvas.drawRoundRect(left - inset, top - inset / 2, left + text.getWidth() + inset,
@@ -55,6 +61,7 @@ final class ViBRoAutoGpsStatusPainter {
         canvas.translate(left, top);
         text.draw(canvas);
         canvas.restoreToCount(save);
+        return panelHeight;
     }
 
     private StaticLayout layout(NavGpsStatus status, int maxWidth, float textSize) {

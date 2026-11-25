@@ -15,6 +15,7 @@ import vibro.navigator.nav.model.NavState;
 /** A speed limit is driving context permitted in the map safe area; controls use host actions. */
 final class ViBRoAutoCompassOverlayPainter {
     private static final int OVER_LIMIT_RED = 0xFFB71C1C;
+    private static final float BADGE_SIZE_DP = 44f;
     private final CarContext carContext;
     private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint outline = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -29,15 +30,22 @@ final class ViBRoAutoCompassOverlayPainter {
         text.setTextAlign(Paint.Align.CENTER);
     }
 
+    static float badgeSize(CarContext context, float scale) {
+        return ViBRoAutoRenderScale.dp(context, BADGE_SIZE_DP, scale);
+    }
+
     void draw(@NonNull Canvas canvas, @NonNull NavState state, @NonNull RectF safeArea, float scale) {
         if (state.routeStatus.speedLimit == null) { return; }
         boolean overLimit = NavigationSpeedLimitFormatter.isOverLimit(
                 state.gpsStatus.telemetry.speedMps, state.routeStatus.speedLimit);
         fill.setColor(overLimit ? OVER_LIMIT_RED : Color.WHITE);
         text.setColor(overLimit ? Color.WHITE : Color.BLACK);
-        float size = ViBRoAutoRenderScale.dp(carContext, 44f, scale);
-        badge.set(safeArea.left, safeArea.top, safeArea.left + size, safeArea.top + size);
+        float size = badgeSize(carContext, scale);
+        if (safeArea.width() < size || safeArea.height() < size) { return; }
         outline.setStrokeWidth(ViBRoAutoRenderScale.dp(carContext, 5f, scale));
+        badge.set(safeArea.right - size, safeArea.top, safeArea.right, safeArea.top + size);
+        float halfStroke = outline.getStrokeWidth() / 2f;
+        badge.inset(halfStroke, halfStroke);
         text.setTextSize(ViBRoAutoRenderScale.sp(carContext, 16f, scale));
         canvas.drawOval(badge, fill);
         canvas.drawOval(badge, outline);

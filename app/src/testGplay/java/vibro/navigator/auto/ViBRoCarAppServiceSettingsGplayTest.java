@@ -31,6 +31,7 @@ import org.robolectric.RobolectricTestRunner;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Field;
+import java.util.List;
 
 import vibro.navigator.R;
 import vibro.navigator.distribution.DistributionServices;
@@ -103,13 +104,14 @@ public class ViBRoCarAppServiceSettingsGplayTest {
                 }
         );
 
-        Template template = templates.build(activeNavigationState());
+        Template template = templates.build(CarNavigationTestStates.active(false, false));
 
         assertTrue(template instanceof NavigationTemplate);
         NavigationTemplate navigationTemplate = (NavigationTemplate) template;
-        assertEquals(2, navigationTemplate.getActionStrip().getActions().size());
-        assertEquals(context.getString(R.string.action_stop_navigation),
-                navigationTemplate.getActionStrip().getActions().get(0).getTitle().toString());
+        List<Action> actions = navigationTemplate.getActionStrip().getActions();
+        assertEquals(List.of(R.drawable.ic_blocked_road, R.drawable.ic_stop, R.drawable.ic_pause),
+                actions.stream().map(action -> action.getIcon().getIcon().getResId()).toList());
+        assertTrue(actions.stream().allMatch(action -> action.getTitle() == null));
         assertEquals(Action.PAN, navigationTemplate.getMapActionStrip().getActions().get(0));
     }
 

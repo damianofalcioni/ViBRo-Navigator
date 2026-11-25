@@ -13,11 +13,13 @@ import vibro.navigator.R;
 import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
+import vibro.navigator.settings.AppCompassSettings;
 
 /** The navigation surface contains the map and its overlays. */
 final class ViBRoAutoSurfacePainter {
     private final CarContext carContext;
     private final RectF overlayBounds = new RectF();
+    private final Rect gpsStatusArea = new Rect();
     private final ViBRoAutoCompassPainter compassPainter;
     private final ViBRoAutoGpsStatusPainter gpsStatusPainter;
 
@@ -38,9 +40,14 @@ final class ViBRoAutoSurfacePainter {
         Rect area = stableArea.isEmpty() ? new Rect(0, 0, container.getWidth(), container.getHeight()) : stableArea;
         float scale = ViBRoAutoRenderScale.fromContentHeight(carContext, area.height());
         overlayBounds.set(area);
-        compassPainter.draw(canvas, state, area.left, area.top, area.width(), area.height(),
-                true, overlayBounds, scale);
-        gpsStatusPainter.draw(canvas, area, state.gpsStatus, scale);
+        boolean fullscreenRoute = AppCompassSettings.isFullscreenRouteEnabled(carContext);
+        gpsStatusArea.set(area);
+        if (state.routeStatus.speedLimit != null) {
+            gpsStatusArea.right -= (int) Math.ceil(ViBRoAutoCompassOverlayPainter.badgeSize(carContext, scale));
+        }
+        float gpsPanelHeight = gpsStatusPainter.draw(canvas, gpsStatusArea, state.gpsStatus, scale, fullscreenRoute);
+        compassPainter.draw(canvas, state, area.left, area.top + gpsPanelHeight, area.width(),
+                area.height() - gpsPanelHeight, fullscreenRoute, overlayBounds, scale);
     }
 
     boolean handleClick(float x, float y, @NonNull NavState state) {
