@@ -103,6 +103,8 @@ public class ViBRoCarGuidanceGplayTest {
         Trip trip = ViBRoCarTrip.from(state, false, ViBRoCarManeuvers.Icons.from(context));
         assertEquals("≈ Turn right · 12 s", info.getCurrentStep().getCue().toString());
         assertEquals("≈ Turn left · 20 m · 3 s", info.getNextStep().getCue().toString());
+        assertEquals(List.of("≈ Turn left · 20 m", "≈ Turn left"),
+                info.getNextStep().getCue().getVariants().stream().map(CharSequence::toString).toList());
         assertEquals(info.getCurrentStep().getManeuver().getType(), trip.getSteps().get(0).getManeuver().getType());
         assertNotNull(info.getNextStep().getManeuver().getIcon());
         assertNotNull(trip.getSteps().get(0).getManeuver().getIcon());
@@ -117,9 +119,11 @@ public class ViBRoCarGuidanceGplayTest {
         NavStopEstimate stop = new NavStopEstimate("Stop 2", 350, 90.0);
         NavState state = withProgress(new NavTravelEstimate(1_200, 140, 1_700_000_000_000L, false), stop);
         NavigationTemplate car = template(state);
-        String cue = routing(car).getCurrentStep().getCue().toString();
+        var cue = routing(car).getCurrentStep().getCue();
         String arrival = NavigationTextFormatter.formatEta(1_700_000_090_000L);
-        assertTrue(cue.contains(stop.label() + ": " + arrival + " • 350 m"));
+        String stopLine = stop.label() + ": " + arrival + " • 350 m";
+        assertTrue(cue.toString().contains(stopLine));
+        assertTrue(cue.getVariants().get(0).toString().endsWith(stopLine));
         assertEquals(140, car.getDestinationTravelEstimate().getRemainingTimeSeconds());
     }
 

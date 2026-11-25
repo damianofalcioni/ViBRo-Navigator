@@ -48,6 +48,7 @@ public final class NavigationCompassView extends View {
     private boolean navigationPaused;
     private float perspectiveProgress;
     private boolean distanceCirclesEnabled;
+    private boolean fullscreenOuterDistanceOnly;
 
     private final Paint surfacePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint ringPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -186,6 +187,11 @@ public final class NavigationCompassView extends View {
     public void setFullscreenRouteModeEnabled(boolean enabled) {
         fullscreenMode.setEnabled(enabled);
         requestLayout();
+        invalidate();
+    }
+
+    public void setFullscreenOuterDistanceOnly(boolean enabled) {
+        fullscreenOuterDistanceOnly = enabled;
         invalidate();
     }
 
@@ -330,7 +336,7 @@ public final class NavigationCompassView extends View {
                 cy,
                 headingGuideRadius,
                 fullscreenMode.resolveLegendRingScales(
-                        portraitOrientation,
+                        portraitOrientation || fullscreenOuterDistanceOnly,
                         FULLSCREEN_LEGEND_RING_SCALES,
                         FARTHEST_DISTANCE_RING_SCALE
                 ),

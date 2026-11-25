@@ -24,6 +24,8 @@ import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.model.NavTravelEstimate;
 
 final class ViBRoCarGuidance {
+    private record StopProgress(String full, String compact) { }
+
     private ViBRoCarGuidance() { }
 
     static void apply(NavigationTemplate.Builder builder, NavState state, NavigationTextResources resources,
@@ -37,12 +39,14 @@ final class ViBRoCarGuidance {
 
         TravelEstimate estimate = travelEstimate(progress.travelEstimate, resources.isImperialUnitsEnabled(),
                 observationTimeMs);
-        String detail = appendDetail(detail(progress, estimate, resources), stopProgress(progress, resources,
-                observationTimeMs));
+        String detail = detail(progress, estimate, resources);
+        StopProgress stop = stopProgress(progress, resources, observationTimeMs);
+        String fullDetail = appendDetail(detail, stop.full());
         if (!guidance.maneuvers.isEmpty()) {
-            builder.setNavigationInfo(routingInfo(guidance, detail, resources, icons));
+            builder.setNavigationInfo(routingInfo(guidance, fullDetail, appendDetail(detail, stop.compact()),
+                    resources, icons));
         } else {
-            builder.setNavigationInfo(messageInfo(guidance, detail, true));
+            builder.setNavigationInfo(messageInfo(guidance, fullDetail, true));
         }
         if (estimate != null) {
             builder.setDestinationTravelEstimate(estimate);
@@ -62,16 +66,22 @@ final class ViBRoCarGuidance {
         return new MessageInfo.Builder(title).setText(text).build();
     }
 
-    private static RoutingInfo routingInfo(NavGuidanceStatus guidance, String detail,
+    private static RoutingInfo routingInfo(NavGuidanceStatus guidance, String detail, String compactDetail,
             NavigationTextResources resources, ViBRoCarManeuvers.Icons icons) {
         NavManeuver next = guidance.maneuvers.get(0);
-        var cue = new SpannableStringBuilder(ViBRoCarManeuvers.cue(next.instruction, guidance.nextUncertain));
+        String instruction = ViBRoCarManeuvers.cue(next.instruction, guidance.nextUncertain);
+        var cue = new SpannableStringBuilder(instruction);
         ViBRoCarManeuvers.appendDuration(cue, next.timeSeconds, resources);
+        var compactCue = new SpannableStringBuilder(cue);
         if (!detail.isEmpty()) {
             cue.append('\n').append(detail);
         }
+        if (!compactDetail.isEmpty()) {
+            compactCue.append('\n').append(compactDetail);
+        }
         RoutingInfo.Builder routing = new RoutingInfo.Builder()
-                .setCurrentStep(ViBRoCarManeuvers.step(next, cue, icons),
+                .setCurrentStep(ViBRoCarManeuvers.step(next, ViBRoCarCueText.withVariants(cue,
+                                compactCue, appendDetail(instruction, compactDetail)), icons),
                         ViBRoCarManeuvers.distance(next.distanceMeters, resources.isImperialUnitsEnabled()));
         if (guidance.maneuvers.size() > 1) {
             routing.setNextStep(ViBRoCarManeuvers.followingStep(guidance, resources, icons));
@@ -96,18 +106,21 @@ final class ViBRoCarGuidance {
         return appendDetail(progress.detailBlock, distance);
     }
 
-    private static String stopProgress(NavProgressStatus progress, NavigationTextResources resources, long nowMs) {
+    private static StopProgress stopProgress(NavProgressStatus progress, NavigationTextResources resources,
+            long nowMs) {
         var stop = progress.nextStop;
-        if (stop == null) { return progress.stopProgressBlock; }
+        if (stop == null) { return new StopProgress(progress.stopProgressBlock, progress.stopProgressBlock); }
         Double seconds = stop.timeSeconds();
+        String distance = NavigationMeasurementFormatter.formatDistance(resources, stop.distanceMeters());
         if (seconds == null || !Double.isFinite(seconds)) {
-            return NavStateTextFactory.formatStopProgress(resources, stop, nowMs);
+            return new StopProgress(NavStateTextFactory.formatStopProgress(resources, stop, nowMs),
+                    stop.label() + ": " + distance);
         }
         // The host can truncate long routing cues. Keep the stop's arrival time near its label.
         String arrival = NavigationTextFormatter.formatEta(nowMs + (long) (seconds * 1000));
-        String distance = NavigationMeasurementFormatter.formatDistance(resources, stop.distanceMeters());
         String duration = NavigationTextFormatter.formatTimeSeconds(resources, seconds);
-        return resources.getString(R.string.format_progress_line, stop.label(), arrival, distance, duration);
+        return new StopProgress(resources.getString(R.string.format_progress_line, stop.label(), arrival, distance,
+                duration), stop.label() + ": " + arrival + " • " + distance);
     }
 
     private static String appendDetail(String text, String detail) {

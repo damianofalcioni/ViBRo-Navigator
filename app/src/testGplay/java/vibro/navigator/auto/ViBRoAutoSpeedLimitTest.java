@@ -1,6 +1,5 @@
 package vibro.navigator.auto;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import android.graphics.Bitmap;
@@ -22,14 +21,13 @@ import vibro.navigator.nav.route.RouteSpeedLimit;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class ViBRoAutoSpeedLimitTest {
     @Test
-    public void badgeChangesAboveTheLimitAndRecoversBelowIt() throws Exception {
+    public void badgeRetainsItsColorsAboveTheLimit() throws Exception {
         ViBRoCarAppServiceSettingsGplayTest contexts = new ViBRoCarAppServiceSettingsGplayTest();
         contexts.setUp();
         ViBRoAutoCompassOverlayPainter painter = new ViBRoAutoCompassOverlayPainter(contexts.testCarContext());
         NavState below = atSpeed(45);
         Bitmap normal = draw(painter, below);
-        assertFalse(normal.sameAs(draw(painter, atSpeed(55))));
-        assertTrue(normal.sameAs(draw(painter, below)));
+        assertTrue(normal.sameAs(draw(painter, atSpeed(55))));
     }
 
     private static NavState atSpeed(int kilometersPerHour) {

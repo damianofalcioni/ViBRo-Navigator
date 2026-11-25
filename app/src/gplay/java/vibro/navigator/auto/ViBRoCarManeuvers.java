@@ -8,6 +8,7 @@ import androidx.annotation.DrawableRes;
 import androidx.annotation.Nullable;
 import androidx.car.app.model.CarColor;
 import androidx.car.app.model.CarIcon;
+import androidx.car.app.model.CarText;
 import androidx.car.app.model.Distance;
 import androidx.car.app.model.DistanceSpan;
 import androidx.car.app.model.DurationSpan;
@@ -52,6 +53,10 @@ final class ViBRoCarManeuvers {
     private ViBRoCarManeuvers() { }
 
     static Step step(NavManeuver value, CharSequence cue, @Nullable Icons icons) {
+        return step(value, CarText.create(cue), icons);
+    }
+
+    static Step step(NavManeuver value, CarText cue, @Nullable Icons icons) {
         return new Step.Builder(cue).setManeuver(maneuver(value.hint, icons)).build();
     }
 
@@ -59,17 +64,20 @@ final class ViBRoCarManeuvers {
         NavManeuver current = guidance.maneuvers.get(0);
         NavManeuver following = guidance.maneuvers.get(1);
         double seconds = following.timeSeconds - current.timeSeconds;
+        String instruction = cue(following.instruction, guidance.afterNextUncertain);
         if (!Double.isFinite(seconds) && !guidance.afterNextLine.isEmpty()) {
             // Shared cue includes the route timing fallback when live step times are unavailable.
-            return step(following, cue(guidance.afterNextLine, guidance.afterNextUncertain), icons);
+            String fullCue = cue(guidance.afterNextLine, guidance.afterNextUncertain);
+            return step(following, ViBRoCarCueText.withVariants(fullCue, instruction), icons);
         }
 
         double meters = Math.max(0, following.distanceMeters - current.distanceMeters);
-        SpannableStringBuilder text = new SpannableStringBuilder(cue(following.instruction, guidance.afterNextUncertain));
-        appendMetric(text, NavigationMeasurementFormatter.formatDistance(resources, meters),
+        var withDistance = new SpannableStringBuilder(instruction);
+        appendMetric(withDistance, NavigationMeasurementFormatter.formatDistance(resources, meters),
                 DistanceSpan.create(distance(meters, resources.isImperialUnitsEnabled())));
-        appendDuration(text, Math.max(0, seconds), resources);
-        return step(following, text, icons);
+        var fullCue = new SpannableStringBuilder(withDistance);
+        appendDuration(fullCue, Math.max(0, seconds), resources);
+        return step(following, ViBRoCarCueText.withVariants(fullCue, withDistance, instruction), icons);
     }
 
     static void appendDuration(SpannableStringBuilder cue, double seconds, NavigationTextResources resources) {

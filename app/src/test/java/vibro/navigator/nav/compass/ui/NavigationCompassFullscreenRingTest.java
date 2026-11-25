@@ -29,6 +29,8 @@ import vibro.navigator.nav.format.NavigationTextFormatter;
 
 @RunWith(RobolectricTestRunner.class)
 public class NavigationCompassFullscreenRingTest {
+    private static final String LANDSCAPE = "land";
+
     @Test
     @GraphicsMode(GraphicsMode.Mode.NATIVE)
     public void portraitCircleFollowsPerspectiveThroughoutTiltInBothThemes() {
@@ -36,7 +38,7 @@ public class NavigationCompassFullscreenRingTest {
     }
 
     @Test
-    @Config(qualifiers = "land")
+    @Config(qualifiers = LANDSCAPE)
     @GraphicsMode(GraphicsMode.Mode.NATIVE)
     public void landscapeCircleFollowsPerspectiveThroughoutTiltInBothThemes() {
         assertRingPixels(500, 300, false);
@@ -48,9 +50,21 @@ public class NavigationCompassFullscreenRingTest {
     }
 
     @Test
-    @Config(qualifiers = "land")
+    @Config(qualifiers = LANDSCAPE)
     public void landscapeLabelsFollowProjectedCircleIntersection() {
         assertProjectedLabels(500, 300, false);
+    }
+
+    @Test
+    @Config(qualifiers = LANDSCAPE)
+    public void carFullscreenUsesOnlyTheOuterDistanceLabelPairIn2d() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        NavigationCompassView view = view(activity, 500, 300, 0f);
+        view.setFullscreenOuterDistanceOnly(true);
+        view.setCompassState(legendState(0f));
+        Canvas canvas = new Canvas(Bitmap.createBitmap(500, 300, Bitmap.Config.ARGB_8888));
+        view.draw(canvas);
+        assertEquals(2, Shadows.shadowOf(canvas).getTextHistoryCount());
     }
 
     @Test
@@ -60,7 +74,7 @@ public class NavigationCompassFullscreenRingTest {
     }
 
     @Test
-    @Config(qualifiers = "land")
+    @Config(qualifiers = LANDSCAPE)
     @GraphicsMode(GraphicsMode.Mode.NATIVE)
     public void landscapeTiltLowersCenterWithoutLengtheningArrow() {
         assertArrowAndCenter(500, 300, false);

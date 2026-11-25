@@ -48,6 +48,7 @@ final class ViBRoAutoCompassPainter {
 
     void refreshTheme() {
         compassView = new NavigationCompassView(carContext);
+        compassView.setFullscreenOuterDistanceOnly(true);
         overlayPainter = new ViBRoAutoCompassOverlayPainter(carContext);
         lastFullscreenRouteMode = null;
     }

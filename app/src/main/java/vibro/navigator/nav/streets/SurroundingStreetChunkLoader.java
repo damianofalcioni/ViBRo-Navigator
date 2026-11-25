@@ -42,7 +42,11 @@ final class SurroundingStreetChunkLoader implements SurroundingStreetOverlayRunt
             }
             try {
                 result.put(key, loadChunk(key, visibility));
-            } catch (SurroundingStreetRepository.ReadUnavailable e) {
+            } catch (CancellationException | SurroundingStreetRepository.ReadUnavailable e) {
+                // Viewport cancellation interrupts the load. A source can also cancel an individual read.
+                if (Thread.currentThread().isInterrupted()) {
+                    break;
+                }
                 result.retry(key);
             }
         }

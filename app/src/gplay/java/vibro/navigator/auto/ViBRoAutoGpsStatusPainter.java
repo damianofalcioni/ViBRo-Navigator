@@ -4,6 +4,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.text.Layout;
+import android.text.SpannableString;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 
@@ -15,6 +16,7 @@ import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.location.NavigationGpsStatusFormatter;
 import vibro.navigator.nav.model.NavGpsStatus;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
+import vibro.navigator.nav.ui.NavigationGpsSpeedStyle;
 
 /** Displays the navigation fix status inside the map's stable area. */
 final class ViBRoAutoGpsStatusPainter {
@@ -27,6 +29,7 @@ final class ViBRoAutoGpsStatusPainter {
     private final Paint background = new Paint(Paint.ANTI_ALIAS_FLAG);
     private StaticLayout layout;
     private int cachedMaxWidth;
+    private boolean cachedOverLimit;
 
     ViBRoAutoGpsStatusPainter(CarContext context, ElapsedRealtimeClock clock) {
         this.context = context;
@@ -41,14 +44,14 @@ final class ViBRoAutoGpsStatusPainter {
         layout = null;
     }
 
-    float prepare(Rect area, NavGpsStatus status, float scale) {
+    float prepare(Rect area, NavGpsStatus status, float scale, boolean overLimit) {
         float inset = ViBRoAutoRenderScale.dp(context, 8f, scale);
         int maxWidth = (int) (area.width() - 4 * inset);
         if (maxWidth <= 0) {
             return 0f;
         }
         float textSize = ViBRoAutoRenderScale.sp(context, STATUS_TEXT_SIZE_SP, scale);
-        StaticLayout text = layout(status, maxWidth, textSize);
+        StaticLayout text = layout(status, maxWidth, textSize, overLimit);
         float panelHeight = text.getHeight() + 2 * inset;
         return panelHeight < area.height() ? panelHeight : 0f;
     }
@@ -68,14 +71,21 @@ final class ViBRoAutoGpsStatusPainter {
         canvas.restoreToCount(save);
     }
 
-    private StaticLayout layout(NavGpsStatus status, int maxWidth, float textSize) {
+    private StaticLayout layout(NavGpsStatus status, int maxWidth, float textSize, boolean overLimit) {
         String line = NavigationGpsStatusFormatter.statusLine(textResources, status, clock.elapsedRealtimeMs());
         if (layout == null || maxWidth != cachedMaxWidth || textSize != textPaint.getTextSize()
-                || !line.contentEquals(layout.getText())) {
+                || overLimit != cachedOverLimit || !line.contentEquals(layout.getText())) {
             textPaint.setTextSize(textSize);
             cachedMaxWidth = maxWidth;
-            int width = Math.max(1, Math.min(maxWidth, (int) Math.ceil(Layout.getDesiredWidth(line, textPaint))));
-            layout = StaticLayout.Builder.obtain(line, 0, line.length(), textPaint, width)
+            cachedOverLimit = overLimit;
+            CharSequence renderedLine = line;
+            if (overLimit) {
+                SpannableString styled = new SpannableString(line);
+                NavigationGpsSpeedStyle.apply(context, styled, status.telemetry.speedText);
+                renderedLine = styled;
+            }
+            int width = Math.max(1, Math.min(maxWidth, (int) Math.ceil(Layout.getDesiredWidth(renderedLine, textPaint))));
+            layout = StaticLayout.Builder.obtain(renderedLine, 0, renderedLine.length(), textPaint, width)
                     .setAlignment(Layout.Alignment.ALIGN_CENTER)
                     .build();
         }

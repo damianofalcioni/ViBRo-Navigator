@@ -11,6 +11,7 @@ import androidx.car.app.SurfaceContainer;
 
 import vibro.navigator.R;
 import vibro.navigator.android.theme.AndroidAppTheme;
+import vibro.navigator.nav.format.NavigationSpeedLimitFormatter;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 import vibro.navigator.settings.AppCompassSettings;
@@ -40,7 +41,9 @@ final class ViBRoAutoSurfacePainter {
         float scale = ViBRoAutoRenderScale.fromContentHeight(carContext, area.height());
         overlayBounds.set(area);
         boolean fullscreenRoute = AppCompassSettings.isFullscreenRouteEnabled(carContext);
-        float gpsPanelHeight = gpsStatusPainter.prepare(area, state.gpsStatus, scale);
+        boolean overLimit = NavigationSpeedLimitFormatter.isOverLimit(
+                state.gpsStatus.telemetry.speedMps, state.routeStatus.speedLimit);
+        float gpsPanelHeight = gpsStatusPainter.prepare(area, state.gpsStatus, scale, overLimit);
         compassPainter.draw(canvas, state, area.left, area.top, area.width(),
                 area.height() - gpsPanelHeight, fullscreenRoute, overlayBounds, scale);
         gpsStatusPainter.draw(canvas, area, scale, gpsPanelHeight, fullscreenRoute);
