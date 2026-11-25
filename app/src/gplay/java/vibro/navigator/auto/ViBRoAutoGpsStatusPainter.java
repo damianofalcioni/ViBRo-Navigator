@@ -19,6 +19,7 @@ import vibro.navigator.nav.time.ElapsedRealtimeClock;
 /** Displays the navigation fix status inside the map's stable area. */
 final class ViBRoAutoGpsStatusPainter {
     private static final int FULLSCREEN_PANEL_ALPHA = 210;
+    private static final float STATUS_TEXT_SIZE_SP = 22f;
     private final CarContext context;
     private final ElapsedRealtimeClock clock;
     private final AndroidNavigationTextResources textResources;
@@ -46,7 +47,8 @@ final class ViBRoAutoGpsStatusPainter {
         if (maxWidth <= 0) {
             return 0f;
         }
-        StaticLayout text = layout(status, maxWidth, ViBRoAutoRenderScale.sp(context, 16f, scale));
+        float textSize = ViBRoAutoRenderScale.sp(context, STATUS_TEXT_SIZE_SP, scale);
+        StaticLayout text = layout(status, maxWidth, textSize);
         float panelHeight = text.getHeight() + 2 * inset;
         return panelHeight < area.height() ? panelHeight : 0f;
     }

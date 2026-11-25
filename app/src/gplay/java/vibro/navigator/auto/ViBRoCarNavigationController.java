@@ -8,6 +8,7 @@ import android.os.IBinder;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.car.app.CarContext;
+import androidx.car.app.CarToast;
 
 import vibro.navigator.R;
 import vibro.navigator.android.language.AndroidAppLanguage;
@@ -34,7 +35,6 @@ final class ViBRoCarNavigationController {
     private final Host host;
     @NonNull
     private final ViBRoCarNavigationActions actions;
-    private final ViBRoCarSimulationDisplay simulationDisplay;
     private NavigationServiceBinder navBinder;
     private boolean bound;
     private boolean autoDrive;
@@ -44,7 +44,8 @@ final class ViBRoCarNavigationController {
     private final NavigationService.Listener navListener = new NavigationService.Listener() {
         @Override
         public void onState(@NonNull NavState state) {
-            host.updateCurrentState(projectedState(state));
+            host.updateCurrentState(state);
+            showSimulationNoticeIfPending();
         }
 
         @Override
@@ -81,8 +82,6 @@ final class ViBRoCarNavigationController {
         this.carContext = carContext;
         this.host = host;
         actions = new ViBRoCarNavigationActions(host, () -> navBinder);
-        simulationDisplay = new ViBRoCarSimulationDisplay(
-                () -> AndroidAppLanguage.getString(carContext, R.string.label_simulation));
     }
 
     boolean ensureIntegrationEnabled() {
@@ -146,6 +145,7 @@ final class ViBRoCarNavigationController {
         mapVisible = visible;
         if (navBinder != null) {
             navBinder.setCarNavigationClient(true, visible);
+            showSimulationNoticeIfPending();
         }
     }
 
@@ -202,11 +202,11 @@ final class ViBRoCarNavigationController {
         host.updateCurrentState(null);
     }
 
-    private NavState projectedState(NavState state) {
-        if (navBinder == null || !navBinder.isSimulationActive()) {
-            return state;
+    private void showSimulationNoticeIfPending() {
+        if (mapVisible && navBinder != null && navBinder.consumeCarSimulationStartNotice()) {
+            String message = AndroidAppLanguage.getString(carContext, R.string.nav_simulation_started);
+            CarToast.makeText(carContext, message, CarToast.LENGTH_LONG).show();
         }
-        return simulationDisplay.label(state);
     }
 
     private boolean isIntegrationEnabled() {

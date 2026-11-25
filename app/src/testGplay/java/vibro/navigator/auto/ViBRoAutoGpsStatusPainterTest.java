@@ -40,6 +40,7 @@ public class ViBRoAutoGpsStatusPainterTest {
         painter.draw(canvas, area, 1f, panelHeight, true);
         StaticLayout first = getField(painter, "layout");
         assertEquals(gps + " • 3 s", first.getText().toString());
+        assertEquals(ViBRoAutoRenderScale.sp(context, 22f, 1f), first.getPaint().getTextSize(), 0f);
         assertTrue(first.getLineCount() > 1);
         int panelTop = Math.round(area.bottom - panelHeight);
         assertEquals(210, Color.alpha(bitmap.getPixel(area.centerX(), panelTop + 5)));

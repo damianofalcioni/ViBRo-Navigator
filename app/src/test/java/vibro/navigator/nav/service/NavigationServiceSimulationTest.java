@@ -16,6 +16,37 @@ import static org.junit.Assert.assertTrue;
 @RunWith(RobolectricTestRunner.class)
 public class NavigationServiceSimulationTest {
     @Test
+    public void phoneAndCarEachConsumeOneNoticePerSimulatedSession() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationServiceSimulation simulation = new NavigationServiceSimulation(context,
+                new NavigationSession(), () -> 100000, ignored -> { });
+        AppSimulationSettings.setEnabled(context, true);
+        simulation.prepare();
+        simulation.onNavigationStarted();
+        assertTrue(simulation.consumePhoneStartNotice());
+        assertFalse(simulation.consumePhoneStartNotice());
+        assertTrue(simulation.consumeCarStartNotice());
+        assertFalse(simulation.consumeCarStartNotice());
+
+        simulation.prepare();
+        simulation.onNavigationStarted();
+        assertTrue(simulation.consumeCarStartNotice());
+        assertTrue(simulation.consumePhoneStartNotice());
+
+        simulation.prepare();
+        simulation.onNavigationStarted();
+        simulation.stop();
+        assertFalse(simulation.consumeCarStartNotice());
+        assertFalse(simulation.consumePhoneStartNotice());
+
+        AppSimulationSettings.setEnabled(context, false);
+        simulation.prepare();
+        simulation.onNavigationStarted();
+        assertFalse(simulation.consumeCarStartNotice());
+        assertFalse(simulation.consumePhoneStartNotice());
+    }
+
+    @Test
     public void hostActivationRestartsOnceWithoutPersistingManualSettingAndClearsOnStop() {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationServiceSimulation simulation = new NavigationServiceSimulation(context,

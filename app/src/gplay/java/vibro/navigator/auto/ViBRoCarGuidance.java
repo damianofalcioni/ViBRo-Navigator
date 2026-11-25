@@ -15,6 +15,7 @@ import java.util.TimeZone;
 import vibro.navigator.R;
 import vibro.navigator.nav.format.NavStateTextFactory;
 import vibro.navigator.nav.format.NavigationMeasurementFormatter;
+import vibro.navigator.nav.format.NavigationTextFormatter;
 import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.model.NavGuidanceStatus;
 import vibro.navigator.nav.model.NavManeuver;
@@ -96,8 +97,17 @@ final class ViBRoCarGuidance {
     }
 
     private static String stopProgress(NavProgressStatus progress, NavigationTextResources resources, long nowMs) {
-        return progress.nextStop == null ? progress.stopProgressBlock
-                : NavStateTextFactory.formatStopProgress(resources, progress.nextStop, nowMs);
+        var stop = progress.nextStop;
+        if (stop == null) { return progress.stopProgressBlock; }
+        Double seconds = stop.timeSeconds();
+        if (seconds == null || !Double.isFinite(seconds)) {
+            return NavStateTextFactory.formatStopProgress(resources, stop, nowMs);
+        }
+        // The host can truncate long routing cues. Keep the stop's arrival time near its label.
+        String arrival = NavigationTextFormatter.formatEta(nowMs + (long) (seconds * 1000));
+        String distance = NavigationMeasurementFormatter.formatDistance(resources, stop.distanceMeters());
+        String duration = NavigationTextFormatter.formatTimeSeconds(resources, seconds);
+        return resources.getString(R.string.format_progress_line, stop.label(), arrival, distance, duration);
     }
 
     private static String appendDetail(String text, String detail) {

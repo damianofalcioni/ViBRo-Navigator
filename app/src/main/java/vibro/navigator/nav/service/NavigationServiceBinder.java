@@ -85,12 +85,12 @@ public final class NavigationServiceBinder extends Binder {
 
     public void enableSimulation() { simulation.enable(restartNavigation); }
 
-    public boolean isSimulationActive() {
-        return host.isNavigationStarted() && simulation.source().isEnabled();
+    public boolean consumeCarSimulationStartNotice() {
+        return simulation.consumeCarStartNotice();
     }
 
     public boolean consumeSimulationStartNotice() {
-        return simulation.consumeStartNotice();
+        return simulation.consumePhoneStartNotice();
     }
 
     public void registerListener(@NonNull NavigationService.Listener listener) {

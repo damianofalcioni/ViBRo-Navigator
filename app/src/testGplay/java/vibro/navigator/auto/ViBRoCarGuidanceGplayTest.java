@@ -118,9 +118,8 @@ public class ViBRoCarGuidanceGplayTest {
         NavState state = withProgress(new NavTravelEstimate(1_200, 140, 1_700_000_000_000L, false), stop);
         NavigationTemplate car = template(state);
         String cue = routing(car).getCurrentStep().getCue().toString();
-        assertTrue(cue.contains(stop.label()));
-        assertTrue(cue.contains("350 m"));
-        assertTrue(cue.contains(NavigationTextFormatter.formatEta(1_700_000_090_000L)));
+        String arrival = NavigationTextFormatter.formatEta(1_700_000_090_000L);
+        assertTrue(cue.contains(stop.label() + ": " + arrival + " • 350 m"));
         assertEquals(140, car.getDestinationTravelEstimate().getRemainingTimeSeconds());
     }
 

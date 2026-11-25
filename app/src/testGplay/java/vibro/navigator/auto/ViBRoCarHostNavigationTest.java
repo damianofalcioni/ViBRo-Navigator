@@ -21,7 +21,7 @@ public class ViBRoCarHostNavigationTest {
         RecordingHost host = new RecordingHost();
         ViBRoCarHostNavigation navigation = new ViBRoCarHostNavigation(host, () -> { });
         NavState initial = CarNavigationTestStates.active(false, false);
-        NavState simulated = new ViBRoCarSimulationDisplay(() -> "Simulation").label(initial);
+        NavState simulated = CarNavigationTestStates.loading();
         navigation.setAutoDriveAction(() -> navigation.update(simulated));
         host.onStart = navigation::onAutoDriveEnabled;
         navigation.update(initial);

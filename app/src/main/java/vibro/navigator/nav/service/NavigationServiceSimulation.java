@@ -15,7 +15,8 @@ final class NavigationServiceSimulation {
     private final Context context;
     private final NavigationSimulator source;
     private boolean autoDrive;
-    private boolean startNoticePending;
+    private boolean phoneStartNoticePending;
+    private boolean carStartNoticePending;
 
     NavigationServiceSimulation(Context context, NavigationSession session, ElapsedRealtimeClock clock,
             NavigationSimulator.LocationSink output) {
@@ -33,17 +34,24 @@ final class NavigationServiceSimulation {
     }
 
     void prepare() {
-        startNoticePending = false;
+        clearStartNotices();
         source.configure(autoDrive || AppSimulationSettings.isEnabled(context), AppSimulationSettings.read(context));
     }
 
     void onNavigationStarted() {
-        startNoticePending = source.isEnabled();
+        phoneStartNoticePending = source.isEnabled();
+        carStartNoticePending = phoneStartNoticePending;
     }
 
-    boolean consumeStartNotice() {
-        boolean pending = startNoticePending;
-        startNoticePending = false;
+    boolean consumePhoneStartNotice() {
+        boolean pending = phoneStartNoticePending;
+        phoneStartNoticePending = false;
+        return pending;
+    }
+
+    boolean consumeCarStartNotice() {
+        boolean pending = carStartNoticePending;
+        carStartNoticePending = false;
         return pending;
     }
 
@@ -55,7 +63,12 @@ final class NavigationServiceSimulation {
 
     void stop() {
         autoDrive = false;
-        startNoticePending = false;
+        clearStartNotices();
         source.pause();
+    }
+
+    private void clearStartNotices() {
+        phoneStartNoticePending = false;
+        carStartNoticePending = false;
     }
 }
