@@ -40,7 +40,7 @@ final class ViBRoAutoGpsStatusPainter {
         layout = null;
     }
 
-    float draw(Canvas canvas, Rect area, NavGpsStatus status, float scale, boolean fullscreenRoute) {
+    float prepare(Rect area, NavGpsStatus status, float scale) {
         float inset = ViBRoAutoRenderScale.dp(context, 8f, scale);
         int maxWidth = (int) (area.width() - 4 * inset);
         if (maxWidth <= 0) {
@@ -48,20 +48,22 @@ final class ViBRoAutoGpsStatusPainter {
         }
         StaticLayout text = layout(status, maxWidth, ViBRoAutoRenderScale.sp(context, 16f, scale));
         float panelHeight = text.getHeight() + 2 * inset;
-        if (panelHeight >= area.height()) {
-            return 0f;
-        }
-        float left = area.left + 2 * inset;
-        float top = area.top + inset;
+        return panelHeight < area.height() ? panelHeight : 0f;
+    }
+
+    void draw(Canvas canvas, Rect area, float scale, float panelHeight, boolean fullscreenRoute) {
+        if (layout == null || panelHeight <= 0f) { return; }
+        float inset = ViBRoAutoRenderScale.dp(context, 8f, scale);
+        float left = area.exactCenterX() - layout.getWidth() / 2f;
+        float top = area.bottom - panelHeight + inset;
         background.setAlpha(fullscreenRoute ? FULLSCREEN_PANEL_ALPHA : 255);
         int save = canvas.save();
         canvas.clipRect(area);
-        canvas.drawRoundRect(left - inset, top - inset / 2, left + text.getWidth() + inset,
-                top + text.getHeight() + inset / 2, inset, inset, background);
+        canvas.drawRoundRect(left - inset, top - inset / 2, left + layout.getWidth() + inset,
+                top + layout.getHeight() + inset / 2, inset, inset, background);
         canvas.translate(left, top);
-        text.draw(canvas);
+        layout.draw(canvas);
         canvas.restoreToCount(save);
-        return panelHeight;
     }
 
     private StaticLayout layout(NavGpsStatus status, int maxWidth, float textSize) {

@@ -84,7 +84,10 @@ final class ViBRoAutoCompassPainter {
         float drawTop = top + (height - measuredHeight) / 2f;
         bounds.set(drawLeft, drawTop, drawLeft + measuredWidth, drawTop + measuredHeight);
         int saveCount = canvas.save();
-        canvas.clipRect(bounds);
+        // The fullscreen map can continue beneath the host's cards.
+        if (!fullscreenRouteMode) {
+            canvas.clipRect(bounds);
+        }
         canvas.translate(drawLeft, drawTop);
         compassView.draw(canvas);
         canvas.restoreToCount(saveCount);

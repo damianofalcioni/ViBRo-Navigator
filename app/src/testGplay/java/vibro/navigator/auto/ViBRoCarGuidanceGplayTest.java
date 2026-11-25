@@ -53,6 +53,7 @@ public class ViBRoCarGuidanceGplayTest {
         NavState state = withTravelEstimate(2_450, 400);
         NavigationTemplate metric = template(state);
         assertEquals(Distance.create(120, Distance.UNIT_METERS), routing(metric).getCurrentDistance());
+        assertNotNull(routing(metric).getCurrentStep().getManeuver().getIcon());
         assertEquals(Distance.create(2.5, Distance.UNIT_KILOMETERS_P1),
                 metric.getDestinationTravelEstimate().getRemainingDistance());
 
@@ -62,7 +63,9 @@ public class ViBRoCarGuidanceGplayTest {
         assertEquals(feet, routing(imperial).getCurrentDistance());
         assertEquals(Distance.create(1.5, Distance.UNIT_MILES_P1),
                 imperial.getDestinationTravelEstimate().getRemainingDistance());
-        assertEquals(feet, ViBRoCarTrip.from(state, true, null).getStepTravelEstimates().get(0).getRemainingDistance());
+        Trip trip = ViBRoCarTrip.from(state, true, ViBRoCarManeuvers.Icons.from(context));
+        assertEquals(feet, trip.getStepTravelEstimates().get(0).getRemainingDistance());
+        assertNotNull(trip.getSteps().get(0).getManeuver().getIcon());
     }
 
     @Test
@@ -97,10 +100,12 @@ public class ViBRoCarGuidanceGplayTest {
                 base.pauseStatus, base.tripStatus);
 
         RoutingInfo info = routing(template(state));
-        Trip trip = ViBRoCarTrip.from(state, false, null);
+        Trip trip = ViBRoCarTrip.from(state, false, ViBRoCarManeuvers.Icons.from(context));
         assertEquals("≈ Turn right · 12 s", info.getCurrentStep().getCue().toString());
         assertEquals("≈ Turn left · 20 m · 3 s", info.getNextStep().getCue().toString());
-        assertEquals(info.getCurrentStep().getManeuver(), trip.getSteps().get(0).getManeuver());
+        assertEquals(info.getCurrentStep().getManeuver().getType(), trip.getSteps().get(0).getManeuver().getType());
+        assertNotNull(info.getNextStep().getManeuver().getIcon());
+        assertNotNull(trip.getSteps().get(0).getManeuver().getIcon());
         assertEquals("≈ Turn right", trip.getSteps().get(0).getCue().toString());
         assertEquals("≈ Turn left", trip.getSteps().get(1).getCue().toString());
         assertEquals(Distance.create(140, Distance.UNIT_METERS),

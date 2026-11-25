@@ -30,17 +30,13 @@ final class ViBRoAutoCompassOverlayPainter {
         text.setTextAlign(Paint.Align.CENTER);
     }
 
-    static float badgeSize(CarContext context, float scale) {
-        return ViBRoAutoRenderScale.dp(context, BADGE_SIZE_DP, scale);
-    }
-
     void draw(@NonNull Canvas canvas, @NonNull NavState state, @NonNull RectF safeArea, float scale) {
         if (state.routeStatus.speedLimit == null) { return; }
         boolean overLimit = NavigationSpeedLimitFormatter.isOverLimit(
                 state.gpsStatus.telemetry.speedMps, state.routeStatus.speedLimit);
         fill.setColor(overLimit ? OVER_LIMIT_RED : Color.WHITE);
         text.setColor(overLimit ? Color.WHITE : Color.BLACK);
-        float size = badgeSize(carContext, scale);
+        float size = ViBRoAutoRenderScale.dp(carContext, BADGE_SIZE_DP, scale);
         if (safeArea.width() < size || safeArea.height() < size) { return; }
         outline.setStrokeWidth(ViBRoAutoRenderScale.dp(carContext, 5f, scale));
         badge.set(safeArea.right - size, safeArea.top, safeArea.right, safeArea.top + size);

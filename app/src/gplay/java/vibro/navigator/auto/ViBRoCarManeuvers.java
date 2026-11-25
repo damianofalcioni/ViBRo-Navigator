@@ -26,9 +26,10 @@ import vibro.navigator.nav.route.RouteStartApproach;
 import vibro.navigator.nav.route.VoiceHint;
 
 final class ViBRoCarManeuvers {
-    record Icons(CarIcon uTurn, CarIcon beeline) {
+    record Icons(CarIcon uTurn, CarIcon beeline, ViBRoCarManeuverGlyphs glyphs) {
         static Icons from(Context context) {
-            return new Icons(icon(context, R.drawable.ic_auto_uturn), icon(context, R.drawable.ic_auto_beeline));
+            return new Icons(icon(context, R.drawable.ic_auto_uturn), icon(context, R.drawable.ic_auto_beeline),
+                    new ViBRoCarManeuverGlyphs());
         }
 
         private static CarIcon icon(Context context, @DrawableRes int drawable) {
@@ -90,11 +91,12 @@ final class ViBRoCarManeuvers {
     }
 
     static Maneuver maneuver(VoiceHint hint, @Nullable Icons icons) {
-        if (isRoundabout(hint)) {
-            return roundaboutManeuver(hint);
+        int maneuverType = maneuverType(hint);
+        Maneuver.Builder builder = new Maneuver.Builder(maneuverType);
+        if (isRoundabout(hint) && hint.exitNumber != 0) {
+            builder.setRoundaboutExitNumber(Math.abs(hint.exitNumber));
         }
-        Maneuver.Builder builder = new Maneuver.Builder(type(hint.command));
-        CarIcon icon = maneuverIcon(hint.command, icons);
+        CarIcon icon = maneuverIcon(hint, maneuverType, icons);
         if (icon != null) {
             builder.setIcon(icon);
         }
@@ -102,22 +104,20 @@ final class ViBRoCarManeuvers {
     }
 
     @Nullable
-    private static CarIcon maneuverIcon(int command, @Nullable Icons icons) {
+    private static CarIcon maneuverIcon(VoiceHint hint, int maneuverType, @Nullable Icons icons) {
         if (icons == null) { return null; }
-        return switch (command) {
+        return switch (hint.command) {
             case 15 -> icons.uTurn();
             case RouteStartApproach.BEELINE_COMMAND -> icons.beeline();
-            default -> null;
+            default -> maneuverType == Maneuver.TYPE_UNKNOWN ? null : icons.glyphs().get(hint);
         };
     }
 
-    private static Maneuver roundaboutManeuver(VoiceHint hint) {
-        if (hint.exitNumber != 0) {
-            return new Maneuver.Builder(type(hint.command))
-                    .setRoundaboutExitNumber(Math.abs(hint.exitNumber)).build();
+    private static int maneuverType(VoiceHint hint) {
+        if (isRoundabout(hint) && hint.exitNumber == 0) {
+            return hint.command == 13 ? Maneuver.TYPE_ROUNDABOUT_ENTER_CCW : Maneuver.TYPE_ROUNDABOUT_ENTER_CW;
         }
-        int entry = hint.command == 13 ? Maneuver.TYPE_ROUNDABOUT_ENTER_CCW : Maneuver.TYPE_ROUNDABOUT_ENTER_CW;
-        return new Maneuver.Builder(entry).build();
+        return type(hint.command);
     }
 
     private static boolean isRoundabout(VoiceHint hint) {
