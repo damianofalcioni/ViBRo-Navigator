@@ -692,3 +692,14 @@ Do not redo the completed template/metadata/intent integration merely because a 
   ```powershell
   .\gradlew.bat :app:minifyGplayReleaseWithR8 --rerun :app:minifyFdroidReleaseWithR8 --rerun --max-workers=2 --info --console=plain
   ```
+
+## Follow-up review of ordinary navigation workflows (2026-11-26)
+
+- Reviewed `963bf673` against `main` at `2ba4dad3`. One regression remains open. Android Auto's current-turn card displays sub-minute maneuver times as `0 min` on DHU 2.1. The November 26 capture `build/dhu-metrics-custom-confirmed.png` shows `Turn right · 0 min` at 140 m and `154 m · 27 s` on the following turn. In `main`, the surface drew the shared duration text in seconds. The current cue wraps that text in `DurationSpan`, which lets the host replace it. The following-turn cue already uses plain localized duration text. The current-turn cue code is unchanged since the capture. [AndroidX DurationSpan reference](https://developer.android.com/reference/androidx/car/app/model/DurationSpan)
+- Existing unit tests inspect the fallback cue string and do not exercise the host's rendering. The focused run passed 40 F-Droid and 146 Google Play tests with zero failures, errors, or skips. `git diff --check main...HEAD` passed. The ignored test log is `build/current-branch-regression-review-963bf673.log`. No new head-unit run or production code change was made. No Gradle invocation remains active.
+
+  ```powershell
+  $shared = '--tests', '*NavigationForegroundControllerTest', '--tests', '*NavigationSessionInitialRouteTest', '--tests', '*NavigationServiceInitialRouteTest', '--tests', '*NavigationServiceSimulationTest', '--tests', '*NavigationSimulationArrivalTest', '--tests', '*NavigationLocationControllerTest', '--tests', '*NavigationGpsStatusResourcesRobolectricTest', '--tests', '*SurroundingStreetChunkLoaderTest'
+  $car = '--tests', 'vibro.navigator.auto.*', '--tests', 'vibro.navigator.android.automotive.*', '--tests', '*AndroidAutoGuidanceNotificationsTest'
+  .\gradlew.bat :app:testFdroidDebugUnitTest @shared :app:testGplayDebugUnitTest @shared @car --max-workers=2 --continue --console=plain
+  ```
