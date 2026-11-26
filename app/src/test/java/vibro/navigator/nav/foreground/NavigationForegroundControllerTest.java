@@ -11,6 +11,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Application;
 import android.app.Notification;
@@ -38,13 +39,33 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.android.controller.ServiceController;
 import org.robolectric.annotation.Config;
+import org.robolectric.util.ReflectionHelpers;
 import org.xmlpull.v1.XmlPullParser;
+
+import java.util.Collections;
+
+import vibro.navigator.nav.model.NavigationRequest;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(application = Application.class, sdk = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 public class NavigationForegroundControllerTest {
 
     private static final String ANDROID_XML_NAMESPACE = "http://schemas.android.com/apk/res/android";
+
+    @Test
+    public void foregroundNotificationRequestsImmediateDisplay() {
+        ServiceController<TestService> serviceController = Robolectric.buildService(TestService.class).create();
+        TestService service = serviceController.get();
+        NavigationForegroundController controller = new AndroidNavigationForegroundController(service);
+        controller.ensureChannels();
+        controller.promoteToForeground(new NavigationRequest(null, null, null, Collections.emptyList()), false);
+
+        Notification notification = shadowOf(service).getLastForegroundNotification();
+        assertNotNull(notification);
+        // Check the platform's display decision, which is not exposed by the public SDK.
+        assertTrue(ReflectionHelpers.<Boolean>callInstanceMethod(notification, "shouldShowForegroundImmediately"));
+        serviceController.destroy();
+    }
 
     @Test
     public void ensureChannelsCreatesSilentDirectionalChannelsAndRemovesLegacyIds() {

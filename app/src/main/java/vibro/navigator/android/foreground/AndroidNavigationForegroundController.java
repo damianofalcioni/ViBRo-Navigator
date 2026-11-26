@@ -215,6 +215,7 @@ public final class AndroidNavigationForegroundController implements NavigationFo
                         paused ? R.string.notification_nav_paused_text : R.string.notification_nav_running_text
                 ))
                 .setOngoing(true)
+                .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
                 .setDeleteIntent(stopNavigationPendingIntent)
                 .setContentIntent(openNavigationPendingIntent)
                 .build();

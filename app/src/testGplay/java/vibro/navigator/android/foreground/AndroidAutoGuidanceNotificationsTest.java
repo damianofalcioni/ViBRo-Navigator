@@ -5,26 +5,41 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.robolectric.Shadows.shadowOf;
 
+import android.app.Application;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.ContentProvider;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
+import android.database.Cursor;
+import android.database.MatrixCursor;
+import android.net.Uri;
 import android.os.Build;
+import android.os.Looper;
 import android.service.notification.StatusBarNotification;
 
 import androidx.car.app.connection.CarConnection;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
+import androidx.test.core.app.ApplicationProvider;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.android.controller.ServiceController;
 import org.robolectric.annotation.Config;
-import org.robolectric.annotation.Implementation;
-import org.robolectric.annotation.Implements;
+import org.robolectric.shadows.ShadowContentResolver;
+import org.robolectric.util.ReflectionHelpers;
 
+import java.util.ArrayDeque;
+import java.util.concurrent.Executor;
+
+import vibro.navigator.android.automotive.AndroidAutoConnectionMonitor;
 import vibro.navigator.nav.foreground.NavigationForegroundControllerTest.TestService;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
@@ -35,9 +50,27 @@ import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.settings.AppNotificationSettings;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = Build.VERSION_CODES.UPSIDE_DOWN_CAKE, shadows = AndroidAutoGuidanceNotificationsTest.ConnectionShadow.class)
+@Config(application = Application.class, sdk = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 public class AndroidAutoGuidanceNotificationsTest {
     private static final VoiceHint LEFT_TURN = new VoiceHint(0, 2, 0, 0.0, 0);
+
+    private final ArrayDeque<Runnable> workerTasks = new ArrayDeque<>();
+    private final ConnectionProvider provider = new ConnectionProvider();
+    private Application application;
+
+    @Before
+    public void startConnectionMonitor() {
+        application = ApplicationProvider.getApplicationContext();
+        ShadowContentResolver.registerProviderInternal("androidx.car.app.connection", provider);
+        ReflectionHelpers.callStaticMethod(AndroidAutoConnectionMonitor.class, "start",
+                ReflectionHelpers.ClassParameter.from(Context.class, application),
+                ReflectionHelpers.ClassParameter.from(Executor.class, workerTasks::addLast));
+    }
+
+    @After
+    public void clearConnectionMonitor() {
+        ReflectionHelpers.setStaticField(AndroidAutoConnectionMonitor.class, "silenceGuidance", false);
+    }
 
     @Test
     public void projectionChangesAlertChannelDuringTheSameServiceSession() {
@@ -58,11 +91,22 @@ public class AndroidAutoGuidanceNotificationsTest {
         controller.sendImminentTurnNotification(LEFT_TURN, 50.0, 5.0);
         assertSilentAlert(manager);
 
-        ConnectionShadow.type.setValue(CarConnection.CONNECTION_TYPE_NOT_CONNECTED);
+        changeHostConnection(CarConnection.CONNECTION_TYPE_NOT_CONNECTED);
+        assertEquals(1, workerTasks.size());
+        workerTasks.removeFirst().run();
+        controller.sendImminentTurnNotification(LEFT_TURN, 50.0, 5.0);
+        assertSilentAlert(manager);
+
+        runWorkerTasks();
         controller.sendImminentTurnNotification(LEFT_TURN, 50.0, 5.0);
         assertEquals(NavigationService.CHANNEL_ID_TURN_LEFT, postedAlert(manager).getChannelId());
 
-        ConnectionShadow.type.setValue(CarConnection.CONNECTION_TYPE_PROJECTION);
+        changeHostConnection(CarConnection.CONNECTION_TYPE_PROJECTION);
+        changeHostConnection(CarConnection.CONNECTION_TYPE_PROJECTION);
+        assertEquals(1, workerTasks.size());
+        controller.sendImminentTurnNotification(LEFT_TURN, 50.0, 5.0);
+        assertSilentAlert(manager);
+        runWorkerTasks();
         controller.sendImminentTurnNotification(LEFT_TURN, 50.0, 5.0);
         assertSilentAlert(manager);
         controller.sendStationaryOrientationNotification(new StationaryOrientationAdvisor.Decision(45.0));
@@ -73,7 +117,7 @@ public class AndroidAutoGuidanceNotificationsTest {
         controller.sendWrongDirectionNotification(new NavigationWrongDirectionNotice(90.0, 270.0, 180.0));
         assertSilentAlert(manager);
 
-        ConnectionShadow.type.setValue(CarConnection.CONNECTION_TYPE_NOT_CONNECTED);
+        setHostConnection(CarConnection.CONNECTION_TYPE_NOT_CONNECTED);
         controller.sendImminentTurnNotification(LEFT_TURN, 50.0, 5.0);
         assertEquals(NavigationService.CHANNEL_ID_TURN_LEFT, postedAlert(manager).getChannelId());
         serviceController.destroy();
@@ -83,7 +127,7 @@ public class AndroidAutoGuidanceNotificationsTest {
     public void projectedSymbolTestIsStillPostedSilently() {
         ServiceController<TestService> serviceController = Robolectric.buildService(TestService.class).create();
         TestService service = serviceController.get();
-        ConnectionShadow.type.setValue(CarConnection.CONNECTION_TYPE_PROJECTION);
+        setHostConnection(CarConnection.CONNECTION_TYPE_PROJECTION);
 
         assertTrue(AndroidNavigationNotificationDebugHelper.postRightSymbolTestNotification(service));
         assertSilentAlert(service.getSystemService(NotificationManager.class));
@@ -101,7 +145,7 @@ public class AndroidAutoGuidanceNotificationsTest {
         AndroidNavigationForegroundController controller = new AndroidNavigationForegroundController(service);
         controller.ensureChannels();
 
-        ConnectionShadow.type.setValue(CarConnection.CONNECTION_TYPE_PROJECTION);
+        setHostConnection(CarConnection.CONNECTION_TYPE_PROJECTION);
         controller.sendImminentTurnNotification(LEFT_TURN, 50.0, 5.0);
         assertFalse(AndroidNavigationNotificationDebugHelper.postLeftSymbolTestNotification(service));
         assertEquals(0, manager.getActiveNotifications().length);
@@ -121,10 +165,10 @@ public class AndroidAutoGuidanceNotificationsTest {
         NotificationManager manager = (NotificationManager) service.getSystemService(TestService.NOTIFICATION_SERVICE);
         AndroidNavigationForegroundController controller = new AndroidNavigationForegroundController(service);
 
-        ConnectionShadow.type.setValue(CarConnection.CONNECTION_TYPE_NOT_CONNECTED);
+        setHostConnection(CarConnection.CONNECTION_TYPE_NOT_CONNECTED);
         controller.sendImminentTurnNotification(LEFT_TURN, 50.0, 5.0);
         assertNotNull(postedAlert(manager).vibrate);
-        ConnectionShadow.type.setValue(CarConnection.CONNECTION_TYPE_PROJECTION);
+        setHostConnection(CarConnection.CONNECTION_TYPE_PROJECTION);
         controller.sendImminentTurnNotification(LEFT_TURN, 50.0, 5.0);
         assertNull(postedAlert(manager).vibrate);
         serviceController.destroy();
@@ -143,13 +187,57 @@ public class AndroidAutoGuidanceNotificationsTest {
         return alerts[0].getNotification();
     }
 
-    @Implements(value = CarConnection.class, isInAndroidSdk = false)
-    public static final class ConnectionShadow {
-        static final MutableLiveData<Integer> type = new MutableLiveData<>();
+    private void setHostConnection(int type) {
+        changeHostConnection(type);
+        runWorkerTasks();
+    }
 
-        @Implementation
-        protected LiveData<Integer> getType() {
-            return type;
+    private void changeHostConnection(int type) {
+        provider.type = type;
+        application.sendBroadcast(new Intent(CarConnection.ACTION_CAR_CONNECTION_UPDATED));
+        shadowOf(Looper.getMainLooper()).idle();
+    }
+
+    private void runWorkerTasks() {
+        while (!workerTasks.isEmpty()) {
+            workerTasks.removeFirst().run();
+        }
+    }
+
+    private static final class ConnectionProvider extends ContentProvider {
+        private int type = CarConnection.CONNECTION_TYPE_NOT_CONNECTED;
+
+        @Override
+        public boolean onCreate() {
+            return true;
+        }
+
+        @Override
+        public Cursor query(Uri uri, String[] projection, String selection, String[] arguments, String order) {
+            assertEquals(CarConnection.CAR_CONNECTION_STATE, projection[0]);
+            MatrixCursor state = new MatrixCursor(new String[]{CarConnection.CAR_CONNECTION_STATE});
+            state.newRow().add(type);
+            return state;
+        }
+
+        @Override
+        public String getType(Uri uri) {
+            return null;
+        }
+
+        @Override
+        public Uri insert(Uri uri, ContentValues values) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int update(Uri uri, ContentValues values, String selection, String[] arguments) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int delete(Uri uri, String selection, String[] arguments) {
+            throw new UnsupportedOperationException();
         }
     }
 }
