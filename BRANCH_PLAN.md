@@ -2,6 +2,7 @@
 
 ## Current state and first actions
 
+- The remaining input timeout reproduced twice during release shrinking on the SwiftShader emulator. Both traces identified a first-frame Android RenderThread stall. Idle and post-build launches passed. See the focus timeout investigation at the end of this plan.
 - Both November 26 startup fixes are implemented and verified. The ongoing navigation notification requests immediate display and Android Auto connection observation uses a process-wide worker. See the latest section below for device and test results.
 - The November 26 failure investigation reproduced a route shutdown caused by foreground notification deferral and located the blocking Android Auto receiver registration in the historical startup ANR. Three fresh cold launches and one DHU reconnect completed without a new ANR. See the final investigation below.
 - The most recent audit-fixes section records the three fixes requested after syncing this branch with `main`. The earlier coverage audit and sync entries are historical.
@@ -679,4 +680,15 @@ Do not redo the completed template/metadata/intent integration merely because a 
   $checks = ':app:assembleGplayDebug', ':app:assembleFdroidDebug', ':app:assembleGplayRelease', ':app:assembleFdroidRelease', ':app:lintGplayDebug', ':app:lintFdroidDebug', ':app:complexityCheck', ':app:testGplayDebugUnitTest', ':app:testFdroidDebugUnitTest'
   .\gradlew.bat -I build/open-regression-fixes-test-heap.init.gradle @checks --max-workers=2 --continue --console=plain
   .\gradlew.bat :app:dependencies --configuration fdroidReleaseRuntimeClasspath --console=plain
+  ```
+
+## Emulator focus timeout investigation (2026-11-26)
+
+- Recovered the original Android event timeline. At 16:08, `MainActivity.onCreate` took 8.4 seconds and the first frame arrived 31.0 seconds after launch. Android Auto and System UI skipped frames around the same time. One `system_server` background dispatch took 17.4 seconds. The original ANR captured no app stack. The local logs are `build/dhu-timeout-history-events.log` and `build/dhu-timeout-followup/history-system.log`.
+- Used the same Android 16 AVD with DHU projection active throughout and verified that its installed APK matched the current Google Play debug artifact. SurfaceFlinger reported SwiftShader software graphics. Two ViBRo cold launches took 4.2 and 4.5 seconds with Gradle idle. During the R8 run they took 11.7 and 19.8 seconds, and both produced the same five-second focus input ANR. The Android Settings control took up to 14.3 seconds during that run. After R8 finished, ViBRo cold launches took 3.6 and 4.3 seconds and Settings took 2.1 and 2.3 seconds. Neither idle phase produced an ANR. [Android Emulator graphics modes](https://developer.android.com/studio/run/emulator-acceleration#accel-graphics).
+- Both new ANR stacks place the UI thread in `ViewRootImpl.performDraw` waiting in `HardwareRenderer.setStopped`. Perfetto shows that the main thread slept through the five-second focus deadline while `RenderThread` was continuously running or waiting to be scheduled. The first-frame render work lasted 12.4 and 6.5 seconds and included Skia shader compilation. The incoming focus messages reached the app's main thread after 11.5 and 6.0 seconds. These reproductions identify rendering under emulator load as the cause of the new ANRs and the best-supported explanation for the original timeout.
+- Ran the release shrinking tasks below and alternated cold launches of `vibro.navigator.debug/vibro.navigator.main.MainActivity` and `com.android.settings/.Settings` with `adb -s emulator-5564 shell am start --display 0 -S -W -n <component>` before, during, and after the build. The local ignored evidence is under `build/dhu-timeout-followup/`, including launch and DropBox logs, Perfetto traces with scheduling, Binder, view and input events, and the SQL analysis in `r8-focus-sql.log`. No trace data loss was reported. Returned the emulator to ViBRo's idle main screen with the DHU connected. The release shrinking tasks passed and no Gradle invocation remains active.
+
+  ```powershell
+  .\gradlew.bat :app:minifyGplayReleaseWithR8 --rerun :app:minifyFdroidReleaseWithR8 --rerun --max-workers=2 --info --console=plain
   ```
