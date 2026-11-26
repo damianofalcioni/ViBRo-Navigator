@@ -610,3 +610,10 @@ Do not redo the completed template/metadata/intent integration merely because a 
   $shared = '--tests', '*AppNavigationCustomButton*', '--tests', '*UpcomingManeuver*', '--tests', '*NavigationInstructionColorTest', '--tests', '*NavigationSession*Test', '--tests', '*StraightLine*Test'
   .\gradlew.bat :app:assembleGplayDebug :app:lintGplayDebug :app:complexityCheck :app:testGplayDebugUnitTest @shared --tests 'vibro.navigator.auto.*' :app:testFdroidDebugUnitTest @shared --max-workers=2 --continue --console=plain
   ```
+
+## Intermediate-stop line break and fit (2026-11-26)
+
+- The user asked for a line break immediately after the stop label so all stop metrics would be visible. The 800×480 DHU showed the current maneuver followed by `Stop 1:…` and hid the metrics on the third line. The native card API accepts a current-step cue and a separate following step. It has no option to allocate another row. Local capture: `build/dhu-stop-label-split-warm.png`. [Navigation template routing card](https://developer.android.com/design/ui/cars/guides/templates/navigation-template#routing-card-details).
+- The user chose the stop symbol in place of the numbered label. The app shares the phone's square symbol and follows it with the arrival clock, distance, and duration on one line. The shorter cue retains the symbol, arrival time, and distance. The final destination keeps its native estimate card.
+- The final debug build rendered `■ 10:20 · 1.9 km · 6 min` in full with the following turn and final ETA still visible on the DHU. Capture: `build/dhu-stop-symbol-settled.png`. Restored the temporary emulator simulation settings and battery allowlist entry after validation.
+- The debug build, lint, complexity check, and 100 focused tests passed across both flavors. The Google Play tests used `vibro.navigator.auto.*` and `*VoiceHintMapperTest`. F-Droid ran `*VoiceHintMapperTest`. Robolectric temporary files were moved to `build/dhu-stop-symbol-temp` after a C: extraction failure. Final log: `build/dhu-stop-symbol-storage-checks.log`.

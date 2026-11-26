@@ -13,7 +13,7 @@ import androidx.car.app.navigation.model.TravelEstimate;
 import java.util.TimeZone;
 
 import vibro.navigator.R;
-import vibro.navigator.nav.format.NavStateTextFactory;
+import vibro.navigator.nav.directions.VoiceHintMapper;
 import vibro.navigator.nav.format.NavigationMeasurementFormatter;
 import vibro.navigator.nav.format.NavigationTextFormatter;
 import vibro.navigator.nav.format.NavigationTextResources;
@@ -24,6 +24,8 @@ import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.model.NavTravelEstimate;
 
 final class ViBRoCarGuidance {
+    private static final String STOP_METRIC_SEPARATOR = "\u2009·\u2009";
+
     private record StopProgress(String full, String compact) { }
 
     private ViBRoCarGuidance() { }
@@ -109,15 +111,14 @@ final class ViBRoCarGuidance {
         if (stop == null) { return new StopProgress(progress.stopProgressBlock, progress.stopProgressBlock); }
         Double seconds = stop.timeSeconds();
         String distance = NavigationMeasurementFormatter.formatDistance(resources, stop.distanceMeters());
+        String symbol = VoiceHintMapper.INTERMEDIATE_STOP_SYMBOL + " ";
         if (seconds == null || !Double.isFinite(seconds)) {
-            return new StopProgress(NavStateTextFactory.formatStopProgress(resources, stop, nowMs),
-                    stop.label() + ": " + distance);
+            return new StopProgress(symbol + distance, symbol + distance);
         }
-        // The host can truncate long routing cues. Keep the stop's arrival time near its label.
         String arrival = NavigationTextFormatter.formatEta(nowMs + (long) (seconds * 1000));
         String duration = NavigationTextFormatter.formatTimeSeconds(resources, seconds);
-        return new StopProgress(resources.getString(R.string.format_progress_line, stop.label(), arrival, distance,
-                duration), stop.label() + ": " + arrival + " • " + distance);
+        String compact = symbol + arrival + STOP_METRIC_SEPARATOR + distance;
+        return new StopProgress(compact + STOP_METRIC_SEPARATOR + duration, compact);
     }
 
     private static String appendDetail(String text, String detail) {

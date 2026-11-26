@@ -121,8 +121,9 @@ public class ViBRoCarGuidanceGplayTest {
         NavigationTemplate car = template(state);
         var cue = routing(car).getCurrentStep().getCue();
         String arrival = NavigationTextFormatter.formatEta(1_700_000_090_000L);
-        String stopLine = stop.label() + ": " + arrival + " • 350 m";
-        assertTrue(cue.toString().contains(stopLine));
+        String stopLine = "■ " + arrival + "\u2009·\u2009350 m";
+        assertTrue(cue.toString().contains("\n" + stopLine + "\u2009·\u20092 min"));
+        assertFalse(cue.toString().contains(stop.label()));
         assertTrue(cue.getVariants().get(0).toString().endsWith(stopLine));
         assertEquals(140, car.getDestinationTravelEstimate().getRemainingTimeSeconds());
     }
