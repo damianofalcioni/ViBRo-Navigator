@@ -630,3 +630,12 @@ Do not redo the completed template/metadata/intent integration merely because a 
 
 - Verified the final Google Play debug build on the official Android emulator and Desktop Head Unit. Both dark-mode captures show a posted 60 sign with no outer white rim and the simulated 65 km/h speed in bold route red. Captures: `build/speed-limit-dhu-overspeed-full.png` and `build/speed-limit-phone-confirmed-dark-landscape.png`. The original day-mode check showed the revised sign and numerals, and the final native test covers the light-mode rim.
 - An emulator guest reboot and several DHU restarts produced intermittent connection failures. The Android event log recorded input dispatch ANRs for Android Auto and the debug app, along with a System UI startup ANR (`build/dhu-speed-badge-device-anr.log`). A full emulator shutdown and cold start of the same AVD, followed by starting the head unit server and reconnecting the DHU, enabled the final captures. The cause of the intermittent ANRs remains unverified. Restored the test simulation preferences, battery allowlist, phone rotation and DHU day mode.
+
+## Android Auto one-finger tilt icon (2026-11-26)
+
+- The user proposed three native gesture hints on the Android Auto idle pane and asked to create only the tilt icon first. The Google Play drawable `ic_auto_gesture_tilt` is derived from the phone's two-finger vector. It removes the right raised finger and its divider, preserving the remaining finger, thumb, palm, arrows, stroke, and dimensions. The idle pane integration is outside this step.
+- Compared both rendered vectors in `build/auto-gesture-tilt-comparison.png`. The Google Play debug build, lint, and 93 Android Auto tests passed. Lint reports the deliberately unreferenced drawable until the idle pane uses it. Local log: `build/auto-gesture-tilt-checks.log`.
+
+  ```powershell
+  .\gradlew.bat :app:assembleGplayDebug :app:lintGplayDebug :app:testGplayDebugUnitTest --tests 'vibro.navigator.auto.*' --max-workers=2 --continue --console=plain
+  ```
