@@ -58,12 +58,17 @@ public final class NavStateTextFactory {
                 intermediateDestinationReachedTrackIndex,
                 VISIBLE_DIRECTION_LINE_COUNT
         );
-        List<String> visibleLines = formatDirectionLines(route, index, upcomingHints, textResources);
-        String next = visibleLines.isEmpty() ? "" : visibleLines.get(0);
-        String afterNext = visibleLines.size() > 1 ? visibleLines.get(1) : "";
-        return new NavGuidanceStatus(next, afterNext,
+        if (upcomingHints.isEmpty()) {
+            return new NavGuidanceStatus("", "");
+        }
+        NavUpcomingHint next = upcomingHints.get(0);
+        NavUpcomingHint following = upcomingHints.size() > 1
+                ? followingHint(route, index, next, upcomingHints.get(1)) : null;
+        return new NavGuidanceStatus(formatDirectionLine(next, textResources),
+                following == null ? "" : formatDirectionLine(following, textResources),
                 isUncertain(upcomingHints, 0, accuracyMeters),
-                isUncertain(upcomingHints, 1, accuracyMeters), maneuvers(upcomingHints, textResources));
+                isUncertain(upcomingHints, 1, accuracyMeters), maneuvers(upcomingHints, textResources),
+                following == null ? null : maneuver(following, textResources));
     }
 
     @NonNull
@@ -71,11 +76,14 @@ public final class NavStateTextFactory {
             @NonNull NavigationTextResources resources) {
         List<NavManeuver> result = new ArrayList<>();
         for (NavUpcomingHint upcoming : hints) {
-            result.add(new NavManeuver(upcoming.hint,
-                    NavigationTextFormatter.maneuverInstruction(resources, upcoming.hint),
-                    upcoming.distanceMeters, upcoming.timeSeconds));
+            result.add(maneuver(upcoming, resources));
         }
         return result;
+    }
+
+    private static NavManeuver maneuver(NavUpcomingHint hint, NavigationTextResources resources) {
+        return new NavManeuver(hint.hint, NavigationTextFormatter.maneuverInstruction(resources, hint.hint),
+                hint.distanceMeters, hint.timeSeconds);
     }
 
     private static boolean isUncertain(@NonNull List<NavUpcomingHint> hints, int index, float accuracyMeters) {
@@ -147,55 +155,23 @@ public final class NavStateTextFactory {
     }
 
     @NonNull
-    private static List<String> formatDirectionLines(
-            @NonNull GeoJsonRoute route,
-            @NonNull PolylineIndex index,
-            @NonNull List<NavUpcomingHint> upcomingHints,
-            @NonNull NavigationTextResources textResources
-    ) {
-        List<String> lines = new ArrayList<>(upcomingHints.size());
-        if (upcomingHints.isEmpty()) {
-            return lines;
-        }
-        addNextDirectionLine(lines, upcomingHints.get(0), textResources);
-        if (upcomingHints.size() > 1) {
-            addFollowingDirectionLine(route, index, lines, upcomingHints.get(0), upcomingHints.get(1), textResources);
-        }
-        return lines;
+    private static String formatDirectionLine(NavUpcomingHint hint, NavigationTextResources resources) {
+        return NavigationTextFormatter.formatTurnNotification(resources, hint.hint, hint.distanceMeters,
+                hint.timeSeconds);
     }
 
-    private static void addNextDirectionLine(
-            @NonNull List<String> lines,
-            @NonNull NavUpcomingHint nextHint,
-            @NonNull NavigationTextResources textResources
-    ) {
-        lines.add(NavigationTextFormatter.formatTurnNotification(
-                textResources,
-                nextHint.hint,
-                nextHint.distanceMeters,
-                nextHint.timeSeconds
-        ));
-    }
-
-    private static void addFollowingDirectionLine(
+    private static NavUpcomingHint followingHint(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index,
-            @NonNull List<String> lines,
             @NonNull NavUpcomingHint nextHint,
-            @NonNull NavUpcomingHint afterNextHint,
-            @NonNull NavigationTextResources textResources
+            @NonNull NavUpcomingHint afterNextHint
     ) {
         double relativeDistanceMeters = Math.max(
                 0.0,
                 afterNextHint.distanceMeters - nextHint.distanceMeters
         );
         double relativeTimeSeconds = relativeHintTimeSeconds(route, index, nextHint, afterNextHint);
-        lines.add(NavigationTextFormatter.formatTurnNotification(
-                textResources,
-                afterNextHint.hint,
-                relativeDistanceMeters,
-                relativeTimeSeconds
-        ));
+        return new NavUpcomingHint(afterNextHint.hint, relativeDistanceMeters, relativeTimeSeconds);
     }
 
     private static double relativeHintTimeSeconds(

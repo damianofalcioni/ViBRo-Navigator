@@ -596,3 +596,17 @@ Do not redo the completed template/metadata/intent integration merely because a 
   $shared = '--tests', 'vibro.navigator.nav.streets.*', '--tests', '*NavigationCompassFullscreenRingTest', '--tests', '*NavigationCompass*Perspective*Test', '--tests', '*NavigationGpsStatusResourcesRobolectricTest', '--tests', '*NavigationInstructionScrollRobolectricTest', '--tests', '*BRouterStreet*Test'
   .\gradlew.bat :app:assembleGplayDebug :app:lintGplayDebug :app:complexityCheck :app:testGplayDebugUnitTest @shared --tests 'vibro.navigator.auto.*' :app:testFdroidDebugUnitTest @shared --max-workers=2 --continue --console=plain
   ```
+
+## DHU Custom button and following-step cue (2026-11-26)
+
+- The user requested the phone's configured Custom button on Android Auto and a clean way to fit the following turn. The button uses the shared preference, state, and phone drawable. Fullscreen route and Surrounding streets use the map action strip on Car API 2 and later. Other targets and Car API 1 use the regular action strip. Dynamic GPS refreshes the active service, and enabling streets with missing storage access uses the parked phone handoff.
+- An explicit newline before the whole native following-step duration remained on one line and was still clipped on the 800×480 DHU (`build/dhu-custom-newline-observed.png`). The experiment was reverted. The user subsequently requested only the maneuver symbol, distance, and time in the following-step row. The adapter now uses typed relative metrics from the same route calculation as the phone. Its duration keeps seconds visible and uses nonbreaking spaces. Direct guidance carries a separate typed road preview, with the beeline still owning the cluster step.
+- The DHU showed the Fullscreen route button at the bottom right. Tapping it moved to compact compass mode and changed to the matching phone drawable (`build/dhu-custom-map-controls.png` and `build/dhu-custom-compact-icon.png`).
+- The final debug build showed `← 154 m · 27 s` in the following-step row, the full current instruction above it, and the Fullscreen route button at the bottom right (`build/dhu-metrics-custom-confirmed.png`). The temporary emulator target, simulation preferences, and battery allowlist entry were restored after validation.
+- During APK installation and reconnect, the DHU displayed an app-unresponsive message. A later reinstall produced an Android `am_anr` at 09:33 for `vibro.navigator.debug`, with the reason `failed to complete startup`. The emulator also logged slow system dispatch. Startup recovered on retry. The cause remains unverified. Captured Android log: `build/dhu-custom-startup-anr.log`.
+- The debug build, lint, complexity check, and focused tests passed. Google Play ran 243 tests and F-Droid ran 151. Local log: `build/dhu-custom-and-following-checks.log`.
+
+  ```powershell
+  $shared = '--tests', '*AppNavigationCustomButton*', '--tests', '*UpcomingManeuver*', '--tests', '*NavigationInstructionColorTest', '--tests', '*NavigationSession*Test', '--tests', '*StraightLine*Test'
+  .\gradlew.bat :app:assembleGplayDebug :app:lintGplayDebug :app:complexityCheck :app:testGplayDebugUnitTest @shared --tests 'vibro.navigator.auto.*' :app:testFdroidDebugUnitTest @shared --max-workers=2 --continue --console=plain
+  ```

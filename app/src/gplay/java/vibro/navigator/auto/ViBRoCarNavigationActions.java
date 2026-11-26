@@ -33,6 +33,13 @@ final class ViBRoCarNavigationActions {
         }
     }
 
+    void refreshLocationUpdateSettings() {
+        NavigationServiceBinder binder = binderProvider.currentBinder();
+        if (binder != null) {
+            binder.refreshLocationUpdateSettings();
+        }
+    }
+
     void addBlockedWaypoint() {
         NavigationServiceBinder binder = binderForAction("Blocked-road");
         if (binder == null) {

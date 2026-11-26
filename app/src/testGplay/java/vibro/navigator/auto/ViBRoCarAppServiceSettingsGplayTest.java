@@ -109,7 +109,8 @@ public class ViBRoCarAppServiceSettingsGplayTest {
         assertTrue(template instanceof NavigationTemplate);
         NavigationTemplate navigationTemplate = (NavigationTemplate) template;
         List<Action> actions = navigationTemplate.getActionStrip().getActions();
-        assertEquals(List.of(R.drawable.ic_blocked_road, R.drawable.ic_stop, R.drawable.ic_pause),
+        assertEquals(List.of(R.drawable.ic_blocked_road, R.drawable.ic_stop, R.drawable.ic_pause,
+                        R.drawable.ic_custom_light_theme_disabled),
                 actions.stream().map(action -> action.getIcon().getIcon().getResId()).toList());
         assertTrue(actions.stream().allMatch(action -> action.getTitle() == null));
         assertEquals(Action.PAN, navigationTemplate.getMapActionStrip().getActions().get(0));
@@ -131,11 +132,11 @@ public class ViBRoCarAppServiceSettingsGplayTest {
         assertEquals("Turn right · 12 s", routing.getCurrentStep().getCue().toString());
         assertEquals(120, routing.getCurrentDistance().getDisplayDistance(), 0);
         assertEquals(50, active.getDestinationTravelEstimate().getRemainingTimeSeconds());
-        assertEquals(3, active.getActionStrip().getActions().size());
+        assertEquals(4, active.getActionStrip().getActions().size());
         NavigationTemplate paused = (NavigationTemplate) templates.build(CarNavigationTestStates.active(true, false));
         assertTrue(paused.getNavigationInfo() instanceof androidx.car.app.navigation.model.MessageInfo);
         assertNull(paused.getDestinationTravelEstimate());
-        assertEquals(2, paused.getActionStrip().getActions().size());
+        assertEquals(3, paused.getActionStrip().getActions().size());
     }
 
     @Test

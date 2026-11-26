@@ -28,6 +28,7 @@ public final class ViBRoCarScreen extends Screen {
 
     private final CarContext carContext;
     private final ViBRoCarTemplates templates;
+    private final ViBRoCarCustomButton customButton;
     private final ViBRoCarNavigationController navigationController;
     private final ViBRoCarHostNavigation hostNavigation;
     private final ViBRoCarIncomingNavigation incomingNavigation;
@@ -41,6 +42,9 @@ public final class ViBRoCarScreen extends Screen {
                 navigationController.bind();
             } else {
                 incomingNavigation.cancel();
+            }
+            if (navigationTemplateShown && templates.customButtonChanged()) {
+                invalidate();
             }
             surfaceRenderer.render();
             uiScheduler.postDelayed(this, NAVIGATION_SERVICE_ATTACH_RETRY_MS);
@@ -61,6 +65,7 @@ public final class ViBRoCarScreen extends Screen {
         this.uiScheduler = uiScheduler;
         applyCarTheme();
         navigationController = new ViBRoCarNavigationController(carContext, new CarNavigationHost());
+        customButton = new ViBRoCarCustomButton(carContext, navigationController::refreshLocationUpdateSettings);
         incomingNavigation = new ViBRoCarIncomingNavigation(carContext, uiScheduler, this::invalidate);
         hostNavigation = new ViBRoCarHostNavigation(carContext, () -> {
             incomingNavigation.cancel();
@@ -173,6 +178,15 @@ public final class ViBRoCarScreen extends Screen {
         }
     }
 
+    private void toggleCustomButton(ViBRoCarCustomButton.State presented) {
+        if (navigationTemplateShown && currentState != null
+                && getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.STARTED)
+                && customButton.toggle(presented)) {
+            surfaceRenderer.render();
+            invalidate();
+        }
+    }
+
     private final class ViBRoCarControls
             implements ViBRoCarTemplates.Actions {
         @Override
@@ -189,6 +203,11 @@ public final class ViBRoCarScreen extends Screen {
         @Override
         public void onTogglePaused() {
             navigationController.togglePaused();
+        }
+
+        @Override
+        public void onCustomButton(ViBRoCarCustomButton.State presented) {
+            uiScheduler.post(() -> toggleCustomButton(presented));
         }
 
     }

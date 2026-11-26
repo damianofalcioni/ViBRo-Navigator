@@ -83,12 +83,9 @@ final class ViBRoCarGuidance {
                 .setCurrentStep(ViBRoCarManeuvers.step(next, ViBRoCarCueText.withVariants(cue,
                                 compactCue, appendDetail(instruction, compactDetail)), icons),
                         ViBRoCarManeuvers.distance(next.distanceMeters, resources.isImperialUnitsEnabled()));
-        if (guidance.maneuvers.size() > 1) {
-            routing.setNextStep(ViBRoCarManeuvers.followingStep(guidance, resources, icons));
-        } else if (!guidance.afterNextLine.isEmpty()) {
-            // Direct guidance keeps the following road turn as a preview while the beeline owns cluster guidance.
-            routing.setNextStep(new Step.Builder(ViBRoCarManeuvers.cue(
-                    guidance.afterNextLine, guidance.afterNextUncertain)).build());
+        Step following = ViBRoCarFollowingStep.from(guidance, resources, icons);
+        if (following != null) {
+            routing.setNextStep(following);
         }
         return routing.build();
     }

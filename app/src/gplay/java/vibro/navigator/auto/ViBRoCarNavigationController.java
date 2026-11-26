@@ -91,13 +91,13 @@ final class ViBRoCarNavigationController {
         if (bound || serviceConnectionPending || navBinder != null) {
             unbind();
         }
-        clearCurrentState();
+        host.updateCurrentState(null);
         return false;
     }
 
     void bind() {
         if (!isIntegrationEnabled()) {
-            clearCurrentState();
+            host.updateCurrentState(null);
             return;
         }
         if (bound || serviceConnectionPending) {
@@ -109,7 +109,7 @@ final class ViBRoCarNavigationController {
         if (!serviceBound) {
             AppLogger.d(TAG, "No running NavigationService found for Android Auto");
             serviceConnectionPending = false;
-            clearCurrentState();
+            host.updateCurrentState(null);
             return;
         }
         host.updateCurrentState(host.currentState());
@@ -157,6 +157,10 @@ final class ViBRoCarNavigationController {
         actions.togglePaused();
     }
 
+    void refreshLocationUpdateSettings() {
+        actions.refreshLocationUpdateSettings();
+    }
+
     void enableAutoDrive() {
         autoDrive = true;
         if (navBinder != null) { navBinder.enableSimulation(); }
@@ -196,10 +200,6 @@ final class ViBRoCarNavigationController {
         if (binder == navBinder) {
             binder.registerListener(navListener);
         }
-    }
-
-    private void clearCurrentState() {
-        host.updateCurrentState(null);
     }
 
     private void showSimulationNoticeIfPending() {

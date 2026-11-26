@@ -102,8 +102,8 @@ public class ViBRoCarGuidanceGplayTest {
         RoutingInfo info = routing(template(state));
         Trip trip = ViBRoCarTrip.from(state, false, ViBRoCarManeuvers.Icons.from(context));
         assertEquals("≈ Turn right · 12 s", info.getCurrentStep().getCue().toString());
-        assertEquals("≈ Turn left · 20 m · 3 s", info.getNextStep().getCue().toString());
-        assertEquals(List.of("≈ Turn left · 20 m", "≈ Turn left"),
+        assertEquals("≈ 20 m · 3\u202fs", info.getNextStep().getCue().toString());
+        assertEquals(List.of("≈ 20 m"),
                 info.getNextStep().getCue().getVariants().stream().map(CharSequence::toString).toList());
         assertEquals(info.getCurrentStep().getManeuver().getType(), trip.getSteps().get(0).getManeuver().getType());
         assertNotNull(info.getNextStep().getManeuver().getIcon());
@@ -128,6 +128,17 @@ public class ViBRoCarGuidanceGplayTest {
     }
 
     @Test
+    public void followingPreviewKeepsTheRelativeRouteTimeWhenAbsoluteTimeIsUnavailable() {
+        NavManeuver current = base.routeStatus.guidance.maneuvers.get(0);
+        var following = new NavManeuver(new VoiceHint(4, 2, 0, 0, 0), "Turn left", 192, Double.NaN);
+        var preview = new NavManeuver(following.hint, following.instruction, 72, 36);
+        var guidance = new NavGuidanceStatus(current.instruction, following.instruction, false, false,
+                List.of(current, following), preview);
+        RoutingInfo info = routing(template(withGuidance(guidance)));
+        assertEquals("72 m · 36\u202fs", info.getNextStep().getCue().toString());
+    }
+
+    @Test
     public void templateRefreshesWhenAnArrivalMinuteChangesFromTheLastPublishedView() {
         ViBRoCarTemplates templates = new ViBRoCarTemplates(context, () -> { });
         NavStopEstimate stop = new NavStopEstimate("Stop 1", 350, 90.0);
@@ -147,15 +158,19 @@ public class ViBRoCarGuidanceGplayTest {
     }
 
     @Test
-    public void directGuidanceShowsAnIconApproachTimeAndTheFollowingRoadCue() {
+    public void directGuidanceShowsTheFollowingRoadIconAndMetricsWithoutAddingAClusterStep() {
         var direct = new NavManeuver(new VoiceHint(0, RouteStartApproach.BEELINE_COMMAND, 0, 0, 0), "Beeline", 95, 40);
-        var guidance = new NavGuidanceStatus("Beeline", "Turn left after joining the road").withManeuvers(List.of(direct));
+        var road = new NavManeuver(new VoiceHint(4, 2, 0, 0, 0), "Turn left", 220, 52);
+        var guidance = new NavGuidanceStatus("Turn left after joining the road", "")
+                .withManeuvers(List.of(road)).withDirectGuidance("Beeline", direct);
         var state = withGuidance(guidance);
         RoutingInfo info = routing(template(state));
 
         assertEquals("Beeline · 40 s", info.getCurrentStep().getCue().toString());
         assertEquals(Distance.create(95, Distance.UNIT_METERS), info.getCurrentDistance());
-        assertEquals(guidance.afterNextLine, info.getNextStep().getCue().toString());
+        assertEquals("220 m · 52\u202fs", info.getNextStep().getCue().toString());
+        assertEquals(Maneuver.TYPE_TURN_NORMAL_LEFT, info.getNextStep().getManeuver().getType());
+        assertNotNull(info.getNextStep().getManeuver().getIcon());
         var icons = ViBRoCarManeuvers.Icons.from(context);
         var maneuver = info.getCurrentStep().getManeuver();
         assertEquals(Maneuver.TYPE_UNKNOWN, maneuver.getType());

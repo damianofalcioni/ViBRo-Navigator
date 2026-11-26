@@ -181,26 +181,6 @@ public final class NavStateComposer {
     }
 
     @NonNull
-    public static NavState withGuidanceLines(
-            @NonNull NavState base,
-            @NonNull String nextLine,
-            @NonNull String afterNextLine
-    ) {
-        return new NavState(
-                new NavRouteStatus(
-                        base.routeStatus.guidance.withDisplayedLines(nextLine, afterNextLine),
-                        base.routeStatus.progress,
-                        base.routeStatus.compassState,
-                        base.routeStatus.speedLimit,
-                        base.routeStatus.blockedRoadActionAvailable
-                ),
-                base.gpsStatus,
-                base.pauseStatus,
-                base.tripStatus
-        );
-    }
-
-    @NonNull
     public static NavState withBlockedRoadActionAvailable(@NonNull NavState base, boolean available) {
         return new NavState(
                 new NavRouteStatus(
