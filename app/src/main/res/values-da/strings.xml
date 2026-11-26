@@ -610,5 +610,4 @@
     <string name="auto_hint_zoom_text">Knib to fingre sammen, eller spred dem i 2D eller 3D.</string>
     <string name="auto_hint_tilt">Vip i 3D</string>
     <string name="auto_hint_tilt_text">Træk op eller ned med én finger.</string>
-    <string name="about_setting_show_hint_panel_auto_info">Viser gestustip og forklaringen til gadefarverne, når navigationen åbnes på telefonen. Android Auto viser gestustip, før en rute startes.</string>
 </resources>

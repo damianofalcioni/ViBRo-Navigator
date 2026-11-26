@@ -41,12 +41,10 @@ public class ViBRoCarGestureHintsTest {
     }
 
     @Test
-    public void idlePaneReadsTheSameHintPreferenceAsThePhone() throws Exception {
+    public void idlePaneShowsHintsWhenPhoneHintsAreDisabled() throws Exception {
         var context = contexts.testCarContext();
         var templates = new ViBRoCarTemplates(context, () -> { });
         AppNavigationHintSettings.setEnabled(context, false);
-        assertEquals(1, ((PaneTemplate) templates.build(null)).getPane().getRows().size());
-        AppNavigationHintSettings.setEnabled(context, true);
         assertEquals(4, ((PaneTemplate) templates.build(null)).getPane().getRows().size());
     }
 

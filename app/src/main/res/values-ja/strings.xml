@@ -606,5 +606,4 @@
     <string name="auto_hint_zoom_text">2Dまたは3Dで、2本の指を閉じるか広げます。</string>
     <string name="auto_hint_tilt">3D表示の傾きを調整</string>
     <string name="auto_hint_tilt_text">指1本で上または下にドラッグします。</string>
-    <string name="about_setting_show_hint_panel_auto_info">スマートフォンでナビを開いたときに、ジェスチャーのヒントと道路の色の凡例を表示します。Android Auto ではルートを開始する前にジェスチャーのヒントを表示します。</string>
 </resources>

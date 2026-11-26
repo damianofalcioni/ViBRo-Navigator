@@ -17,7 +17,6 @@ import java.util.Objects;
 
 import vibro.navigator.R;
 import vibro.navigator.android.language.AndroidAppLanguage;
-import vibro.navigator.settings.AppNavigationHintSettings;
 
 /** Adds map gesture instructions to the host's idle pane. */
 final class ViBRoCarGestureHints {
@@ -29,7 +28,7 @@ final class ViBRoCarGestureHints {
 
     static void addRows(Pane.Builder pane, CarContext context) {
         int api = context.getCarAppApiLevel();
-        if (api < SCROLL_AND_SCALE_API || !AppNavigationHintSettings.isEnabled(context)) {
+        if (api < SCROLL_AND_SCALE_API) {
             return;
         }
         int switchViews = api >= CLICK_API ? R.string.auto_hint_switch_views_text : R.string.auto_hint_swipe_views_text;

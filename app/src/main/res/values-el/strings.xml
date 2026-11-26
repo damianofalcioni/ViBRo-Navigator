@@ -610,5 +610,4 @@
     <string name="auto_hint_zoom_text">Ενώστε ή απομακρύνετε δύο δάχτυλα σε 2D ή 3D.</string>
     <string name="auto_hint_tilt">Κλίση σε 3D</string>
     <string name="auto_hint_tilt_text">Σύρετε προς τα πάνω ή προς τα κάτω με ένα δάχτυλο.</string>
-    <string name="about_setting_show_hint_panel_auto_info">Εμφανίζει συμβουλές χειρονομιών και το υπόμνημα χρωμάτων των δρόμων όταν ανοίγει η πλοήγηση στο τηλέφωνο. Το Android Auto εμφανίζει τις συμβουλές χειρονομιών πριν ξεκινήσει μια διαδρομή.</string>
 </resources>

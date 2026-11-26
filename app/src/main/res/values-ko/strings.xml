@@ -604,5 +604,4 @@
     <string name="auto_hint_zoom_text">2D 또는 3D에서 두 손가락을 모으거나 벌리세요.</string>
     <string name="auto_hint_tilt">3D에서 기울이기</string>
     <string name="auto_hint_tilt_text">한 손가락으로 위 또는 아래로 드래그하세요.</string>
-    <string name="about_setting_show_hint_panel_auto_info">휴대전화에서 내비게이션을 열 때 제스처 도움말과 도로 색상 범례를 표시합니다. Android Auto는 경로를 시작하기 전에 제스처 도움말을 표시합니다.</string>
 </resources>

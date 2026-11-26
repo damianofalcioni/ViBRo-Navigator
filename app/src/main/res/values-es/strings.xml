@@ -615,5 +615,4 @@
     <string name="auto_hint_zoom_text">Junta o separa dos dedos en 2D o 3D.</string>
     <string name="auto_hint_tilt">Inclinar en 3D</string>
     <string name="auto_hint_tilt_text">Arrastra hacia arriba o hacia abajo con un dedo.</string>
-    <string name="about_setting_show_hint_panel_auto_info">Muestra consejos de gestos y la leyenda de colores de las calles al abrir la navegación en el teléfono. Android Auto muestra sus consejos de gestos antes de iniciar una ruta.</string>
 </resources>

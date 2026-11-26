@@ -610,5 +610,4 @@
     <string name="auto_hint_zoom_text">Knijp twee vingers samen of spreid ze in 2D of 3D.</string>
     <string name="auto_hint_tilt">Kantelen in 3D</string>
     <string name="auto_hint_tilt_text">Sleep met één vinger omhoog of omlaag.</string>
-    <string name="about_setting_show_hint_panel_auto_info">Toont gebarentips en de legenda voor straatkleuren als navigatie op de telefoon wordt geopend. Android Auto toont gebarentips voordat een route begint.</string>
 </resources>

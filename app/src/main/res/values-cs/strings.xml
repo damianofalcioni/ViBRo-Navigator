@@ -618,5 +618,4 @@
     <string name="auto_hint_zoom_text">V zobrazení 2D nebo 3D přibližte nebo oddalte dva prsty.</string>
     <string name="auto_hint_tilt">Náklon ve 3D</string>
     <string name="auto_hint_tilt_text">Táhněte jedním prstem nahoru nebo dolů.</string>
-    <string name="about_setting_show_hint_panel_auto_info">Při otevření navigace na telefonu zobrazí tipy ke gestům a legendu barev ulic. Android Auto zobrazí tipy ke gestům před zahájením trasy.</string>
 </resources>

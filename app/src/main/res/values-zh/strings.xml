@@ -604,5 +604,4 @@
     <string name="auto_hint_zoom_text">在 2D 或 3D 视图中，用双指捏合或张开。</string>
     <string name="auto_hint_tilt">倾斜 3D 视图</string>
     <string name="auto_hint_tilt_text">用一根手指向上或向下拖动。</string>
-    <string name="about_setting_show_hint_panel_auto_info">在手机上打开导航时，显示手势提示和街道颜色图例。Android Auto 会在开始路线导航前显示手势提示。</string>
 </resources>

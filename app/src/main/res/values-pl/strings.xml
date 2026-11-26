@@ -618,5 +618,4 @@
     <string name="auto_hint_zoom_text">Zsuń lub rozsuń dwa palce w widoku 2D lub 3D.</string>
     <string name="auto_hint_tilt">Pochyl w 3D</string>
     <string name="auto_hint_tilt_text">Przeciągnij jednym palcem w górę lub w dół.</string>
-    <string name="about_setting_show_hint_panel_auto_info">Pokazuje wskazówki dotyczące gestów i legendę kolorów ulic po otwarciu nawigacji na telefonie. Android Auto pokazuje wskazówki dotyczące gestów przed rozpoczęciem trasy.</string>
 </resources>

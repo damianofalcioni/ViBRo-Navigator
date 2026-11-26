@@ -596,5 +596,4 @@
     <string name="auto_hint_zoom_text">Avvicina o allontana due dita in 2D o 3D.</string>
     <string name="auto_hint_tilt">Inclina in 3D</string>
     <string name="auto_hint_tilt_text">Trascina verso l’alto o il basso con un dito.</string>
-    <string name="about_setting_show_hint_panel_auto_info">Mostra i suggerimenti sui gesti e la legenda dei colori delle strade all’apertura della navigazione sul telefono. Android Auto mostra i suggerimenti sui gesti prima di avviare un percorso.</string>
 </resources>

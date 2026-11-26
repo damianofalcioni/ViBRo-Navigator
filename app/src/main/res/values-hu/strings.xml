@@ -610,5 +610,4 @@
     <string name="auto_hint_zoom_text">A 2D vagy 3D nézetben csípje össze vagy húzza szét két ujját.</string>
     <string name="auto_hint_tilt">Döntés 3D-ben</string>
     <string name="auto_hint_tilt_text">Húzza felfelé vagy lefelé egy ujjal.</string>
-    <string name="about_setting_show_hint_panel_auto_info">A telefonos navigáció megnyitásakor megjeleníti a kézmozdulatokra vonatkozó tippeket és az utcák színjelmagyarázatát. Az Android Auto az útvonal elindítása előtt jeleníti meg a tippeket.</string>
 </resources>

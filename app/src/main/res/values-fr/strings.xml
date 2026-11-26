@@ -614,5 +614,4 @@
     <string name="auto_hint_zoom_text">Rapprochez ou écartez deux doigts en 2D ou en 3D.</string>
     <string name="auto_hint_tilt">Incliner en 3D</string>
     <string name="auto_hint_tilt_text">Faites glisser un doigt vers le haut ou le bas.</string>
-    <string name="about_setting_show_hint_panel_auto_info">Affiche les conseils de gestes et la légende des couleurs des rues à l’ouverture de la navigation sur le téléphone. Android Auto affiche ses conseils de gestes avant le départ.</string>
 </resources>

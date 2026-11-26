@@ -592,5 +592,4 @@
     <string name="auto_hint_zoom_text">In 2D oder 3D zwei Finger zusammen- oder auseinanderziehen.</string>
     <string name="auto_hint_tilt">In 3D neigen</string>
     <string name="auto_hint_tilt_text">Mit einem Finger nach oben oder unten ziehen.</string>
-    <string name="about_setting_show_hint_panel_auto_info">Zeigt beim Öffnen der Navigation auf dem Telefon Gestenhinweise und die Legende der Straßenfarben. Android Auto zeigt die Gestenhinweise vor dem Start einer Route.</string>
 </resources>

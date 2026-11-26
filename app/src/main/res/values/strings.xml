@@ -598,7 +598,6 @@
     <string name="about_setting_compass_distance_circles_info">Shows distance circles with time and distance labels, the heading arrow, and heading accuracy lines and arcs in compass and fullscreen views.</string>
     <string name="about_setting_compass_central_perspective_info">Uses perspective in the 3D compass view: nearby routes and streets appear larger, while distant ones shrink toward the top. Turn this off to use the uniform orthographic tilt.</string>
     <string name="about_setting_show_hint_panel_info">Shows gesture tips and the street color legend when phone navigation opens.</string>
-    <string name="about_setting_show_hint_panel_auto_info">Shows gesture tips and the street color legend when phone navigation opens. Android Auto shows its gesture tips before a route starts.</string>
     <string name="about_setting_navigation_notifications_info">Shows turn alerts and navigation warnings as notifications. The ongoing navigation notification is not affected and will stays visible while navigating.</string>
     <string name="about_setting_single_instruction_mode_info">Uses one maneuver alert about 10 seconds before each upcoming instruction and suppresses the startup, 20-second, and 5-second maneuver alerts. Arrival and warning notifications are not affected.</string>
     <string name="about_setting_navigation_custom_button_info">Shows an extra button in the navigation compass that toggles the selected setting while navigation is open.</string>

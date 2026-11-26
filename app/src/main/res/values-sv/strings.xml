@@ -610,5 +610,4 @@
     <string name="auto_hint_zoom_text">Nyp ihop eller dra isär två fingrar i 2D eller 3D.</string>
     <string name="auto_hint_tilt">Luta i 3D</string>
     <string name="auto_hint_tilt_text">Dra uppåt eller nedåt med ett finger.</string>
-    <string name="about_setting_show_hint_panel_auto_info">Visar gesttips och förklaringen till gatufärger när navigeringen öppnas på telefonen. Android Auto visar gesttips innan en rutt startas.</string>
 </resources>

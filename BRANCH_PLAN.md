@@ -650,3 +650,9 @@ Do not redo the completed template/metadata/intent integration merely because a 
   $phoneChecks = '--tests', '*NavigationGestureHints*', '--tests', '*AboutNavigationHintSettings*'
   .\gradlew.bat :app:assembleGplayDebug :app:lintGplayDebug :app:lintFdroidDebug :app:complexityCheck :app:testGplayDebugUnitTest @phoneChecks --tests 'vibro.navigator.auto.*' :app:testFdroidDebugUnitTest @phoneChecks --max-workers=2 --continue --console=plain
   ```
+
+## Phone-only Show hint panel setting (2026-11-26)
+
+- The user changed the preference behavior. Always show the gesture rows on the Android Auto idle pane when supported by the host. Scope Show hint panel and its help text to the phone. The regression test checks the Android Auto pane with the phone preference disabled.
+- Re-ran the idle gesture hints checks above. The APK, both lints, complexity check, and all 142 focused tests passed. Local log: `build/dhu-phone-only-hints-checks.log`.
+- Installed the updated build on the emulator, temporarily turned the phone preference off, and confirmed the 1280×720 Desktop Head Unit still displayed all three hints (`build/dhu-idle-hints-phone-hints-off.png`). Restored the emulator preference to its original default.
