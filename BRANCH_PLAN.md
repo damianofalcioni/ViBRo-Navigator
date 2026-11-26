@@ -713,3 +713,13 @@ Do not redo the completed template/metadata/intent integration merely because a 
   ```powershell
   .\gradlew.bat :app:testGplayDebugUnitTest --tests '*ViBRoCarIncomingNavigationGplayTest' --tests '*AndroidCarNavigationStarterGplayTest' --tests '*NavigationServiceInitialRouteTest' --tests '*ViBRoCarHostNavigationTest' --max-workers=2 --console=plain
   ```
+
+## Follow-up review of Android Auto roundabout guidance (2026-11-26)
+
+- Reviewed `e2219ca0` against `main` at `2ba4dad3`. The Android Auto following-turn preview loses the roundabout exit number. The base surface showed the shared instruction “Roundabout, exit N”. The native preview sends distance and duration with a circular arrow cached by maneuver command. The exit number varies only in the AndroidX maneuver metadata. A temporary production-adapter test confirmed that exits 2 and 3 send the same icon and cue, with distinct exit metadata. The current-turn text still includes the exit number once the roundabout becomes the active maneuver.
+- A temporary Google Navigation sample fixture using Car App Library 1.8.0-rc01 sent equivalent following-turn payloads for exits 2 and 3 to Android Auto on DHU 2.1 at 1280×720. The screenshots show the same unnumbered circular arrow and “154 m · 27 s”. Comparing the thresholded icon and text pixels found zero differences. The evidence is in `build/dhu-roundabout-review/exit-2.png`, `exit-3.png`, `payloads.log`, and `preview-text-comparison.log`. Preserve the compact preview by including the exit number in the roundabout symbol. The fixture was removed from the emulator and ViBRo was brought back to its idle screen.
+- The focused Google Play run passed 21 tests with zero failures, errors, or skips. The temporary app test was removed afterward. The ignored log is `build/dhu-roundabout-review/production-adapter-tests.log`. Removing the fixture briefly left the host showing an error pane. A fresh projection connection and a normal dashboard-to-fullscreen transition restored ViBRo's idle screen. See `build/dhu-roundabout-review/clean-fullscreen.png`.
+
+  ```powershell
+  .\gradlew.bat :app:testGplayDebugUnitTest --tests '*ViBRoCarGuidanceGplayTest' --tests '*ViBRoCarHostNavigationTest' --max-workers=2 --console=plain
+  ```
