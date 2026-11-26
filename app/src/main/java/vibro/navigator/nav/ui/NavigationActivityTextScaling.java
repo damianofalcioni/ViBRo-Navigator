@@ -42,10 +42,10 @@ final class NavigationActivityTextScaling {
         );
         TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
                 speedLimit,
-                10,
-                16,
                 1,
-                TypedValue.COMPLEX_UNIT_SP
+                speedLimit.getResources().getDimensionPixelSize(R.dimen.speed_limit_badge_text_size),
+                1,
+                TypedValue.COMPLEX_UNIT_PX
         );
     }
 
