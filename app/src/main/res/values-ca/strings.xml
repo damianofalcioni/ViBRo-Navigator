@@ -607,4 +607,12 @@
     <string name="action_configure_simulation">Configura la simulació</string>
     <string name="auto_destination_timeout">La càrrega de la destinació ha superat el temps límit. Torna-ho a provar.</string>
     <string name="auto_retry">Torna-ho a provar</string>
+    <string name="auto_hint_switch_views">Canvia de vista</string>
+    <string name="auto_hint_switch_views_text">Toca el mapa una vegada o llisca a l’esquerra o a la dreta per canviar entre la vista general, 2D i 3D.</string>
+    <string name="auto_hint_swipe_views_text">Llisca a l’esquerra o a la dreta per canviar entre la vista general, 2D i 3D.</string>
+    <string name="auto_hint_zoom">Zoom</string>
+    <string name="auto_hint_zoom_text">Ajunta o separa dos dits en 2D o 3D.</string>
+    <string name="auto_hint_tilt">Inclina en 3D</string>
+    <string name="auto_hint_tilt_text">Arrossega cap amunt o cap avall amb un dit.</string>
+    <string name="about_setting_show_hint_panel_auto_info">Mostra consells de gestos i la llegenda dels colors dels carrers quan s’obre la navegació al telèfon. Android Auto mostra els consells de gestos abans de començar una ruta.</string>
 </resources>

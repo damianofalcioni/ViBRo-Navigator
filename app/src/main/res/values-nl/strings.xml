@@ -603,4 +603,12 @@
     <string name="action_configure_simulation">Simulatie instellen</string>
     <string name="auto_destination_timeout">Het laden van de bestemming duurde te lang. Probeer het opnieuw.</string>
     <string name="auto_retry">Opnieuw proberen</string>
+    <string name="auto_hint_switch_views">Weergave wisselen</string>
+    <string name="auto_hint_switch_views_text">Tik één keer op de kaart of veeg naar links of rechts om te wisselen tussen overzicht, 2D en 3D.</string>
+    <string name="auto_hint_swipe_views_text">Veeg naar links of rechts om te wisselen tussen overzicht, 2D en 3D.</string>
+    <string name="auto_hint_zoom">Zoomen</string>
+    <string name="auto_hint_zoom_text">Knijp twee vingers samen of spreid ze in 2D of 3D.</string>
+    <string name="auto_hint_tilt">Kantelen in 3D</string>
+    <string name="auto_hint_tilt_text">Sleep met één vinger omhoog of omlaag.</string>
+    <string name="about_setting_show_hint_panel_auto_info">Toont gebarentips en de legenda voor straatkleuren als navigatie op de telefoon wordt geopend. Android Auto toont gebarentips voordat een route begint.</string>
 </resources>

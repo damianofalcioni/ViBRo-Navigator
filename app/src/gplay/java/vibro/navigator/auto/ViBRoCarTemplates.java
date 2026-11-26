@@ -94,13 +94,13 @@ final class ViBRoCarTemplates {
 
     @NonNull
     private Template buildNoActiveNavigationTemplate() {
-        Pane pane = new Pane.Builder()
+        Pane.Builder pane = new Pane.Builder()
                 .addRow(new Row.Builder()
                         .setTitle(text(R.string.auto_no_active_navigation_title))
                         .addText(text(R.string.auto_no_active_navigation_text))
-                        .build())
-                .build();
-        return buildPaneTemplate(text(R.string.auto_title), pane);
+                        .build());
+        ViBRoCarGestureHints.addRows(pane, carContext);
+        return buildPaneTemplate(text(R.string.auto_title), pane.build());
     }
 
     @NonNull

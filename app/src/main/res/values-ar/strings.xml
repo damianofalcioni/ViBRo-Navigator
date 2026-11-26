@@ -619,4 +619,12 @@
     <string name="action_configure_simulation">إعداد المحاكاة</string>
     <string name="auto_destination_timeout">انتهت مهلة تحميل الوجهة. حاول مرة أخرى.</string>
     <string name="auto_retry">إعادة المحاولة</string>
+    <string name="auto_hint_switch_views">تبديل العرض</string>
+    <string name="auto_hint_switch_views_text">المس الخريطة مرة واحدة أو اسحب يمينًا أو يسارًا للتبديل بين النظرة العامة والعرضين 2D و3D.</string>
+    <string name="auto_hint_swipe_views_text">اسحب يمينًا أو يسارًا للتبديل بين النظرة العامة والعرضين 2D و3D.</string>
+    <string name="auto_hint_zoom">التكبير والتصغير</string>
+    <string name="auto_hint_zoom_text">قرّب إصبعين أو باعد بينهما في العرض 2D أو 3D.</string>
+    <string name="auto_hint_tilt">إمالة العرض 3D</string>
+    <string name="auto_hint_tilt_text">اسحب لأعلى أو لأسفل بإصبع واحد.</string>
+    <string name="about_setting_show_hint_panel_auto_info">يعرض نصائح الإيماءات ودليل ألوان الشوارع عند فتح التنقل على الهاتف. يعرض Android Auto نصائح الإيماءات قبل بدء المسار.</string>
 </resources>

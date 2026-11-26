@@ -425,6 +425,13 @@
     <string name="auto_title" translatable="false" tools:ignore="UnusedResources">ViBRo Navigator</string>
     <string name="auto_no_active_navigation_title" tools:ignore="UnusedResources">No active navigation</string>
     <string name="auto_no_active_navigation_text" tools:ignore="UnusedResources">When safely parked, start navigation on the phone to show guidance here.</string>
+    <string name="auto_hint_switch_views" tools:ignore="UnusedResources">Switch views</string>
+    <string name="auto_hint_switch_views_text" tools:ignore="UnusedResources">Tap the map once or swipe left or right to switch between overview, 2D, and 3D.</string>
+    <string name="auto_hint_swipe_views_text" tools:ignore="UnusedResources">Swipe left or right to switch between overview, 2D, and 3D.</string>
+    <string name="auto_hint_zoom" tools:ignore="UnusedResources">Zoom</string>
+    <string name="auto_hint_zoom_text" tools:ignore="UnusedResources">Pinch or spread in 2D or 3D.</string>
+    <string name="auto_hint_tilt" tools:ignore="UnusedResources">Tilt in 3D</string>
+    <string name="auto_hint_tilt_text" tools:ignore="UnusedResources">Drag up or down with one finger.</string>
     <string name="about_settings_title">Settings</string>
     <string name="about_settings_category_display">Display</string>
     <string name="about_settings_category_guidance">Guidance</string>
@@ -591,6 +598,7 @@
     <string name="about_setting_compass_distance_circles_info">Shows distance circles with time and distance labels, the heading arrow, and heading accuracy lines and arcs in compass and fullscreen views.</string>
     <string name="about_setting_compass_central_perspective_info">Uses perspective in the 3D compass view: nearby routes and streets appear larger, while distant ones shrink toward the top. Turn this off to use the uniform orthographic tilt.</string>
     <string name="about_setting_show_hint_panel_info">Shows gesture tips and the street color legend when phone navigation opens.</string>
+    <string name="about_setting_show_hint_panel_auto_info">Shows gesture tips and the street color legend when phone navigation opens. Android Auto shows its gesture tips before a route starts.</string>
     <string name="about_setting_navigation_notifications_info">Shows turn alerts and navigation warnings as notifications. The ongoing navigation notification is not affected and will stays visible while navigating.</string>
     <string name="about_setting_single_instruction_mode_info">Uses one maneuver alert about 10 seconds before each upcoming instruction and suppresses the startup, 20-second, and 5-second maneuver alerts. Arrival and warning notifications are not affected.</string>
     <string name="about_setting_navigation_custom_button_info">Shows an extra button in the navigation compass that toggles the selected setting while navigation is open.</string>

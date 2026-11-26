@@ -603,4 +603,12 @@
     <string name="action_configure_simulation">Konfigurer simulation</string>
     <string name="auto_destination_timeout">Indlæsning af destinationen tog for lang tid. Prøv igen.</string>
     <string name="auto_retry">Prøv igen</string>
+    <string name="auto_hint_switch_views">Skift visning</string>
+    <string name="auto_hint_switch_views_text">Tryk én gang på kortet, eller stryg til venstre eller højre for at skifte mellem oversigt, 2D og 3D.</string>
+    <string name="auto_hint_swipe_views_text">Stryg til venstre eller højre for at skifte mellem oversigt, 2D og 3D.</string>
+    <string name="auto_hint_zoom">Zoom</string>
+    <string name="auto_hint_zoom_text">Knib to fingre sammen, eller spred dem i 2D eller 3D.</string>
+    <string name="auto_hint_tilt">Vip i 3D</string>
+    <string name="auto_hint_tilt_text">Træk op eller ned med én finger.</string>
+    <string name="about_setting_show_hint_panel_auto_info">Viser gestustip og forklaringen til gadefarverne, når navigationen åbnes på telefonen. Android Auto viser gestustip, før en rute startes.</string>
 </resources>

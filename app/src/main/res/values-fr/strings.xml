@@ -607,4 +607,12 @@
     <string name="action_configure_simulation">Configurer la simulation</string>
     <string name="auto_destination_timeout">Le chargement de la destination a pris trop de temps. Réessayez.</string>
     <string name="auto_retry">Réessayer</string>
+    <string name="auto_hint_switch_views">Changer de vue</string>
+    <string name="auto_hint_switch_views_text">Touchez la carte une fois ou balayez à gauche ou à droite pour passer de la vue d’ensemble à la 2D ou à la 3D.</string>
+    <string name="auto_hint_swipe_views_text">Balayez à gauche ou à droite pour passer de la vue d’ensemble à la 2D ou à la 3D.</string>
+    <string name="auto_hint_zoom">Zoom</string>
+    <string name="auto_hint_zoom_text">Rapprochez ou écartez deux doigts en 2D ou en 3D.</string>
+    <string name="auto_hint_tilt">Incliner en 3D</string>
+    <string name="auto_hint_tilt_text">Faites glisser un doigt vers le haut ou le bas.</string>
+    <string name="about_setting_show_hint_panel_auto_info">Affiche les conseils de gestes et la légende des couleurs des rues à l’ouverture de la navigation sur le téléphone. Android Auto affiche ses conseils de gestes avant le départ.</string>
 </resources>

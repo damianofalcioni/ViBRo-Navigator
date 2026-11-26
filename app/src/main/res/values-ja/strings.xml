@@ -599,4 +599,12 @@
     <string name="action_configure_simulation">シミュレーションを設定</string>
     <string name="auto_destination_timeout">目的地の読み込みがタイムアウトしました。もう一度お試しください。</string>
     <string name="auto_retry">再試行</string>
+    <string name="auto_hint_switch_views">表示を切り替える</string>
+    <string name="auto_hint_switch_views_text">地図を1回タップするか左右にスワイプして、全体表示、2D、3Dを切り替えます。</string>
+    <string name="auto_hint_swipe_views_text">左右にスワイプして、全体表示、2D、3Dを切り替えます。</string>
+    <string name="auto_hint_zoom">ズーム</string>
+    <string name="auto_hint_zoom_text">2Dまたは3Dで、2本の指を閉じるか広げます。</string>
+    <string name="auto_hint_tilt">3D表示の傾きを調整</string>
+    <string name="auto_hint_tilt_text">指1本で上または下にドラッグします。</string>
+    <string name="about_setting_show_hint_panel_auto_info">スマートフォンでナビを開いたときに、ジェスチャーのヒントと道路の色の凡例を表示します。Android Auto ではルートを開始する前にジェスチャーのヒントを表示します。</string>
 </resources>

@@ -603,4 +603,12 @@
     <string name="action_configure_simulation">Konfigurera simulering</string>
     <string name="auto_destination_timeout">Det tog för lång tid att läsa in destinationen. Försök igen.</string>
     <string name="auto_retry">Försök igen</string>
+    <string name="auto_hint_switch_views">Byt vy</string>
+    <string name="auto_hint_switch_views_text">Tryck en gång på kartan eller svep åt vänster eller höger för att växla mellan översikt, 2D och 3D.</string>
+    <string name="auto_hint_swipe_views_text">Svep åt vänster eller höger för att växla mellan översikt, 2D och 3D.</string>
+    <string name="auto_hint_zoom">Zooma</string>
+    <string name="auto_hint_zoom_text">Nyp ihop eller dra isär två fingrar i 2D eller 3D.</string>
+    <string name="auto_hint_tilt">Luta i 3D</string>
+    <string name="auto_hint_tilt_text">Dra uppåt eller nedåt med ett finger.</string>
+    <string name="about_setting_show_hint_panel_auto_info">Visar gesttips och förklaringen till gatufärger när navigeringen öppnas på telefonen. Android Auto visar gesttips innan en rutt startas.</string>
 </resources>

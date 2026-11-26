@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import vibro.navigator.R;
 import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.android.theme.AndroidThemedButtons;
+import vibro.navigator.distribution.DistributionServices;
 
 final class AboutSettingInfoButtons {
     private static final String STREET_COLOR_SWATCH = "■";
@@ -87,7 +88,9 @@ final class AboutSettingInfoButtons {
                 R.string.about_setting_compass_central_perspective_info
         );
         bind(R.id.aboutShowHintPanelInfoButton, R.string.label_show_hint_panel,
-                R.string.about_setting_show_hint_panel_info);
+                DistributionServices.supportsAndroidAutoIntegration()
+                        ? R.string.about_setting_show_hint_panel_auto_info
+                        : R.string.about_setting_show_hint_panel_info);
         bind(
                 R.id.aboutNavigationNotificationsInfoButton,
                 R.string.label_navigation_notifications_enabled,

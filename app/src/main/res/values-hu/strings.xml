@@ -603,4 +603,12 @@
     <string name="action_configure_simulation">Szimuláció beállítása</string>
     <string name="auto_destination_timeout">Az úti cél betöltése túllépte az időkorlátot. Próbáld újra.</string>
     <string name="auto_retry">Újra</string>
+    <string name="auto_hint_switch_views">Nézetváltás</string>
+    <string name="auto_hint_switch_views_text">Koppintson egyszer a térképre, vagy húzza balra vagy jobbra az áttekintő, a 2D és a 3D nézet váltásához.</string>
+    <string name="auto_hint_swipe_views_text">Húzza balra vagy jobbra az áttekintő, a 2D és a 3D nézet váltásához.</string>
+    <string name="auto_hint_zoom">Nagyítás</string>
+    <string name="auto_hint_zoom_text">A 2D vagy 3D nézetben csípje össze vagy húzza szét két ujját.</string>
+    <string name="auto_hint_tilt">Döntés 3D-ben</string>
+    <string name="auto_hint_tilt_text">Húzza felfelé vagy lefelé egy ujjal.</string>
+    <string name="about_setting_show_hint_panel_auto_info">A telefonos navigáció megnyitásakor megjeleníti a kézmozdulatokra vonatkozó tippeket és az utcák színjelmagyarázatát. Az Android Auto az útvonal elindítása előtt jeleníti meg a tippeket.</string>
 </resources>

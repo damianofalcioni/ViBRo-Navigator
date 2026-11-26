@@ -597,4 +597,12 @@
     <string name="action_configure_simulation">配置模拟</string>
     <string name="auto_destination_timeout">目的地加载超时。请重试。</string>
     <string name="auto_retry">重试</string>
+    <string name="auto_hint_switch_views">切换视图</string>
+    <string name="auto_hint_switch_views_text">轻点地图一次，或向左或向右滑动，即可在路线概览、2D 和 3D 之间切换。</string>
+    <string name="auto_hint_swipe_views_text">向左或向右滑动，即可在路线概览、2D 和 3D 之间切换。</string>
+    <string name="auto_hint_zoom">缩放</string>
+    <string name="auto_hint_zoom_text">在 2D 或 3D 视图中，用双指捏合或张开。</string>
+    <string name="auto_hint_tilt">倾斜 3D 视图</string>
+    <string name="auto_hint_tilt_text">用一根手指向上或向下拖动。</string>
+    <string name="about_setting_show_hint_panel_auto_info">在手机上打开导航时，显示手势提示和街道颜色图例。Android Auto 会在开始路线导航前显示手势提示。</string>
 </resources>

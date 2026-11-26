@@ -19,6 +19,7 @@ import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.settings.AppAndroidAutoSettings;
+import vibro.navigator.settings.AppNavigationHintSettings;
 
 // Host templates own guidance and actions. Map overlays are drawn on the custom surface.
 public final class ViBRoCarScreen extends Screen {
@@ -35,6 +36,7 @@ public final class ViBRoCarScreen extends Screen {
     private final TaskScheduler uiScheduler;
     private final ViBRoAutoSurfaceRenderer surfaceRenderer;
     private final Runnable stopObservingIntegration;
+    private final Runnable stopObservingHints;
     private final Runnable serviceAttachTicker = new Runnable() {
         @Override
         public void run() {
@@ -81,6 +83,11 @@ public final class ViBRoCarScreen extends Screen {
                 this::updateMapVisibility
         );
         stopObservingIntegration = AppAndroidAutoSettings.observeIntegration(carContext, this::onIntegrationChanged);
+        stopObservingHints = AppNavigationHintSettings.observe(carContext, () -> {
+            if (!navigationTemplateShown) {
+                invalidate();
+            }
+        });
 
         getLifecycle().addObserver(new DefaultLifecycleObserver() {
             @Override
@@ -102,6 +109,7 @@ public final class ViBRoCarScreen extends Screen {
             @Override
             public void onDestroy(@NonNull LifecycleOwner owner) {
                 stopObservingIntegration.run();
+                stopObservingHints.run();
                 uiScheduler.removeCallbacks(serviceAttachTicker);
                 incomingNavigation.dispose();
                 hostNavigation.dispose();

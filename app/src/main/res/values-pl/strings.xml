@@ -611,4 +611,12 @@
     <string name="action_configure_simulation">Konfiguruj symulację</string>
     <string name="auto_destination_timeout">Przekroczono limit czasu ładowania celu. Spróbuj ponownie.</string>
     <string name="auto_retry">Spróbuj ponownie</string>
+    <string name="auto_hint_switch_views">Zmień widok</string>
+    <string name="auto_hint_switch_views_text">Dotknij mapy raz lub przesuń palcem w lewo lub w prawo, aby przełączać widok ogólny, 2D i 3D.</string>
+    <string name="auto_hint_swipe_views_text">Przesuń palcem w lewo lub w prawo, aby przełączać widok ogólny, 2D i 3D.</string>
+    <string name="auto_hint_zoom">Zmień powiększenie</string>
+    <string name="auto_hint_zoom_text">Zsuń lub rozsuń dwa palce w widoku 2D lub 3D.</string>
+    <string name="auto_hint_tilt">Pochyl w 3D</string>
+    <string name="auto_hint_tilt_text">Przeciągnij jednym palcem w górę lub w dół.</string>
+    <string name="about_setting_show_hint_panel_auto_info">Pokazuje wskazówki dotyczące gestów i legendę kolorów ulic po otwarciu nawigacji na telefonie. Android Auto pokazuje wskazówki dotyczące gestów przed rozpoczęciem trasy.</string>
 </resources>

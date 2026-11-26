@@ -19,6 +19,17 @@ public final class AppNavigationHintSettings {
         prefs(context).edit().putBoolean(KEY_SHOW_HINT_PANEL, enabled).apply();
     }
 
+    public static Runnable observe(@NonNull Context context, @NonNull Runnable changed) {
+        SharedPreferences preferences = prefs(context);
+        SharedPreferences.OnSharedPreferenceChangeListener listener = (source, key) -> {
+            if (key == null || KEY_SHOW_HINT_PANEL.equals(key)) {
+                changed.run();
+            }
+        };
+        preferences.registerOnSharedPreferenceChangeListener(listener);
+        return () -> preferences.unregisterOnSharedPreferenceChangeListener(listener);
+    }
+
     private static SharedPreferences prefs(Context context) {
         return context.getSharedPreferences(AppSettings.PREFS, Context.MODE_PRIVATE);
     }

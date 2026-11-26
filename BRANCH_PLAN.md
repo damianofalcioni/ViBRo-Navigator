@@ -639,3 +639,14 @@ Do not redo the completed template/metadata/intent integration merely because a 
   ```powershell
   .\gradlew.bat :app:assembleGplayDebug :app:lintGplayDebug :app:testGplayDebugUnitTest --tests 'vibro.navigator.auto.*' --max-workers=2 --continue --console=plain
   ```
+
+## Android Auto idle gesture hints (2026-11-26)
+
+- The user approved integrating the three illustrated gesture hints below No active navigation and asked for an Android Auto screenshot. Use the existing Show hint panel setting for both experiences and host-rendered rows for the car. The car layout uses the approved one-finger tilt icon and the phone's existing view and zoom icons. The hints are idle-only and track the car API's gesture support.
+- The Google Play debug APK, both flavor lints, complexity check, and 142 focused tests passed (119 Google Play and 23 F-Droid). Tests cover the pane rows, the shared setting, older car API levels, and the existing phone hints. The unused tilt drawable warning is resolved. Local log: `build/dhu-idle-gesture-checks.log`.
+- Installed the final APK on the Android emulator and verified all three illustrated rows on the Desktop Head Unit. The 1280×720 preset shows the idle message and all three tips together (`build/dhu-idle-gesture-hints-720p.png`). The 800×480 pane uses the host's scroll controls (`build/dhu-idle-gesture-hints-full.png` and `build/dhu-idle-gesture-hints-scrolled.png`).
+
+  ```powershell
+  $phoneChecks = '--tests', '*NavigationGestureHints*', '--tests', '*AboutNavigationHintSettings*'
+  .\gradlew.bat :app:assembleGplayDebug :app:lintGplayDebug :app:lintFdroidDebug :app:complexityCheck :app:testGplayDebugUnitTest @phoneChecks --tests 'vibro.navigator.auto.*' :app:testFdroidDebugUnitTest @phoneChecks --max-workers=2 --continue --console=plain
+  ```
