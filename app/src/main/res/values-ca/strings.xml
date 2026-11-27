@@ -607,6 +607,7 @@
     <string name="action_configure_simulation">Configura la simulació</string>
     <string name="auto_destination_timeout">La càrrega de la destinació ha superat el temps límit. Torna-ho a provar.</string>
     <string name="auto_retry">Torna-ho a provar</string>
+    <string name="auto_navigation_operation_unsupported">Aquesta sol·licitud de navegació per veu no és compatible.</string>
     <string name="auto_hint_switch_views">Canvia de vista</string>
     <string name="auto_hint_switch_views_text">Toca el mapa una vegada o llisca a l’esquerra o a la dreta per canviar entre la vista general, 2D i 3D.</string>
     <string name="auto_hint_swipe_views_text">Llisca a l’esquerra o a la dreta per canviar entre la vista general, 2D i 3D.</string>

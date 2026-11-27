@@ -611,6 +611,7 @@
     <string name="action_configure_simulation">Nastavit simulaci</string>
     <string name="auto_destination_timeout">Vypršel časový limit načítání cíle. Zkuste to znovu.</string>
     <string name="auto_retry">Zkusit znovu</string>
+    <string name="auto_navigation_operation_unsupported">Tento hlasový požadavek na navigaci není podporován.</string>
     <string name="auto_hint_switch_views">Přepínání zobrazení</string>
     <string name="auto_hint_switch_views_text">Jedním klepnutím na mapu nebo přejetím doleva či doprava přepnete mezi přehledem, 2D a 3D.</string>
     <string name="auto_hint_swipe_views_text">Přejetím doleva či doprava přepnete mezi přehledem, 2D a 3D.</string>

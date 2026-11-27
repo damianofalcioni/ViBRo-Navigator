@@ -611,6 +611,7 @@
     <string name="action_configure_simulation">Konfiguruj symulację</string>
     <string name="auto_destination_timeout">Przekroczono limit czasu ładowania celu. Spróbuj ponownie.</string>
     <string name="auto_retry">Spróbuj ponownie</string>
+    <string name="auto_navigation_operation_unsupported">To polecenie głosowe nawigacji nie jest obsługiwane.</string>
     <string name="auto_hint_switch_views">Zmień widok</string>
     <string name="auto_hint_switch_views_text">Dotknij mapy raz lub przesuń palcem w lewo lub w prawo, aby przełączać widok ogólny, 2D i 3D.</string>
     <string name="auto_hint_swipe_views_text">Przesuń palcem w lewo lub w prawo, aby przełączać widok ogólny, 2D i 3D.</string>

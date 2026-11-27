@@ -619,6 +619,7 @@
     <string name="action_configure_simulation">إعداد المحاكاة</string>
     <string name="auto_destination_timeout">انتهت مهلة تحميل الوجهة. حاول مرة أخرى.</string>
     <string name="auto_retry">إعادة المحاولة</string>
+    <string name="auto_navigation_operation_unsupported">طلب الملاحة الصوتي هذا غير مدعوم.</string>
     <string name="auto_hint_switch_views">تبديل العرض</string>
     <string name="auto_hint_switch_views_text">المس الخريطة مرة واحدة أو اسحب يمينًا أو يسارًا للتبديل بين النظرة العامة والعرضين 2D و3D.</string>
     <string name="auto_hint_swipe_views_text">اسحب يمينًا أو يسارًا للتبديل بين النظرة العامة والعرضين 2D و3D.</string>

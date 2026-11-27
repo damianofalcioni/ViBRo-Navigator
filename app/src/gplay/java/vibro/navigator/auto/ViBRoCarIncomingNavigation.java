@@ -4,6 +4,7 @@ import android.content.Intent;
 
 import androidx.annotation.Nullable;
 import androidx.car.app.CarContext;
+import androidx.car.app.CarToast;
 import androidx.car.app.model.Template;
 
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.util.concurrent.ExecutorService;
 
 import vibro.navigator.R;
 import vibro.navigator.android.automotive.AndroidCarNavigationStarter;
+import vibro.navigator.android.language.AndroidAppLanguage;
 import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.intent.IntentLocationParser;
@@ -32,6 +34,7 @@ final class ViBRoCarIncomingNavigation {
         List<Poi> search(String query) throws IOException;
         @Nullable NavigationRequest prepare(Poi destination);
         boolean start(NavigationRequest request, NavigationSessionInitialRoute.Callback result);
+        void showUnsupportedOperation();
     }
     private final TaskScheduler scheduler;
     private final Runnable invalidate;
@@ -69,9 +72,18 @@ final class ViBRoCarIncomingNavigation {
     }
 
     void handle(Intent intent) {
-        String query = IntentLocationParser.parseToQuery(intent.getAction(), intent.getDataString(),
+        if (disposed) {
+            return;
+        }
+        String data = intent.getDataString();
+        String operation = IntentLocationParser.navigationOperation(data);
+        if (operation != null && !"navigation".equalsIgnoreCase(operation)) {
+            access.showUnsupportedOperation();
+            return;
+        }
+        String query = IntentLocationParser.parseToQuery(intent.getAction(), data,
                 intent.getStringExtra(Intent.EXTRA_TEXT));
-        if (query == null || disposed) {
+        if (query == null) {
             return;
         }
         cancel();
@@ -113,7 +125,7 @@ final class ViBRoCarIncomingNavigation {
     }
 
     private void select(Poi destination) {
-        if (disposed || !showing) { return; }
+        if (!showing) { return; }
         pendingDestination = destination;
         results = Collections.emptyList();
         int token = beginLoading();
@@ -162,7 +174,7 @@ final class ViBRoCarIncomingNavigation {
     }
 
     private void retryRequested() {
-        if (!showing || load.isLoading() || disposed) { return; }
+        if (!showing || load.isLoading()) { return; }
         if (pendingDestination != null) { select(pendingDestination); }
         else if (pendingQuery != null) { search(); }
     }
@@ -220,6 +232,10 @@ final class ViBRoCarIncomingNavigation {
         }
         @Override public boolean start(NavigationRequest request, NavigationSessionInitialRoute.Callback result) {
             return AndroidCarNavigationStarter.start(context, request, result);
+        }
+        @Override public void showUnsupportedOperation() {
+            String message = AndroidAppLanguage.getString(context, R.string.auto_navigation_operation_unsupported);
+            CarToast.makeText(context, message, CarToast.LENGTH_LONG).show();
         }
     }
 }

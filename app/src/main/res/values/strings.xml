@@ -661,4 +661,5 @@
     <string name="action_configure_simulation">Configure simulation</string>
     <string name="auto_destination_timeout" tools:ignore="UnusedResources">Destination loading timed out. Try again.</string>
     <string name="auto_retry" tools:ignore="UnusedResources">Retry</string>
+    <string name="auto_navigation_operation_unsupported" tools:ignore="UnusedResources">This voice navigation request isn’t supported.</string>
 </resources>

@@ -8,9 +8,11 @@ import static org.junit.Assert.assertTrue;
 import android.app.Application;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.content.res.Configuration;
+import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.car.app.AppInfo;
@@ -89,6 +91,16 @@ public class ViBRoCarAppServiceSettingsGplayTest {
 
         assertEquals(R.string.app_name, serviceInfo.labelRes);
         assertEquals(context.getApplicationInfo().icon, serviceInfo.icon);
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    public void standardNavigationIntentResolvesToTheCarService() {
+        Intent navigate = new Intent(CarContext.ACTION_NAVIGATE, Uri.parse("geo:48.2082,16.3738"))
+                .addCategory(Intent.CATEGORY_DEFAULT).setPackage(context.getPackageName());
+        var services = context.getPackageManager().queryIntentServices(navigate, PackageManager.MATCH_DEFAULT_ONLY);
+        assertEquals(1, services.size());
+        assertEquals(ViBRoCarAppService.class.getName(), services.get(0).serviceInfo.name);
     }
 
     @Test

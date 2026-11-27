@@ -589,6 +589,7 @@
     <string name="action_configure_simulation">Configura simulazione</string>
     <string name="auto_destination_timeout">Il caricamento della destinazione ha superato il tempo limite. Riprova.</string>
     <string name="auto_retry">Riprova</string>
+    <string name="auto_navigation_operation_unsupported">Questa richiesta vocale di navigazione non è supportata.</string>
     <string name="auto_hint_switch_views">Cambia vista</string>
     <string name="auto_hint_switch_views_text">Tocca la mappa una volta o scorri a sinistra o a destra per passare tra panoramica, 2D e 3D.</string>
     <string name="auto_hint_swipe_views_text">Scorri a sinistra o a destra per passare tra panoramica, 2D e 3D.</string>

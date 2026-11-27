@@ -607,6 +607,7 @@
     <string name="action_configure_simulation">Configurar simulação</string>
     <string name="auto_destination_timeout">O carregamento do destino excedeu o tempo limite. Tente novamente.</string>
     <string name="auto_retry">Tentar novamente</string>
+    <string name="auto_navigation_operation_unsupported">Este pedido de navegação por voz não é suportado.</string>
     <string name="auto_hint_switch_views">Mudar de vista</string>
     <string name="auto_hint_switch_views_text">Toque uma vez no mapa ou deslize para a esquerda ou direita para alternar entre a vista geral, 2D e 3D.</string>
     <string name="auto_hint_swipe_views_text">Deslize para a esquerda ou direita para alternar entre a vista geral, 2D e 3D.</string>

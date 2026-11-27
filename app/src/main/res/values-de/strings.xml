@@ -585,6 +585,7 @@
     <string name="action_configure_simulation">Simulation konfigurieren</string>
     <string name="auto_destination_timeout">Das Laden des Ziels hat zu lange gedauert. Versuche es erneut.</string>
     <string name="auto_retry">Erneut versuchen</string>
+    <string name="auto_navigation_operation_unsupported">Dieser Sprachbefehl zur Navigation wird nicht unterstützt.</string>
     <string name="auto_hint_switch_views">Ansicht wechseln</string>
     <string name="auto_hint_switch_views_text">Einmal auf die Karte tippen oder nach links oder rechts wischen, um zwischen Übersicht, 2D und 3D zu wechseln.</string>
     <string name="auto_hint_swipe_views_text">Nach links oder rechts wischen, um zwischen Übersicht, 2D und 3D zu wechseln.</string>

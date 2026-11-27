@@ -750,3 +750,11 @@ Do not redo the completed template/metadata/intent integration merely because a 
   $tripCar = '--tests','*ViBRoCarGuidanceGplayTest','--tests','*ViBRoCarHostNavigationTest','--tests','*ViBRoCarScreenLifecycleTest'
   .\gradlew.bat :app:testFdroidDebugUnitTest @tripShared :app:testGplayDebugUnitTest @tripShared @tripCar --max-workers=2 --continue --console=plain
   ```
+
+## Fix the open Android Auto review findings (2026-11-27)
+
+- The user authorized the open review fixes. Place the roundabout exit number to the right of the circular arrow, matching the placement in phone notifications. Use a white X for Off route. Distinguish the car icons for motorway exits, keep instructions, and final arrival from the similar turn and stop icons. Continue using the same icon mapping across the current step, preview, and cluster.
+- Keep the current-turn duration in localized cue text so the host displays sub-minute estimates in seconds. Register the standard navigation intent on the Google Play car service. Decline unsupported voice operations with a localized toast before touching the active or pending trip. This fixes destructive replacement without adding live itinerary editing.
+- The full JVM suites passed 2,456 Google Play and 2,318 F-Droid tests with zero failures, errors, or skips. Both debug lints, complexity, the Google Play debug APK, and both release APK builds passed. The local log is `build/android-auto-open-review-fixes-verified.log`.
+- Installed the Google Play debug APK on the Android 16 emulator. The standard navigation intent resolved to `ViBRoCarAppService`. The merged Google Play release manifest contains the filter, and the F-Droid release manifest omits it. The automated checks cover the current-turn duration payload, alternate roundabout exits, and preserving an active or pending trip.
+- Rendered all 20 supported icons from the Android Auto adapter using native graphics. Checked the right-side number in both roundabout directions and the distinct shapes for Off route, keeps, exits, and arrival. The render log is `build/android-auto-updated-symbols.log`. Live Assistant delivery and actual head-unit and cluster rendering remain unverified.

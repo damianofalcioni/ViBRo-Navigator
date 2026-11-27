@@ -2,7 +2,7 @@ package vibro.navigator.auto;
 
 import android.content.Context;
 import android.text.SpannableStringBuilder;
-import android.text.Spanned;
+import android.util.SparseArray;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.Nullable;
@@ -10,7 +10,6 @@ import androidx.car.app.model.CarColor;
 import androidx.car.app.model.CarIcon;
 import androidx.car.app.model.CarText;
 import androidx.car.app.model.Distance;
-import androidx.car.app.model.DurationSpan;
 import androidx.car.app.navigation.model.Maneuver;
 import androidx.car.app.navigation.model.Step;
 import androidx.core.graphics.drawable.IconCompat;
@@ -24,15 +23,42 @@ import vibro.navigator.nav.route.RouteStartApproach;
 import vibro.navigator.nav.route.VoiceHint;
 
 final class ViBRoCarManeuvers {
-    record Icons(CarIcon uTurn, CarIcon beeline, ViBRoCarManeuverGlyphs glyphs) {
+    private static final int[] CUSTOM_DRAWABLES = new int[101];
+
+    static {
+        CUSTOM_DRAWABLES[8] = R.drawable.ic_auto_keep_left;
+        CUSTOM_DRAWABLES[9] = R.drawable.ic_auto_keep_right;
+        CUSTOM_DRAWABLES[12] = R.drawable.ic_auto_off_route;
+        CUSTOM_DRAWABLES[15] = R.drawable.ic_auto_uturn;
+        CUSTOM_DRAWABLES[RouteStartApproach.BEELINE_COMMAND] = R.drawable.ic_auto_beeline;
+        CUSTOM_DRAWABLES[17] = R.drawable.ic_auto_exit_left;
+        CUSTOM_DRAWABLES[18] = R.drawable.ic_auto_exit_right;
+        CUSTOM_DRAWABLES[100] = R.drawable.ic_auto_destination;
+    }
+
+    record Icons(Context context, SparseArray<CarIcon> drawables, ViBRoCarManeuverGlyphs glyphs) {
         static Icons from(Context context) {
-            return new Icons(icon(context, R.drawable.ic_auto_uturn), icon(context, R.drawable.ic_auto_beeline),
-                    new ViBRoCarManeuverGlyphs());
+            return new Icons(context, new SparseArray<>(), new ViBRoCarManeuverGlyphs());
         }
 
-        private static CarIcon icon(Context context, @DrawableRes int drawable) {
-            return new CarIcon.Builder(IconCompat.createWithResource(context, drawable))
-                    .setTint(CarColor.DEFAULT).build();
+        @Nullable
+        CarIcon forManeuver(VoiceHint hint, int type, int exitNumber) {
+            int command = hint.command;
+            int drawable = command >= 0 && command < CUSTOM_DRAWABLES.length ? CUSTOM_DRAWABLES[command] : 0;
+            if (drawable != 0) {
+                return drawableIcon(drawable);
+            }
+            return type == Maneuver.TYPE_UNKNOWN ? null : glyphs.get(hint, exitNumber);
+        }
+
+        private CarIcon drawableIcon(@DrawableRes int drawable) {
+            CarIcon icon = drawables.get(drawable);
+            if (icon == null) {
+                icon = new CarIcon.Builder(IconCompat.createWithResource(context, drawable))
+                        .setTint(CarColor.DEFAULT).build();
+                drawables.put(drawable, icon);
+            }
+            return icon;
         }
     }
 
@@ -59,16 +85,9 @@ final class ViBRoCarManeuvers {
 
     static void appendDuration(SpannableStringBuilder cue, double seconds, NavigationTextResources resources) {
         if (Double.isFinite(seconds) && seconds >= 0) {
-            appendMetric(cue, NavigationTextFormatter.formatTimeSeconds(resources, seconds),
-                    DurationSpan.create(Math.round(seconds)));
+            // A host may render a DurationSpan in whole minutes, including zero for sub-minute times.
+            cue.append(" · ").append(NavigationTextFormatter.formatTimeSeconds(resources, seconds));
         }
-    }
-
-    private static void appendMetric(SpannableStringBuilder cue, String fallback, Object span) {
-        cue.append(" · ");
-        int start = cue.length();
-        cue.append(fallback);
-        cue.setSpan(span, start, cue.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     }
 
     static String cue(String instruction, boolean uncertain) {
@@ -77,25 +96,16 @@ final class ViBRoCarManeuvers {
 
     static Maneuver maneuver(VoiceHint hint, @Nullable Icons icons) {
         int maneuverType = maneuverType(hint);
+        int exitNumber = isRoundabout(hint) ? Math.abs(hint.exitNumber) : 0;
         Maneuver.Builder builder = new Maneuver.Builder(maneuverType);
-        if (isRoundabout(hint) && hint.exitNumber != 0) {
-            builder.setRoundaboutExitNumber(Math.abs(hint.exitNumber));
+        if (exitNumber > 0) {
+            builder.setRoundaboutExitNumber(exitNumber);
         }
-        CarIcon icon = maneuverIcon(hint, maneuverType, icons);
+        CarIcon icon = icons == null ? null : icons.forManeuver(hint, maneuverType, exitNumber);
         if (icon != null) {
             builder.setIcon(icon);
         }
         return builder.build();
-    }
-
-    @Nullable
-    private static CarIcon maneuverIcon(VoiceHint hint, int maneuverType, @Nullable Icons icons) {
-        if (icons == null) { return null; }
-        return switch (hint.command) {
-            case 15 -> icons.uTurn();
-            case RouteStartApproach.BEELINE_COMMAND -> icons.beeline();
-            default -> maneuverType == Maneuver.TYPE_UNKNOWN ? null : icons.glyphs().get(hint);
-        };
     }
 
     private static int maneuverType(VoiceHint hint) {

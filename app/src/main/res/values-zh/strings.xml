@@ -597,6 +597,7 @@
     <string name="action_configure_simulation">配置模拟</string>
     <string name="auto_destination_timeout">目的地加载超时。请重试。</string>
     <string name="auto_retry">重试</string>
+    <string name="auto_navigation_operation_unsupported">不支持此语音导航请求。</string>
     <string name="auto_hint_switch_views">切换视图</string>
     <string name="auto_hint_switch_views_text">轻点地图一次，或向左或向右滑动，即可在路线概览、2D 和 3D 之间切换。</string>
     <string name="auto_hint_swipe_views_text">向左或向右滑动，即可在路线概览、2D 和 3D 之间切换。</string>

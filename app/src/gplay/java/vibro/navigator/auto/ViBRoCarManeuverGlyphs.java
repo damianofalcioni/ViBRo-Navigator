@@ -6,11 +6,13 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
-import android.util.SparseArray;
 
 import androidx.car.app.model.CarColor;
 import androidx.car.app.model.CarIcon;
 import androidx.core.graphics.drawable.IconCompat;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import vibro.navigator.nav.directions.VoiceHintMapper;
 import vibro.navigator.nav.route.VoiceHint;
@@ -20,13 +22,15 @@ final class ViBRoCarManeuverGlyphs {
     private static final int ICON_SIZE = 128;
     private static final float MAX_GLYPH_SIZE = 104f;
 
-    private final SparseArray<CarIcon> icons = new SparseArray<>();
+    private final Map<String, CarIcon> icons = new HashMap<>();
 
-    CarIcon get(VoiceHint hint) {
-        CarIcon icon = icons.get(hint.command);
+    CarIcon get(VoiceHint hint, int exitNumber) {
+        String arrow = symbol(hint);
+        String glyph = exitNumber > 0 ? arrow + exitNumber : arrow;
+        CarIcon icon = icons.get(glyph);
         if (icon == null) {
-            icon = draw(symbol(hint));
-            icons.put(hint.command, icon);
+            icon = draw(glyph);
+            icons.put(glyph, icon);
         }
         return icon;
     }

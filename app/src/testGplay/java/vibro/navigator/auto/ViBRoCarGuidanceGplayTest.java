@@ -6,8 +6,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import android.text.Spanned;
+
 import androidx.car.app.CarContext;
 import androidx.car.app.model.Distance;
+import androidx.car.app.model.DurationSpan;
 import androidx.car.app.navigation.model.Maneuver;
 import androidx.car.app.navigation.model.MessageInfo;
 import androidx.car.app.navigation.model.NavigationTemplate;
@@ -79,6 +82,14 @@ public class ViBRoCarGuidanceGplayTest {
         assertEquals(Distance.create(120, Distance.UNIT_METERS), info.getCurrentDistance());
         assertTrue(info.getCurrentStep().getCue().toString().contains(warning));
         assertEquals("Turn right", ViBRoCarTrip.from(state, false, null).getSteps().get(0).getCue().toString());
+    }
+
+    @Test
+    public void currentTurnDurationRemainsInSecondsOnHostsThatLocalizeSpans() {
+        var cue = routing(template(base)).getCurrentStep().getCue().toCharSequence();
+        assertEquals("Turn right · 12 s", cue.toString());
+        assertFalse(cue instanceof Spanned spanned
+                && spanned.getSpans(0, cue.length(), DurationSpan.class).length > 0);
     }
 
     @Test
@@ -175,7 +186,7 @@ public class ViBRoCarGuidanceGplayTest {
         var icons = ViBRoCarManeuvers.Icons.from(context);
         var maneuver = info.getCurrentStep().getManeuver();
         assertEquals(Maneuver.TYPE_UNKNOWN, maneuver.getType());
-        assertEquals(icons.beeline(), maneuver.getIcon());
+        assertEquals(R.drawable.ic_auto_beeline, maneuver.getIcon().getIcon().getResId());
         Trip trip = ViBRoCarTrip.from(state, false, icons);
         assertEquals(1, trip.getSteps().size());
         assertEquals(maneuver, trip.getSteps().get(0).getManeuver());

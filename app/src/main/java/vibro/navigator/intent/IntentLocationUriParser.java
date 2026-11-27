@@ -25,6 +25,26 @@ final class IntentLocationUriParser {
     }
 
     @Nullable
+    static String navigationOperation(@Nullable String uriString) {
+        if (uriString == null) {
+            return null;
+        }
+        String uri = uriString.trim();
+        int schemeEnd = uri.indexOf(':');
+        if (schemeEnd <= 0) {
+            return null;
+        }
+        String data = uri.substring(schemeEnd + 1);
+        String query = switch (uri.substring(0, schemeEnd).toLowerCase(Locale.US)) {
+            case "geo" -> geoQuery(data, data.indexOf('?'));
+            case "google.navigation" -> stripLeadingSlashes(data);
+            default -> null;
+        };
+        String operation = IntentLocationQueryParams.firstValue(query, "intent");
+        return operation == null ? null : IntentUriDecoder.decodeComponent(operation).trim();
+    }
+
+    @Nullable
     static String parse(@Nullable String uriString) {
         if (uriString == null) {
             return null;
@@ -61,12 +81,17 @@ final class IntentLocationUriParser {
     private static String parseGeoUri(@NonNull String schemeSpecific) {
         int queryIndex = schemeSpecific.indexOf('?');
         String locationPart = queryIndex >= 0 ? schemeSpecific.substring(0, queryIndex) : schemeSpecific;
-        String queryPart = queryIndex >= 0 ? schemeSpecific.substring(queryIndex + 1) : null;
+        String queryPart = geoQuery(schemeSpecific, queryIndex);
 
         if (IntentLocationQueryParams.hasAnyKey(queryPart, GEO_QUERY_KEYS)) {
             return normalizeCandidate(IntentLocationQueryParams.firstValue(queryPart, GEO_QUERY_KEYS));
         }
         return IntentLocationCoordinates.extract(locationPart);
+    }
+
+    @Nullable
+    private static String geoQuery(String data, int queryIndex) {
+        return queryIndex >= 0 ? data.substring(queryIndex + 1) : null;
     }
 
     @Nullable

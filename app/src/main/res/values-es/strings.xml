@@ -608,6 +608,7 @@
     <string name="action_configure_simulation">Configurar simulación</string>
     <string name="auto_destination_timeout">La carga del destino ha agotado el tiempo de espera. Inténtalo de nuevo.</string>
     <string name="auto_retry">Reintentar</string>
+    <string name="auto_navigation_operation_unsupported">Esta solicitud de navegación por voz no es compatible.</string>
     <string name="auto_hint_switch_views">Cambiar de vista</string>
     <string name="auto_hint_switch_views_text">Toca el mapa una vez o desliza a la izquierda o a la derecha para alternar entre la vista general, 2D y 3D.</string>
     <string name="auto_hint_swipe_views_text">Desliza a la izquierda o a la derecha para alternar entre la vista general, 2D y 3D.</string>

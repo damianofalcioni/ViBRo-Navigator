@@ -607,6 +607,7 @@
     <string name="action_configure_simulation">Configurer la simulation</string>
     <string name="auto_destination_timeout">Le chargement de la destination a pris trop de temps. Réessayez.</string>
     <string name="auto_retry">Réessayer</string>
+    <string name="auto_navigation_operation_unsupported">Cette demande de navigation vocale n’est pas prise en charge.</string>
     <string name="auto_hint_switch_views">Changer de vue</string>
     <string name="auto_hint_switch_views_text">Touchez la carte une fois ou balayez à gauche ou à droite pour passer de la vue d’ensemble à la 2D ou à la 3D.</string>
     <string name="auto_hint_swipe_views_text">Balayez à gauche ou à droite pour passer de la vue d’ensemble à la 2D ou à la 3D.</string>

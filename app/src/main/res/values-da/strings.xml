@@ -603,6 +603,7 @@
     <string name="action_configure_simulation">Konfigurer simulation</string>
     <string name="auto_destination_timeout">Indlæsning af destinationen tog for lang tid. Prøv igen.</string>
     <string name="auto_retry">Prøv igen</string>
+    <string name="auto_navigation_operation_unsupported">Denne stemmeanmodning om navigation understøttes ikke.</string>
     <string name="auto_hint_switch_views">Skift visning</string>
     <string name="auto_hint_switch_views_text">Tryk én gang på kortet, eller stryg til venstre eller højre for at skifte mellem oversigt, 2D og 3D.</string>
     <string name="auto_hint_swipe_views_text">Stryg til venstre eller højre for at skifte mellem oversigt, 2D og 3D.</string>

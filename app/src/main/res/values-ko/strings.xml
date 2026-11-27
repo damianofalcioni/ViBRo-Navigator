@@ -597,6 +597,7 @@
     <string name="action_configure_simulation">시뮬레이션 설정</string>
     <string name="auto_destination_timeout">목적지 로딩 시간이 초과되었습니다. 다시 시도하세요.</string>
     <string name="auto_retry">다시 시도</string>
+    <string name="auto_navigation_operation_unsupported">이 음성 내비게이션 요청은 지원되지 않습니다.</string>
     <string name="auto_hint_switch_views">보기 전환</string>
     <string name="auto_hint_switch_views_text">지도를 한 번 탭하거나 왼쪽 또는 오른쪽으로 밀어 전체 보기, 2D, 3D를 전환하세요.</string>
     <string name="auto_hint_swipe_views_text">왼쪽 또는 오른쪽으로 밀어 전체 보기, 2D, 3D를 전환하세요.</string>

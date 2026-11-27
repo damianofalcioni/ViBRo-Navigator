@@ -20,6 +20,12 @@ public final class IntentLocationParser {
     private IntentLocationParser() {
     }
 
+    /** Operation requested by a geo or google.navigation intent, if explicitly specified. */
+    @Nullable
+    public static String navigationOperation(@Nullable String dataString) {
+        return IntentLocationUriParser.navigationOperation(dataString);
+    }
+
     @Nullable
     public static String parseToQuery(@Nullable String action, @Nullable String dataString, @Nullable String sharedText) {
         String parsedData = IntentLocationUriParser.parse(dataString);

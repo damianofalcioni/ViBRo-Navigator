@@ -603,6 +603,7 @@
     <string name="action_configure_simulation">Ρύθμιση προσομοίωσης</string>
     <string name="auto_destination_timeout">Η φόρτωση του προορισμού έληξε. Δοκιμάστε ξανά.</string>
     <string name="auto_retry">Δοκιμή ξανά</string>
+    <string name="auto_navigation_operation_unsupported">Αυτό το φωνητικό αίτημα πλοήγησης δεν υποστηρίζεται.</string>
     <string name="auto_hint_switch_views">Αλλαγή προβολής</string>
     <string name="auto_hint_switch_views_text">Πατήστε μία φορά τον χάρτη ή σύρετε αριστερά ή δεξιά για εναλλαγή μεταξύ επισκόπησης, 2D και 3D.</string>
     <string name="auto_hint_swipe_views_text">Σύρετε αριστερά ή δεξιά για εναλλαγή μεταξύ επισκόπησης, 2D και 3D.</string>

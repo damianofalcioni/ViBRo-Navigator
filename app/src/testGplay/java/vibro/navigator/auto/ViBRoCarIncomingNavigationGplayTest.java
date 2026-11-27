@@ -35,6 +35,7 @@ import vibro.navigator.poi.Poi;
 @RunWith(RobolectricTestRunner.class)
 public class ViBRoCarIncomingNavigationGplayTest {
     private static final String ADDRESS_URI = "geo:0,0?q=Vienna";
+    private static final String TRIP_URI = "geo:48.2,16.3";
     private final ArrayDeque<Runnable> ui = new ArrayDeque<>();
     private final ManualScheduler scheduler = new ManualScheduler();
     private final ManualWorker worker = new ManualWorker();
@@ -53,12 +54,40 @@ public class ViBRoCarIncomingNavigationGplayTest {
 
     @Test
     public void coordinateVoiceIntentStartsNavigationWithoutOnlineSearch() {
-        incoming.handle(intent("geo:0,0?q=48.2,16.3"));
+        incoming.handle(intent("geo:0,0?q=48.2,16.3&intent=navigation"));
         drain();
         assertEquals(0, access.searches);
         assertEquals(1, access.started.size());
         assertEquals(48.2, access.started.get(0).destination.lat, 0);
         assertNull(incoming.template());
+    }
+
+    @Test
+    public void voiceStopRequestPreservesTheActiveTrip() {
+        incoming.handle(intent(TRIP_URI));
+        drain();
+        access.results.get(0).finished(false);
+
+        incoming.handle(intent("geo:48.4,16.5?intent=add_a_stop"));
+        incoming.handle(intent("geo:0,0?q=Pharmacy&intent=add_a_stop"));
+        drain();
+
+        assertEquals(2, access.unsupportedOperations);
+        assertEquals(0, access.searches);
+        assertEquals(1, access.started.size());
+        assertEquals(48.2, access.started.get(0).destination.lat, 0);
+        assertNull(incoming.template());
+    }
+
+    @Test
+    public void directionsPreviewDoesNotReplaceAPendingRoute() {
+        incoming.handle(intent(TRIP_URI));
+        incoming.handle(intent("google.navigation:q=48.4,16.5&intent=directions"));
+        drain();
+
+        assertEquals(1, access.unsupportedOperations);
+        assertEquals(1, access.started.size());
+        assertEquals(48.2, access.started.get(0).destination.lat, 0);
     }
 
     @Test
@@ -271,6 +300,7 @@ public class ViBRoCarIncomingNavigationGplayTest {
         private final List<NavigationSessionInitialRoute.Callback> results = new ArrayList<>();
         private boolean ready = true;
         private int searches;
+        private int unsupportedOperations;
         @Override public List<Poi> search(String query) {
             searches++;
             return Collections.singletonList(new Poi(query, 48.2, 16.3));
@@ -284,6 +314,7 @@ public class ViBRoCarIncomingNavigationGplayTest {
             results.add(result);
             return true;
         }
+        @Override public void showUnsupportedOperation() { unsupportedOperations++; }
     }
 
     private static final class ManualWorker extends AbstractExecutorService {
