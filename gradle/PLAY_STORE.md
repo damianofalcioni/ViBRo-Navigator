@@ -20,6 +20,11 @@ to the track selected for the GitHub release type:
 | GitHub prerelease or a `-beta` / `-beta.N` tag | `alpha` by default, or the repository variable `PLAY_PRERELEASE_TRACK` | No |
 | Stable release | `production`, full rollout | Yes |
 
+For a manual Play upload, include `<!-- manual-google-play -->` in the GitHub
+release description before publishing. The release workflow skips the Play upload
+and still builds the signed `play-release-bundle` artifact for Play Console.
+A stable release with this marker still submits F-Droid metadata.
+
 The binary release job does not enable the Gradle publisher; the separate
 listing workflow uses it. Android version names stay numeric,
 for example `1.0.1` with versionCode `1000001`. The Git tag can be `v1.0.1-beta`

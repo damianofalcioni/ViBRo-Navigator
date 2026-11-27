@@ -1,0 +1,5 @@
+• Improved BRouter folder discovery and permission recovery.
+• Refined GPS recovery, turn guidance, rerouting, and arrival detection.
+• Added navigation simulation.
+• Updated Android Auto with clearer turn cards, stop estimates, and map controls in the Google Play edition.
+• Added a restore-defaults action and easier sharing for GPX and diagnostic logs.

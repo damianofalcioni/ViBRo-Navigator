@@ -55,6 +55,8 @@ tasks.withType(JavaCompile).configureEach {
 
 tasks.withType(Test).configureEach {
     maxHeapSize = "1536m"
+    // Bound the Robolectric state retained by each test worker across test classes.
+    forkEvery = 50
 }
 
 android {
@@ -76,8 +78,8 @@ android {
         applicationId = "vibro.navigator"
         minSdk = 23
         targetSdk = 37
-        versionCode = 1000001
-        versionName = "1.0.1"
+        versionCode = 1000002
+        versionName = "1.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

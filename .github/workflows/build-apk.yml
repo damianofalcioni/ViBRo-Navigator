@@ -163,7 +163,7 @@ jobs:
 
   publish_play:
     needs: build
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' && !contains(github.event.release.body, '<!-- manual-google-play -->')
     runs-on: ubuntu-latest
     permissions:
       contents: read

@@ -168,8 +168,8 @@ after the signed FOSS APK has been attached. It performs these steps:
 - render the final `metadata/vibro.navigator.foss.yml`
 - format/lint the recipe with pinned F-Droid tools
 - push it to your GitLab `fdroiddata` fork
-- wait for the fork's pipeline to pass before opening a submission
-- create or reuse a merge request against `fdroid/fdroiddata`
+- update the release link in an open merge request against `fdroid/fdroiddata`
+- wait for successful fork CI before opening a new merge request
 
 New app requests use [APP_INCLUSION.md](APP_INCLUSION.md), completed from
 F-Droid's required App inclusion template, and the title

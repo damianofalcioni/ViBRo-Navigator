@@ -165,7 +165,6 @@ jobs:
           PY
 
       - name: Push metadata to fdroiddata fork
-        id: push
         shell: bash
         env:
           GITLAB_NAMESPACE: ${{ secrets.GITLAB_NAMESPACE }}
@@ -203,14 +202,11 @@ jobs:
           # Stage first: git diff alone ignores a new app's untracked metadata.
           git add "metadata/${APP_ID}.yml"
           if git diff --cached --quiet -- "metadata/${APP_ID}.yml"; then
-            echo "changed=false" >> "${GITHUB_OUTPUT}"
             exit 0
           fi
 
           git commit -m "Update ${APP_ID} to ${VERSION_NAME} (${VERSION_CODE})"
           git push origin "${FDROIDDATA_BRANCH}"
-
-          echo "changed=true" >> "${GITHUB_OUTPUT}"
 
       - name: Create or reuse merge request
         if: success()
@@ -222,7 +218,6 @@ jobs:
           RELEASE_REF: ${{ inputs.release_ref }}
           VERSION_NAME: ${{ steps.render.outputs.version_name }}
           VERSION_CODE: ${{ steps.render.outputs.version_code }}
-          CHANGED: ${{ steps.push.outputs.changed }}
         run: |
           set -euo pipefail
 
@@ -244,7 +239,6 @@ jobs:
           app_id = os.environ["APP_ID"]
           version_name = os.environ["VERSION_NAME"]
           version_code = os.environ["VERSION_CODE"]
-          changed = os.environ.get("CHANGED", "")
 
           def api(method, path, data=None, allowed_statuses=()):
               url = "https://gitlab.com/api/v4" + path
@@ -269,24 +263,6 @@ jobs:
           source_project = api("GET", f"/projects/{source_project_path}")
           target_project_info = api("GET", f"/projects/{target_project_path}")
 
-          # F-Droid requires successful fork CI before a submission is opened.
-          source_branch = api("GET", f"/projects/{source_project['id']}/repository/branches/{urllib.parse.quote(branch, safe='')}")
-          pipeline_query = urllib.parse.urlencode({"ref": branch, "sha": source_branch["commit"]["id"], "per_page": 10})
-          for attempt in range(120):
-              pipelines = api("GET", f"/projects/{source_project['id']}/pipelines?{pipeline_query}")
-              if pipelines:
-                  pipeline = pipelines[0]
-                  status = pipeline["status"]
-                  if status == "success":
-                      break
-                  if status in ("failed", "canceled", "skipped", "manual"):
-                      raise SystemExit(f"F-Droid fork CI is {status}: {pipeline['web_url']}. Fix it before submitting; no merge request was opened.")
-              if attempt % 4 == 0:
-                  print("Waiting for F-Droid fork CI to pass...", flush=True)
-              time.sleep(30)
-          else:
-              raise SystemExit("Timed out waiting for F-Droid fork CI; no merge request was opened.")
-
           existing = api(
               "GET",
               "/projects/{}/merge_requests?{}".format(
@@ -304,10 +280,41 @@ jobs:
           existing = [mr for mr in existing if mr["state"] in ("opened", "closed")]
 
           if existing:
-              if existing[0]["state"] == "closed":
-                  raise SystemExit(f"A reviewer closed this merge request: {existing[0]['web_url']}. Address the review and reopen that request manually; no duplicate was created.")
-              print(f"Existing merge request: {existing[0]['web_url']}")
+              mr = existing[0]
+              if mr["state"] == "closed":
+                  raise SystemExit(f"A reviewer closed this merge request: {mr['web_url']}. Address the review and reopen that request manually; no duplicate was created.")
+              description = mr.get("description") or ""
+              marker = "<!-- current-upstream-release -->"
+              previous_description = description.partition("\n\n")[2] if description.startswith(marker + "\n") else description
+              release_url = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/releases/tag/{os.environ['RELEASE_REF']}"
+              updated_description = (
+                  f"{marker}\n"
+                  f"This merge request currently submits [ViBRo Navigator FOSS {version_name}]({release_url}) "
+                  f"(version code `{version_code}`).\n\n"
+                  f"{previous_description}"
+              )
+              if updated_description != description:
+                  api("PUT", f"/projects/{target_project_info['id']}/merge_requests/{mr['iid']}", {"description": updated_description})
+              print(f"Updated existing merge request: {mr['web_url']}")
               sys.exit(0)
+
+          # F-Droid requires successful fork CI before a new submission is opened.
+          source_branch = api("GET", f"/projects/{source_project['id']}/repository/branches/{urllib.parse.quote(branch, safe='')}")
+          pipeline_query = urllib.parse.urlencode({"ref": branch, "sha": source_branch["commit"]["id"], "per_page": 10})
+          for attempt in range(120):
+              pipelines = api("GET", f"/projects/{source_project['id']}/pipelines?{pipeline_query}")
+              if pipelines:
+                  pipeline = pipelines[0]
+                  status = pipeline["status"]
+                  if status == "success":
+                      break
+                  if status in ("failed", "canceled", "skipped", "manual"):
+                      raise SystemExit(f"F-Droid fork CI is {status}: {pipeline['web_url']}. Fix it before submitting; no merge request was opened.")
+              if attempt % 4 == 0:
+                  print("Waiting for F-Droid fork CI to pass...", flush=True)
+              time.sleep(30)
+          else:
+              raise SystemExit("Timed out waiting for F-Droid fork CI; no merge request was opened.")
 
           metadata_file = urllib.parse.quote(f"metadata/{app_id}.yml", safe="")
           target_metadata = api("GET", f"/projects/{target_project_info['id']}/repository/files/{metadata_file}?ref={urllib.parse.quote(target_branch, safe='')}", allowed_statuses=(404,))
