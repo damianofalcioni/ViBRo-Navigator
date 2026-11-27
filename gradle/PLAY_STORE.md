@@ -199,6 +199,10 @@ GitHub Release and its signed FOSS APK are already public.
 
 ## Release preparation and retries
 
+For stable releases and prereleases, share the proposed changelog with the
+maintainer and get explicit approval before committing the release changes,
+tagging, publishing, or submitting to a store.
+
 ### Publish a beta/prerelease
 
 1. Prepare a new numeric app version, for example
