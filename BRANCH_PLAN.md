@@ -769,3 +769,8 @@ Do not redo the completed template/metadata/intent integration merely because a 
   $carTests = '--tests','vibro.navigator.auto.*','--tests','vibro.navigator.android.automotive.*'
   .\gradlew.bat :app:lintGplayDebug :app:complexityCheck :app:testGplayDebugUnitTest @carTests --max-workers=2 --continue --console=plain
   ```
+
+## Follow-up regression review (2026-11-27)
+
+- Reviewed `896d6bbe` against `main` at `2ba4dad3`. Checked ordinary phone and Android Auto workflows, including route startup and destination replacement, pause and resume, intermediate stops and arrival, guidance and notifications, and simulation setup. No additional meaningful regression was confirmed. The compact preview can still share arrows for keeps and slight turns or exits and ordinary turns, as recorded above.
+- `.\gradlew.bat :app:testGplayDebugUnitTest :app:testFdroidDebugUnitTest --console=plain` succeeded. Google Play ran 2,457 tests and the up-to-date F-Droid results cover 2,318 tests, with zero failures, errors, or skips in either flavor. `git diff --check main...HEAD` passed. This review used source inspection and automated tests. Live Assistant, head-unit and cluster rendering, and wearable mirroring were outside this run. No Gradle invocation remains active.
