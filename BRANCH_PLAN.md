@@ -723,3 +723,19 @@ Do not redo the completed template/metadata/intent integration merely because a 
   ```powershell
   .\gradlew.bat :app:testGplayDebugUnitTest --tests '*ViBRoCarGuidanceGplayTest' --tests '*ViBRoCarHostNavigationTest' --max-workers=2 --console=plain
   ```
+
+## Deferred maneuver icon work (2026-11-27)
+
+- Keep the roundabout exit number in the same icon as the circular arrow. The phone notification places it beside the symbol. Either beside or inside the arrow is acceptable for Android Auto. Choose the placement that stays legible at the following-turn preview size. Verify both circulation directions, known and unknown exits, and the icon in the current-turn card, following-turn preview, and cluster.
+- Audit every supported maneuver symbol against the phone navigation UI and notifications. Compare normal, slight, and sharp turns, keep directions, motorway exits, straight ahead, U-turns, roundabouts, direct guidance, intermediate stops, final arrival, and fallback symbols. Record visual differences separately from lost or misleading meaning. Include the car preview and cluster because those can render a symbol without the phone's full instruction text.
+- The user asked to record this work for later. The implementation is deferred.
+
+## Follow-up checks for the head-unit error and maneuver previews (2026-11-27)
+
+- The November 26 “unexpected error” pane appeared while returning to ViBRo after uninstalling the temporary roundabout fixture. The ViBRo process remained alive and Android's process-exit history shows no exit at that time. A fresh projection connection cleared the pane. On November 27, the installed ViBRo build returned from YouTube Music while idle and retained a phone-started Straight Line route when switching between ViBRo, YouTube Music, and Maps and moving between dashboard and fullscreen. The error did not recur, and the crash buffer was empty. Keep the original capture as investigation evidence. See `build/dhu-roundabout-review/vibro-idle-final.png` and `build/dhu-app-switch-review/` for the return captures and process-exit log.
+- One more preview issue belongs in the deferred symbol work. The car adapter sends pixel-identical icons and identical preview text for turn left versus take the left exit, turn right versus take the right exit, and slight versus keep on either side. The maneuver type still distinguishes the instructions in metadata. The prior car surface showed the full, distinct phone instruction text. A native-graphics Robolectric probe verified the generated icons and cues, with matching distances and times. Verify the distinctions on the head unit during the full symbol audit.
+- The focused Google Play run passed 35 tests with zero failures, errors, or skips. The temporary probe was removed. The emulator test route was ended and the temporary battery allowlist entry was removed. The ignored test log is `build/dhu-app-switch-review/focused-tests.log`.
+
+  ```powershell
+  .\gradlew.bat :app:testGplayDebugUnitTest --tests '*ViBRoCarGuidanceGplayTest' --tests '*ViBRoCarHostNavigationTest' --tests '*ViBRoCarScreenLifecycleTest' --tests '*ViBRoAutoStreetViewportGplayTest' --max-workers=2 --console=plain
+  ```
