@@ -13,6 +13,7 @@ import vibro.navigator.geo.GeoMath;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.guidance.NavigationArrivalConfirmation;
 import vibro.navigator.nav.route.PolylineIndex;
+import vibro.navigator.nav.simulation.NavigationSimulationBarrier;
 
 final class NavigationIntermediateArrivalTracker {
     private static final double TRACK_INDEX_TOLERANCE_METERS = 1.0;
@@ -41,14 +42,14 @@ final class NavigationIntermediateArrivalTracker {
     ) {
         destinations.clear();
         arrivalConfirmation.reset();
-        for (LatLon stop : stops) {
-            PolylineIndex.Match match = polylineIndex.match(stop, -1);
-            if (match != null) {
-                destinations.add(new IntermediateDestination(
-                        stop,
-                        trackIndexAtOrAfter(polylineIndex, route.track.size(), match.alongTrackMeters)
-                ));
-            }
+        List<Double> stopDistances = polylineIndex.matchStopDistancesInOrder(stops);
+        for (int i = 0; i < stopDistances.size(); i++) {
+            double alongTrackMeters = stopDistances.get(i);
+            destinations.add(new IntermediateDestination(
+                    stops.get(i),
+                    trackIndexAtOrAfter(polylineIndex, route.track.size(), alongTrackMeters),
+                    alongTrackMeters
+            ));
         }
         nextDestinationIndex = 0;
         routeApplied = true;
@@ -66,6 +67,11 @@ final class NavigationIntermediateArrivalTracker {
         nextDestinationIndex++;
         arrivalConfirmation.reset();
         return destination.trackIndex;
+    }
+
+    @Nullable
+    NavigationSimulationBarrier nextSimulationBarrier() {
+        return hasRemainingDestinations() ? destinations.get(nextDestinationIndex).simulationBarrier : null;
     }
 
     boolean hasRemainingDestinations() {
@@ -129,10 +135,12 @@ final class NavigationIntermediateArrivalTracker {
         @NonNull
         final LatLon location;
         final int trackIndex;
+        final NavigationSimulationBarrier simulationBarrier;
 
-        IntermediateDestination(@NonNull LatLon location, int trackIndex) {
+        IntermediateDestination(@NonNull LatLon location, int trackIndex, double alongTrackMeters) {
             this.location = location;
             this.trackIndex = trackIndex;
+            simulationBarrier = new NavigationSimulationBarrier(location, alongTrackMeters);
         }
     }
 }

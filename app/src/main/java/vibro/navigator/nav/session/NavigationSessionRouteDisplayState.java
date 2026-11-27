@@ -239,11 +239,10 @@ public final class NavigationSessionRouteDisplayState {
     ) {
         return directGuidanceTarget == null
                 ? state
-                : NavStateComposer.withGuidanceLines(
+                : NavStateResourceComposer.withDirectGuidance(
                         state,
                         NavigationRouteStartApproachText.buildLine(snapshot, directGuidanceTarget),
-                        state.routeStatus.guidance.nextLine
-                );
+                        NavigationRouteStartApproachText.maneuver(snapshot, directGuidanceTarget));
     }
 
     @NonNull
@@ -254,15 +253,14 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull PolylineIndex index
     ) {
         List<NavTarget> out = new ArrayList<>();
-        for (int i = 0; i < intermediates.size(); i++) {
-            PolylineIndex.Match match = index.match(intermediates.get(i), -1);
-            if (match != null) {
-                out.add(new NavTarget(
-                        textResources.getString(R.string.format_stop_label, i + 1),
-                        match.alongTrackMeters,
-                        trackIndexAtOrAfter(index, trackSize, match.alongTrackMeters)
-                ));
-            }
+        var stopDistances = index.matchStopDistancesInOrder(intermediates);
+        for (int i = 0; i < stopDistances.size(); i++) {
+            double alongTrackMeters = stopDistances.get(i);
+            out.add(new NavTarget(
+                    textResources.getString(R.string.format_stop_label, i + 1),
+                    alongTrackMeters,
+                    trackIndexAtOrAfter(index, trackSize, alongTrackMeters)
+            ));
         }
         out.add(new NavTarget(
                 textResources.getString(R.string.nav_destination_label),

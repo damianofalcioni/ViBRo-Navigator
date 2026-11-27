@@ -6,6 +6,7 @@ import vibro.navigator.R;
 import vibro.navigator.nav.route.VoiceHint;
 
 public final class VoiceHintMapper {
+    public static final String INTERMEDIATE_STOP_SYMBOL = "■";
     private static final DirectionSpec UNKNOWN_DIRECTION =
             new DirectionSpec("?", R.string.direction_unknown, DirectionKind.OTHER);
     private static final DirectionSpec[] COMMAND_DIRECTIONS = buildCommandDirections();
@@ -47,7 +48,8 @@ public final class VoiceHintMapper {
         directions[17] = new DirectionSpec("←", R.string.direction_exit_left, DirectionKind.LEFT);
         directions[18] = new DirectionSpec("→", R.string.direction_exit_right, DirectionKind.RIGHT);
         directions[100] = new DirectionSpec("■", R.string.direction_arrive, DirectionKind.OTHER);
-        directions[101] = new DirectionSpec("■", R.string.direction_intermediate_arrive, DirectionKind.OTHER);
+        directions[101] = new DirectionSpec(INTERMEDIATE_STOP_SYMBOL,
+                R.string.direction_intermediate_arrive, DirectionKind.OTHER);
         return directions;
     }
 

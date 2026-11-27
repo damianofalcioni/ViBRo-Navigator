@@ -8,7 +8,10 @@ import android.os.IBinder;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.car.app.CarContext;
+import androidx.car.app.CarToast;
 
+import vibro.navigator.R;
+import vibro.navigator.android.language.AndroidAppLanguage;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.model.NavState;
@@ -34,13 +37,15 @@ final class ViBRoCarNavigationController {
     private final ViBRoCarNavigationActions actions;
     private NavigationServiceBinder navBinder;
     private boolean bound;
+    private boolean autoDrive;
     private boolean serviceConnectionPending;
-    private boolean refreshLocationSettingsOnReconnect;
+    private boolean mapVisible;
 
     private final NavigationService.Listener navListener = new NavigationService.Listener() {
         @Override
         public void onState(@NonNull NavState state) {
             host.updateCurrentState(state);
+            showSimulationNoticeIfPending();
         }
 
         @Override
@@ -54,6 +59,9 @@ final class ViBRoCarNavigationController {
     private final ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+            if (!serviceConnectionPending) {
+                return; // A late connection cannot resurrect a destroyed/stopped car client.
+            }
             navBinder = (NavigationServiceBinder) service;
             bound = true;
             serviceConnectionPending = false;
@@ -64,17 +72,16 @@ final class ViBRoCarNavigationController {
         @Override
         public void onServiceDisconnected(ComponentName name) {
             AppLogger.w(TAG, "NavigationService disconnected component=" + name);
-            bound = false;
-            serviceConnectionPending = false;
             navBinder = null;
             host.updateCurrentState(null);
+            unbind();
         }
     };
 
     ViBRoCarNavigationController(@NonNull CarContext carContext, @NonNull Host host) {
         this.carContext = carContext;
         this.host = host;
-        actions = new ViBRoCarNavigationActions(carContext, host, () -> navBinder);
+        actions = new ViBRoCarNavigationActions(host, () -> navBinder);
     }
 
     boolean ensureIntegrationEnabled() {
@@ -84,13 +91,13 @@ final class ViBRoCarNavigationController {
         if (bound || serviceConnectionPending || navBinder != null) {
             unbind();
         }
-        clearCurrentState();
+        host.updateCurrentState(null);
         return false;
     }
 
     void bind() {
         if (!isIntegrationEnabled()) {
-            clearCurrentState();
+            host.updateCurrentState(null);
             return;
         }
         if (bound || serviceConnectionPending) {
@@ -102,14 +109,14 @@ final class ViBRoCarNavigationController {
         if (!serviceBound) {
             AppLogger.d(TAG, "No running NavigationService found for Android Auto");
             serviceConnectionPending = false;
-            clearCurrentState();
+            host.updateCurrentState(null);
             return;
         }
         host.updateCurrentState(host.currentState());
     }
 
     void unbind() {
-        if (!bound) {
+        if (!bound && !serviceConnectionPending) {
             serviceConnectionPending = false;
             return;
         }
@@ -117,7 +124,7 @@ final class ViBRoCarNavigationController {
         try {
             if (navBinder != null) {
                 navBinder.unregisterListener(navListener);
-                navBinder.setCarNavigationUiVisible(false);
+                navBinder.setCarNavigationClient(false, false);
             }
             carContext.unbindService(connection);
         } catch (Exception e) {
@@ -133,9 +140,13 @@ final class ViBRoCarNavigationController {
         actions.setCompassStreetViewport(compassState);
     }
 
-    @Nullable
-    NavigationServiceBinder currentBinder() {
-        return navBinder;
+    void setMapVisible(boolean visible) {
+        if (mapVisible == visible) { return; }
+        mapVisible = visible;
+        if (navBinder != null) {
+            navBinder.setCarNavigationClient(true, visible);
+            showSimulationNoticeIfPending();
+        }
     }
 
     void addBlockedWaypoint() {
@@ -146,22 +157,27 @@ final class ViBRoCarNavigationController {
         actions.togglePaused();
     }
 
-    void stopNavigation() {
-        actions.stopNavigation();
+    void refreshLocationUpdateSettings() {
+        actions.refreshLocationUpdateSettings();
+    }
+
+    void enableAutoDrive() {
+        autoDrive = true;
+        if (navBinder != null) { navBinder.enableSimulation(); }
+    }
+
+    void dispose() {
+        if (autoDrive) { stopNavigation(); }
         unbind();
     }
 
-    void requestLocationSettingsRefreshOnReconnect() {
-        refreshLocationSettingsOnReconnect = true;
-    }
-
-    void openPhoneNavigationIfActive() {
-        actions.openPhoneNavigationIfActive();
-    }
-
-    @NonNull
-    String buildCurrentDirectionDetailsText() {
-        return ViBRoAutoDirectionDetailsText.build(carContext, navBinder);
+    void stopNavigation() {
+        actions.stopNavigation();
+        if (navBinder == null) {
+            carContext.stopService(new Intent(carContext, NavigationService.class));
+        }
+        host.updateCurrentState(null);
+        unbind();
     }
 
     private void attachConnectedService() {
@@ -177,22 +193,20 @@ final class ViBRoCarNavigationController {
             unbind();
             return;
         }
-        navBinder.ensureForegroundNotification();
-        navBinder.setCarNavigationUiVisible(true);
-        navBinder.registerListener(navListener);
-        refreshLocationSettingsIfRequested();
-    }
-
-    private void refreshLocationSettingsIfRequested() {
-        if (!refreshLocationSettingsOnReconnect) {
-            return;
+        NavigationServiceBinder binder = navBinder;
+        if (autoDrive) { binder.enableSimulation(); }
+        binder.ensureForegroundNotification();
+        binder.setCarNavigationClient(true, mapVisible);
+        if (binder == navBinder) {
+            binder.registerListener(navListener);
         }
-        refreshLocationSettingsOnReconnect = false;
-        navBinder.refreshLocationUpdateSettings();
     }
 
-    private void clearCurrentState() {
-        host.updateCurrentState(null);
+    private void showSimulationNoticeIfPending() {
+        if (mapVisible && navBinder != null && navBinder.consumeCarSimulationStartNotice()) {
+            String message = AndroidAppLanguage.getString(carContext, R.string.nav_simulation_started);
+            CarToast.makeText(carContext, message, CarToast.LENGTH_LONG).show();
+        }
     }
 
     private boolean isIntegrationEnabled() {

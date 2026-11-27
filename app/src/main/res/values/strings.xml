@@ -424,7 +424,14 @@
     <!-- Used by the gplay car UI; shared here to keep one translation file per language. -->
     <string name="auto_title" translatable="false" tools:ignore="UnusedResources">ViBRo Navigator</string>
     <string name="auto_no_active_navigation_title" tools:ignore="UnusedResources">No active navigation</string>
-    <string name="auto_no_active_navigation_text" tools:ignore="UnusedResources">Start navigation on the phone to show guidance here.</string>
+    <string name="auto_no_active_navigation_text" tools:ignore="UnusedResources">When safely parked, start navigation on the phone to show guidance here.</string>
+    <string name="auto_hint_switch_views" tools:ignore="UnusedResources">Switch views</string>
+    <string name="auto_hint_switch_views_text" tools:ignore="UnusedResources">Tap the map once or swipe left or right to switch between overview, 2D, and 3D.</string>
+    <string name="auto_hint_swipe_views_text" tools:ignore="UnusedResources">Swipe left or right to switch between overview, 2D, and 3D.</string>
+    <string name="auto_hint_zoom" tools:ignore="UnusedResources">Zoom</string>
+    <string name="auto_hint_zoom_text" tools:ignore="UnusedResources">Pinch or spread in 2D or 3D.</string>
+    <string name="auto_hint_tilt" tools:ignore="UnusedResources">Tilt in 3D</string>
+    <string name="auto_hint_tilt_text" tools:ignore="UnusedResources">Drag up or down with one finger.</string>
     <string name="about_settings_title">Settings</string>
     <string name="about_settings_category_display">Display</string>
     <string name="about_settings_category_guidance">Guidance</string>
@@ -637,4 +644,22 @@
     <string name="confirm_restore_default_configuration">Restore all settings to their default values?</string>
     <string name="about_setting_restore_defaults_info">This includes language, theme, API keys, and output folders. Saved routes and search history will be kept.</string>
     <string name="msg_default_configuration_restored">Default configuration restored</string>
+    <!-- GPlay-only Auto text stays in the shared localization catalog; F-Droid removes it when shrinking. -->
+    <string name="auto_setup_required" tools:ignore="UnusedResources">When safely parked, complete setup on the phone: accept the welcome, install BRouter and routing data, select a routing profile, and enable location and notifications. Then return here to retry.</string>
+    <string name="label_simulation">Simulation</string>
+    <string name="simulation_speed_kmh">Simulated speed (km/h)</string>
+    <string name="simulation_speed_mph">Simulated speed (mph)</string>
+    <string name="simulation_initial_position">Initial GPS position (optional)</string>
+    <string name="simulation_position_hint">Latitude, longitude</string>
+    <string name="simulation_config_help">Settings apply when navigation next starts. Leave the position blank to use device location. A speed of 0 holds the position.</string>
+    <string name="simulation_info">Preview navigation without moving. Available in both builds. Simulated positions follow the selected route and pause with navigation. Turn this off before starting real navigation.</string>
+    <string name="nav_simulation_mode_title">Simulation Mode</string>
+    <string name="nav_simulation_started">You’re previewing navigation with simulated movement.</string>
+    <string name="simulation_invalid_speed">Enter a speed from 0 to 300 km/h (0–186.41 mph).</string>
+    <string name="simulation_invalid_position">Enter valid latitude, longitude with decimal points.</string>
+    <string name="simulation_save">Save</string>
+    <string name="action_configure_simulation">Configure simulation</string>
+    <string name="auto_destination_timeout" tools:ignore="UnusedResources">Destination loading timed out. Try again.</string>
+    <string name="auto_retry" tools:ignore="UnusedResources">Retry</string>
+    <string name="auto_navigation_operation_unsupported" tools:ignore="UnusedResources">This voice navigation request isn’t supported.</string>
 </resources>

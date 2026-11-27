@@ -1,17 +1,11 @@
 package vibro.navigator.nav.service;
 
-
-import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.location.NavigationLocationController;
 import vibro.navigator.nav.location.NavigationLocationFormatter;
 import vibro.navigator.nav.location.NavigationLocationUpdateResult;
-import vibro.navigator.nav.orientation.NavigationOrientationController;
-import vibro.navigator.nav.guidance.NavigationRerouteNotice;
-import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 import vibro.navigator.nav.session.NavigationSession;
 import vibro.navigator.nav.session.NavigationSessionContextResources;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
-import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import android.content.Context;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.location.NavigationLocationListener;
@@ -29,19 +23,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
         boolean isCurrentLocationSeedAllowed();
     }
 
-    public interface RouteRecalculator {
-        void request(
-                boolean force,
-                @Nullable NavigationRerouteNotice rerouteNotice,
-                @NonNull NavigationRouteRecalculationReason reason
-        );
-
-        void requestSpeculative(@NonNull NavigationRouteRecalculationReason reason);
-
-        boolean confirmSpeculative(@Nullable NavigationRerouteNotice rerouteNotice);
-
-        void cancelSpeculative();
-    }
+    public interface RouteRecalculator extends NavigationServiceLocationRouting.Actions { }
 
     public interface AcceptedLocationSink {
         void onAcceptedLocation(@NonNull NavigationLocation raw, @Nullable NavigationLocation filtered,
@@ -55,14 +37,15 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
     private final Context context;
     private final NavigationSession navigationSession;
     private final NavigationServiceTurnEvents turnEvents;
-    private final RouteRecalculator routeRecalculator;
+    private final NavigationServiceLocationRouting routing;
     private final CurrentLocationSeedPolicy currentLocationSeedPolicy;
     private final AcceptedLocationSink acceptedLocationSink;
     private final Runnable stateEmitter;
-    private final ElapsedRealtimeClock elapsedRealtimeClock = AndroidElapsedRealtimeClock.INSTANCE;
+    private final ElapsedRealtimeClock elapsedRealtimeClock;
     private final AndroidNavigationBatteryLogger batteryLogger;
     @Nullable
-    private Controllers controllers;
+    private NavigationServiceLocationControllers controllers;
+    private final NavigationServiceSimulation simulation;
 
     public NavigationServiceLocationHandler(
             @NonNull Context context,
@@ -71,24 +54,26 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
             @NonNull RouteRecalculator routeRecalculator,
             @NonNull CurrentLocationSeedPolicy currentLocationSeedPolicy,
             @NonNull AcceptedLocationSink acceptedLocationSink,
-            @NonNull Runnable stateEmitter
+            @NonNull Runnable stateEmitter,
+            @NonNull ElapsedRealtimeClock elapsedRealtimeClock
     ) {
         this.context = context;
+        this.elapsedRealtimeClock = elapsedRealtimeClock;
         this.navigationSession = navigationSession;
         this.turnEvents = turnEvents;
-        this.routeRecalculator = routeRecalculator;
+        routing = new NavigationServiceLocationRouting(context, routeRecalculator);
         this.currentLocationSeedPolicy = currentLocationSeedPolicy;
         this.acceptedLocationSink = acceptedLocationSink;
         this.stateEmitter = stateEmitter;
         batteryLogger = new AndroidNavigationBatteryLogger(context);
+        simulation = new NavigationServiceSimulation(context, navigationSession, elapsedRealtimeClock,
+                location -> handleLocation(location, false));
     }
 
-    public void attachControllers(
-            @NonNull NavigationLocationController locationController,
-            @NonNull NavigationOrientationController orientationController,
-            @NonNull NavigationForegroundController foregroundController
-    ) {
-        controllers = new Controllers(locationController, orientationController, foregroundController);
+    NavigationServiceSimulation simulation() { return simulation; }
+
+    void attachControllers(NavigationServiceLocationControllers controllers) {
+        this.controllers = controllers;
     }
 
     AndroidNavigationBatteryLogger batteryLogger() {
@@ -96,14 +81,14 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
     }
 
     public void onScreenInteractiveChanged(boolean interactive) {
-        Controllers controllers = this.controllers;
+        NavigationServiceLocationControllers controllers = this.controllers;
         if (!interactive && !currentLocationSeedPolicy.isCurrentLocationSeedAllowed() && controllers != null) {
             controllers.locationController.cancelCurrentLocationSeeds();
         }
     }
 
     public void seedStartupLocation(long nowMs) {
-        Controllers controllers = this.controllers;
+        NavigationServiceLocationControllers controllers = this.controllers;
         if (controllers == null) {
             return;
         }
@@ -120,7 +105,13 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
 
     @Override
     public void onLocationChanged(@NonNull NavigationLocation location) {
-        handleLocation(location, false);
+        if (simulation.ignorePhysicalProviders() && !currentLocationSeedPolicy.isCurrentLocationSeedAllowed()) {
+            return;
+        }
+        NavigationServiceLocationControllers controllers = this.controllers;
+        if (simulation.acceptPhysical(location, accepted -> handleLocation(accepted, false)) && controllers != null) {
+            controllers.locationController.finishSimulationOrigin();
+        }
     }
 
     private void handleLocation(@NonNull NavigationLocation location, boolean startupSeed) {
@@ -131,7 +122,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
     private void evaluateLocation(@NonNull NavigationLocation location, boolean startupSeed) {
         AppLogger.d(TAG, "Location evaluation received elapsedRealtimeMs=" + elapsedRealtimeClock.elapsedRealtimeMs()
                 + " uptimeMs=" + elapsedRealtimeClock.uptimeMs());
-        Controllers controllers = this.controllers;
+        NavigationServiceLocationControllers controllers = this.controllers;
         if (controllers == null) {
             return;
         }
@@ -162,7 +153,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
             return;
         }
         controllers.locationController.recordAcceptedLocationUpdate();
-        applyRouteUpdateRequest(result, controllers);
+        routing.apply(result, controllers.locationController, controllers.foregroundController);
         acceptedLocationSink.onAcceptedLocation(location, navigationSession.getLastFilteredLocation(),
                 NavigationLocationUpdateRequestPolicy.canSleep(context, navigationSession));
         if (result.getWrongDirectionNotice() != null) {
@@ -176,68 +167,10 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
         stateEmitter.run();
     }
 
-    private void applyRouteUpdateRequest(
-            @NonNull NavigationLocationUpdateResult result,
-            @NonNull Controllers controllers
-    ) {
-        NavigationRouteRecalculationReason reason = recalculationReason(result);
-        if (result.shouldRecalculateRoute()) {
-            if (tryConfirmSpeculativeRoute(result, reason)) {
-                return;
-            }
-            routeRecalculator.request(false, result.getRerouteNotice(), reason);
-            return;
-        }
-        applySpeculativeRouteSignal(result, reason);
-        if (result.getRerouteNotice() != null) {
-            controllers.foregroundController.sendOffRouteNotification(result.getRerouteNotice());
-        }
-        if (result.getSuggestedUpdateIntervalMs() > 0L) {
-            requestSuggestedLocationUpdates(result.getSuggestedUpdateIntervalMs(), controllers.locationController);
-        }
-    }
-
-    private boolean tryConfirmSpeculativeRoute(
-            @NonNull NavigationLocationUpdateResult result,
-            @NonNull NavigationRouteRecalculationReason reason
-    ) {
-        return reason == NavigationRouteRecalculationReason.ROUTE_DEVIATION
-                && routeRecalculator.confirmSpeculative(result.getRerouteNotice());
-    }
-
-    private void applySpeculativeRouteSignal(
-            @NonNull NavigationLocationUpdateResult result,
-            @NonNull NavigationRouteRecalculationReason reason
-    ) {
-        if (result.shouldSpeculativelyRecalculateRoute()) {
-            routeRecalculator.requestSpeculative(reason);
-        } else if (result.shouldCancelSpeculativeRouteRecalculation()) {
-            routeRecalculator.cancelSpeculative();
-        }
-    }
-
-    private void requestSuggestedLocationUpdates(
-            long suggestedUpdateIntervalMs,
-            @NonNull NavigationLocationController locationController
-    ) {
-        NavigationLocationUpdateRequestPolicy.requestLocationUpdates(
-                context,
-                locationController,
-                suggestedUpdateIntervalMs
-        );
-    }
-
-    @NonNull
-    private static NavigationRouteRecalculationReason recalculationReason(
-            @NonNull NavigationLocationUpdateResult result
-    ) {
-        NavigationRouteRecalculationReason reason = result.getRecalculationReason();
-        return reason == null ? NavigationRouteRecalculationReason.EXPLICIT : reason;
-    }
-
     @Override
     public void onProviderEnabled(@NonNull String provider) {
-        Controllers controllers = this.controllers;
+        if (simulation.ignorePhysicalProviders()) { return; }
+        NavigationServiceLocationControllers controllers = this.controllers;
         if (controllers == null) {
             return;
         }
@@ -258,7 +191,8 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
 
     @Override
     public void onProviderDisabled(@NonNull String provider) {
-        Controllers controllers = this.controllers;
+        if (simulation.ignorePhysicalProviders()) { return; }
+        NavigationServiceLocationControllers controllers = this.controllers;
         if (controllers == null) {
             return;
         }
@@ -283,22 +217,4 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
         AppLogger.d(TAG, "Location provider status changed provider=" + provider + " status=" + status);
     }
 
-    private static final class Controllers {
-        @NonNull
-        public final NavigationLocationController locationController;
-        @NonNull
-        public final NavigationOrientationController orientationController;
-        @NonNull
-        public final NavigationForegroundController foregroundController;
-
-        Controllers(
-                @NonNull NavigationLocationController locationController,
-                @NonNull NavigationOrientationController orientationController,
-                @NonNull NavigationForegroundController foregroundController
-        ) {
-            this.locationController = locationController;
-            this.orientationController = orientationController;
-            this.foregroundController = foregroundController;
-        }
-    }
 }

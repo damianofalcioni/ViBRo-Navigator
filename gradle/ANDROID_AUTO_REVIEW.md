@@ -1,0 +1,57 @@
+# Android Auto review preparation
+
+Shared navigation simulation and the host auto-drive callback are implemented. Complete the manual DHU checks below before resubmission. Automated checks cannot establish Google Play approval or head-unit compatibility.
+
+## Reviewer setup instructions
+
+Use these as the basis for the Play Console App content → App access instructions; replace the test destination with one inside the downloaded BRouter region.
+
+1. Install the Google Play variant of ViBRo Navigator and BRouter (`btools.routingapp`). Open both apps once.
+2. Complete ViBRo's welcome. In BRouter, download the routing-data region containing the test origin, destination and route corridor.
+3. In ViBRo, choose Route mode and a suitable available car routing profile. Profile-folder access is needed for external/custom profiles; ordinary bundled profiles do not require a custom file. Grant any requested legacy storage access.
+4. Start a route on the phone to complete location/notification setup. Enable device location. The optional Google search key is not required; coordinate destinations work offline with the downloaded routing data.
+5. Enable Android Auto in ViBRo Settings and connect Android Auto/DHU. Use the active route or issue a standard navigation intent to the app. Address searches require internet and result selection; coordinate intents do not.
+6. Confirm that the host shows maneuvers, distance to the next turn, and ETA when available. Stop, Pause/Resume and the available Blocked road action use the same phone navigation session.
+
+### Simulation for reviewers
+
+1. On the phone, open Settings → Advanced → Simulation. Use its configuration button to set speed (default 50 km/h, or the equivalent in mph) and an optional starting latitude, longitude inside the downloaded BRouter region. The map button beside the coordinates selects the same position from the POI map. Save the configuration.
+2. Enable the Simulation switch and start navigation to a destination in that region. Settings apply on the next navigation start. Leave the origin blank to use device location; configured coordinates avoid waiting for a physical GPS fix. Keep device location services enabled and grant Android location/notification permissions, as required by the foreground service.
+3. Connect Android Auto/DHU. Verify the car shows a short simulation notice once and that turn instructions use regular wording. Positions follow the route without moving the device. Pause or resume movement using the car controls. Stop ends it. To return to real navigation, stop, disable Simulation and start again.
+4. Also test host-triggered simulation with the manual switch off: `adb shell dumpsys activity service vibro.navigator/vibro.navigator.auto.ViBRoCarAppService AUTO_DRIVE`. For the debug Google Play package, replace the component with `vibro.navigator.debug/vibro.navigator.auto.ViBRoCarAppService`. Start a route if none is active. The callback can arrive before binding and is retained by the car session. Existing real navigation restarts in simulation. This does not change the stored switch; destroying the car session stops host-triggered simulation.
+5. Use an origin/destination and profile for which BRouter can calculate an actual route. Initial loading holds position, intermediate stops wait for normal arrival confirmation, and loop routes continue through their return leg. A speed of 0 intentionally holds position. Device sleep does not fast-forward the simulation.
+
+A recording may help explain setup, but does not replace test-drive support.
+
+## Manual checks before resubmission
+
+- Use the Android Auto Desktop Head Unit with cluster emulation. Check next-turn metadata while ViBRo is visible and while covered by another car app.
+- Drive a route with an intermediate stop and two successive maneuvers. Check the stop's arrival time and distance alongside the final ETA. Verify the following-step row shows the maneuver symbol, relative distance, and available duration. Confirm that the host can use shorter native cues in narrow layouts and that the next-turn card remains available during a retained-route warning. When speed exceeds the limit, check for bold route-red GPS speed and the same posted speed-limit sign colors.
+- Verify that the native routing card shows the current turn icon and distance, and the following turn when supplied. Check the current maneuver's duration on a normal turn and on a beeline to the road. Confirm that the beeline symbol and following road cue appear during the approach. Check the symbols for a beeline and an unspecified-side U-turn on both displays. Hold the position for two minutes with a route-model ETA and verify the destination and next-stop arrival clocks update. Confirm the destination ETA clears on arrival and the arrival message remains stable.
+- Check that the roundabout exit number is legible next to the arrow in both circulation directions, including in the following-turn preview and cluster. Keeps and slight turns share diagonal arrows, and motorway exits and ordinary turns share horizontal arrows. Verify that the current card wording and maneuver types preserve these distinctions.
+- Compare the car and phone GPS status lines in metric and imperial units. Verify the car line is centered below the compass inside the safe area. Check contrast in both themes, the translucent background in Fullscreen route mode, line wrapping in narrow layouts and continued countdown updates. Preview a route with a stop off the road and check that simulation continues toward the destination after returning to the road.
+- Start another navigation app and confirm ViBRo's host stop callback stops tracking, speech, car/phone turn notifications and cluster guidance; it must not restart the old session.
+- Check route calculation/recalculation, pause/resume, confirmed arrival, stop, disconnect/reconnect and integration disabling. No stale turn or ETA should survive those transitions.
+- Exercise `geo:0,0?q=<latitude>,<longitude>` and `google.navigation:q=<latitude>,<longitude>` through initial and new Session intents. Verify address selection, cancellation, setup failure/retry and replacement by a newer destination. Search for a place with mapped entrances and check the row labels and destinations. Open destination search during an active route and check that cluster guidance continues while the map is hidden.
+- Verify live Assistant delivery on a connected head unit. Start a trip with a navigation request, then check that an unsupported request such as adding a stop shows a message and preserves the active trip.
+- Connect and disconnect Android Auto mid-route. Verify that transient phone guidance stays silent during projection, resumes the configured phone vibration afterward, and respects blocked Android notification categories throughout. Check silent notification mirroring on a paired wearable.
+- Request a coordinate route whose BRouter data is missing. When routing completes with a missing-data error, confirm the parked setup prompt appears. Download the data when parked and retry without reentering the destination.
+- Check different head-unit aspect ratios, safe-area changes, night/day contrast, route/street rendering and host map gestures. Check that fullscreen route and street geometry can extend behind the host cards and that the compact compass fits inside the safe area. With Distance circles enabled, check one distance/time pair in fullscreen and two in the compact compass. With Surrounding streets enabled, change views, zoom and stop navigation during street loading, then start a new route and verify that streets reload. Verify the host action strip uses icons in Blocked road, Stop, Pause/Resume order when available, then let it hide and tap the map to reveal it. Directions, ETA and controls use host components.
+- Enable the phone's Custom button and select Fullscreen route. Verify the native map action uses the phone icon, toggles the compass layout, and updates its icon. Select another target or disable the button on the phone and check the next template refresh. Check the regular action strip for a non-map target and check the safely parked phone prompt if Surrounding streets needs folder access.
+- Test the required `AUTO_DRIVE` host command, callback before/after route start, host stop and car-session destruction before claiming NF-7 coverage.
+- VI-1: with no route and with missing setup/permissions, verify that every phone handoff tells the driver to use the phone only when safely parked. Check the selected app language as well as English.
+- DR-1/DR-2/DR-3: measure action feedback (at most two seconds), cold launch (at most ten seconds), and destination content loading (at most ten seconds). With a slow/unreachable search provider, loading must become a localized timeout after nine seconds; Retry must retain the query/destination and Cancel must prevent any later route start. Repeat after covering/resuming the app and after a newer intent replaces the first.
+- AC-1/API compatibility: exercise address selection, setup failures, repeated timeouts/retries and cancellation without exhausting the host template quota or encountering a dead end. Verify that retries keep the title and row title of the loading/status pane stable, including on Car API 1. The API-1 result list has at most four destinations and one Cancel row. Newer hosts show Cancel in the result action strip.
+- EP-2: return to the Android Auto home screen and relaunch during navigation, pause and destination selection. Verify active navigation reconnects without an unintended restart; also test host/session recreation. Process-death recovery and pending selection continuity must be assessed separately from a normal covered/resumed session; do not claim they are proven by binding tests.
+- VD-1/MR-1/SA-1: inspect the actual host-rendered controls and map in day/night modes, all supported aspect ratios and changing safe areas. Check text/icon contrast against Google's 4.5:1 requirement, clipping, and map transitions for distraction. Record measured results rather than treating themed resources as proof.
+
+## Release handling
+
+Prepare a new semantic version/code using the existing `prepareRelease` workflow after the remaining work is complete. Version `1000000` must be replaced in Closed Testing and every other affected track; a new upload cannot reuse that code. Follow [PLAY_STORE.md](PLAY_STORE.md) for release handling. This change does not publish an AAB, alter live tracks, or opt out of Android Auto.
+
+## Official references
+
+- [Navigation requirements NF-1 through NF-7](https://developer.android.com/docs/quality-guidelines/car-app-quality)
+- [Navigation intents, metadata, notifications and simulation](https://developer.android.com/training/cars/apps/navigation)
+- [Location foreground-service prerequisites](https://developer.android.com/develop/background-work/services/fgs/service-types#location)
+- [Car App Library release notes](https://developer.android.com/jetpack/androidx/releases/car-app)

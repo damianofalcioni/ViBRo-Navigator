@@ -564,7 +564,7 @@
     <string name="sensor_status_unavailable">otillgänglig</string>
     <string name="sensor_status_permission_denied">tillstånd nekas</string>
     <string name="auto_no_active_navigation_title">Ingen aktiv navigation</string>
-    <string name="auto_no_active_navigation_text">Starta navigation på telefonen för att visa vägledning här.</string>
+    <string name="auto_no_active_navigation_text">Starta navigeringen på telefonen när du har parkerat säkert för att visa vägledning här.</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="one">Tryck var som helst för att stänga eller vänta %1$d sekund</item>
         <item quantity="other">Tryck var som helst för att stänga eller vänta %1$d sekunder</item>
@@ -587,4 +587,28 @@
     <string name="about_setting_restore_defaults_info">Detta omfattar språk, tema, API-nycklar och utdatamappar. Sparade rutter och sökhistorik behålls.</string>
     <string name="msg_default_configuration_restored">Standardkonfiguration återställd</string>
     <string name="format_nav_battery_partial_usage">%1$s (delvis, under %2$s)</string>
+    <string name="auto_setup_required">När du har parkerat säkert, slutför inställningen på telefonen: godkänn välkomsten, installera BRouter och ruttdata, välj en profil och aktivera plats och aviseringar. Återvänd sedan hit för att försöka igen.</string>
+    <string name="label_simulation">Simulering</string>
+    <string name="simulation_speed_kmh">Simulerad hastighet (km/h)</string>
+    <string name="simulation_speed_mph">Simulerad hastighet (mph)</string>
+    <string name="simulation_initial_position">GPS-startposition (valfri)</string>
+    <string name="simulation_position_hint">Latitud, longitud</string>
+    <string name="simulation_config_help">Inställningarna gäller nästa gång navigationen startar. Lämna positionen tom för att använda enhetens plats. Hastighet 0 håller positionen stilla.</string>
+    <string name="simulation_info">Prova navigation utan att röra dig. Tillgängligt i båda versionerna. Simulerade positioner följer den valda rutten och stannar när navigationen pausas. Stäng av detta innan du startar verklig navigation.</string>
+    <string name="nav_simulation_mode_title">Simuleringsläge</string>
+    <string name="nav_simulation_started">Du förhandsvisar navigeringen med simulerad rörelse.</string>
+    <string name="simulation_invalid_speed">Ange en hastighet från 0 till 300 km/h (0–186,41 mph).</string>
+    <string name="simulation_invalid_position">Ange giltig latitud och longitud med decimalpunkter.</string>
+    <string name="simulation_save">Spara</string>
+    <string name="action_configure_simulation">Konfigurera simulering</string>
+    <string name="auto_destination_timeout">Det tog för lång tid att läsa in destinationen. Försök igen.</string>
+    <string name="auto_retry">Försök igen</string>
+    <string name="auto_navigation_operation_unsupported">Den här röstbegäran om navigering stöds inte.</string>
+    <string name="auto_hint_switch_views">Byt vy</string>
+    <string name="auto_hint_switch_views_text">Tryck en gång på kartan eller svep åt vänster eller höger för att växla mellan översikt, 2D och 3D.</string>
+    <string name="auto_hint_swipe_views_text">Svep åt vänster eller höger för att växla mellan översikt, 2D och 3D.</string>
+    <string name="auto_hint_zoom">Zooma</string>
+    <string name="auto_hint_zoom_text">Nyp ihop eller dra isär två fingrar i 2D eller 3D.</string>
+    <string name="auto_hint_tilt">Luta i 3D</string>
+    <string name="auto_hint_tilt_text">Dra uppåt eller nedåt med ett finger.</string>
 </resources>

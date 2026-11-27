@@ -20,7 +20,6 @@ import vibro.navigator.logging.AppLogger;
 import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.main.MainActivity;
 import vibro.navigator.nav.directions.DirectionInfo;
-import vibro.navigator.nav.directions.DirectionKind;
 import vibro.navigator.nav.directions.VoiceHintMapper;
 import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.format.NavigationTextFormatter;
@@ -65,6 +64,7 @@ public final class AndroidNavigationForegroundController implements NavigationFo
 
     @Override
     public void stopForegroundService() {
+        transientNotificationTimeout.cancel();
         ServiceCompat.stopForeground(service, ServiceCompat.STOP_FOREGROUND_REMOVE);
     }
 
@@ -95,11 +95,7 @@ public final class AndroidNavigationForegroundController implements NavigationFo
             return;
         }
         DirectionInfo directionInfo = VoiceHintMapper.toDirection(hint);
-        String channelId = directionInfo.kind == DirectionKind.LEFT
-                ? NavigationService.CHANNEL_ID_TURN_LEFT
-                : (directionInfo.kind == DirectionKind.RIGHT
-                ? NavigationService.CHANNEL_ID_TURN_RIGHT
-                : NavigationService.CHANNEL_ID_ALERT);
+        String channelId = AndroidNavigationNotificationChannels.turnChannel(directionInfo.kind);
         sendTurnNotification(hint, distanceMeters, timeSeconds, channelId);
     }
 
@@ -113,13 +109,15 @@ public final class AndroidNavigationForegroundController implements NavigationFo
                 : NavigationService.CHANNEL_ID_TURN_LEFT;
         String message = NavigationTextFormatter.formatStationaryOrientationNotification(service, decision);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(service, channelId)
-                .setSmallIcon(R.drawable.ic_notification)
+        NotificationCompat.Builder builder = AndroidNavigationNotificationChannels.guidanceAlert(service, channelId);
+        if (builder == null) {
+            return;
+        }
+        builder.setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(service.getString(R.string.app_name))
                 .setContentText(message)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
-                .setAutoCancel(true)
-                .setPriority(NotificationCompat.PRIORITY_HIGH);
+                .setAutoCancel(true);
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             builder.setVibrate(decision.turnRight()
@@ -159,13 +157,16 @@ public final class AndroidNavigationForegroundController implements NavigationFo
     }
 
     private void sendAlertNotification(@NonNull String title, @NonNull String message) {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(service, NavigationService.CHANNEL_ID_ALERT)
-                .setSmallIcon(R.drawable.ic_notification)
+        NotificationCompat.Builder builder = AndroidNavigationNotificationChannels.guidanceAlert(
+                service, NavigationService.CHANNEL_ID_ALERT);
+        if (builder == null) {
+            return;
+        }
+        builder.setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
-                .setAutoCancel(true)
-                .setPriority(NotificationCompat.PRIORITY_HIGH);
+                .setAutoCancel(true);
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             builder.setVibrate(AndroidNavigationNotificationChannels.genericAlertVibrationPattern());
@@ -214,6 +215,7 @@ public final class AndroidNavigationForegroundController implements NavigationFo
                         paused ? R.string.notification_nav_paused_text : R.string.notification_nav_running_text
                 ))
                 .setOngoing(true)
+                .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
                 .setDeleteIntent(stopNavigationPendingIntent)
                 .setContentIntent(openNavigationPendingIntent)
                 .build();
@@ -236,22 +238,18 @@ public final class AndroidNavigationForegroundController implements NavigationFo
         DirectionInfo directionInfo = VoiceHintMapper.toDirection(hint);
         String message = NavigationTextFormatter.formatTurnNotification(service, hint, distanceMeters, timeSeconds);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(service, channelId)
-                .setSmallIcon(R.drawable.ic_notification)
+        NotificationCompat.Builder builder = AndroidNavigationNotificationChannels.guidanceAlert(service, channelId);
+        if (builder == null) {
+            return;
+        }
+        builder.setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(service.getString(R.string.app_name))
                 .setContentText(message)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
-                .setAutoCancel(true)
-                .setPriority(NotificationCompat.PRIORITY_HIGH);
+                .setAutoCancel(true);
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            if (directionInfo.kind == DirectionKind.LEFT) {
-                builder.setVibrate(AndroidNavigationNotificationChannels.leftVibrationPattern());
-            } else if (directionInfo.kind == DirectionKind.RIGHT) {
-                builder.setVibrate(AndroidNavigationNotificationChannels.rightVibrationPattern());
-            } else {
-                builder.setVibrate(AndroidNavigationNotificationChannels.genericAlertVibrationPattern());
-            }
+            builder.setVibrate(AndroidNavigationNotificationChannels.legacyTurnVibration(directionInfo.kind));
         }
 
         NotificationManager notificationManager = (NotificationManager) service.getSystemService(Service.NOTIFICATION_SERVICE);

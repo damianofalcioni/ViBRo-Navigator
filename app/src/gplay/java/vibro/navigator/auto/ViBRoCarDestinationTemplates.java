@@ -1,0 +1,81 @@
+package vibro.navigator.auto;
+
+import androidx.car.app.CarContext;
+import androidx.car.app.model.Action;
+import androidx.car.app.model.ActionStrip;
+import androidx.car.app.model.ItemList;
+import androidx.car.app.model.ListTemplate;
+import androidx.car.app.model.Pane;
+import androidx.car.app.model.PaneTemplate;
+import androidx.car.app.model.Row;
+import androidx.car.app.model.Template;
+
+import java.util.List;
+
+import vibro.navigator.R;
+import vibro.navigator.android.language.AndroidLanguageContext;
+import vibro.navigator.poi.Poi;
+import vibro.navigator.poi.ui.PoiSuggestion;
+
+/** Host-only destination UI, including fallbacks for the declared Car API 1 minimum. */
+final class ViBRoCarDestinationTemplates {
+    interface Actions {
+        void cancel();
+        void retry();
+        void select(Poi poi);
+    }
+
+    private final CarContext context;
+    private final AndroidLanguageContext localizedContext;
+
+    ViBRoCarDestinationTemplates(CarContext context) {
+        this.context = context;
+        localizedContext = new AndroidLanguageContext(context);
+    }
+
+    Template build(List<Poi> results, boolean loading, int message, boolean retryable, Actions actions) {
+        Action cancel = new Action.Builder().setTitle(text(R.string.action_cancel))
+                .setOnClickListener(actions::cancel).build();
+        return results.isEmpty() ? statusTemplate(cancel, loading, message, retryable, actions)
+                : resultTemplate(results, cancel, actions);
+    }
+
+    @SuppressWarnings("deprecation") // Header setters support the retained Car API 1 hosts.
+    private Template resultTemplate(List<Poi> results, Action cancel, Actions actions) {
+        boolean hasActionStrip = context.getCarAppApiLevel() >= 2;
+        ItemList.Builder list = new ItemList.Builder();
+        int count = Math.min(results.size(), hasActionStrip ? 5 : 4);
+        for (Poi poi : results.subList(0, count)) {
+            Poi displayPoi = new PoiSuggestion(poi, false).selectedPoi(localizedContext);
+            list.addItem(new Row.Builder().setTitle(displayPoi.displayLabel())
+                    .setOnClickListener(() -> actions.select(displayPoi)).build());
+        }
+        if (!hasActionStrip) {
+            list.addItem(new Row.Builder().setTitle(text(R.string.action_cancel))
+                    .setOnClickListener(actions::cancel).build());
+        }
+        ListTemplate.Builder builder = new ListTemplate.Builder()
+                .setTitle(text(R.string.hint_search_destination)).setHeaderAction(Action.APP_ICON)
+                .setSingleList(list.build());
+        if (hasActionStrip) {
+            builder.setActionStrip(new ActionStrip.Builder().addAction(cancel).build());
+        }
+        return builder.build();
+    }
+
+    @SuppressWarnings("deprecation") // Header setters support the retained Car API 1 hosts.
+    private Template statusTemplate(Action cancel, boolean loading, int message, boolean retryable, Actions actions) {
+        // Pane refreshes keep their title and row titles. Only status text and actions change on retry.
+        Pane.Builder pane = new Pane.Builder().addAction(cancel).addRow(new Row.Builder()
+                .setTitle(text(R.string.hint_search_destination))
+                .addText(text(loading ? R.string.msg_map_poi_loading : message)).build());
+        if (!loading && retryable) {
+            pane.addAction(new Action.Builder().setTitle(text(R.string.auto_retry))
+                    .setOnClickListener(actions::retry).build());
+        }
+        return new PaneTemplate.Builder(pane.build()).setTitle(text(R.string.auto_title))
+                .setHeaderAction(Action.APP_ICON).build();
+    }
+
+    private String text(int id) { return localizedContext.getString(id); }
+}

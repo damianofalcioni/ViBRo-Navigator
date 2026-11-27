@@ -562,7 +562,7 @@
     <string name="sensor_status_unavailable">不可用</string>
     <string name="sensor_status_permission_denied">权限被拒绝</string>
     <string name="auto_no_active_navigation_title">没有激活的导航</string>
-    <string name="auto_no_active_navigation_text">在手机上开始导航以在此显示指引。</string>
+    <string name="auto_no_active_navigation_text">请在安全停车后，在手机上开始导航，以便在此显示指引。</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="other">点按任意位置关闭，或等待%1$d秒</item>
     </plurals>
@@ -581,4 +581,28 @@
     <string name="about_setting_restore_defaults_info">这包括语言、主题、API 密钥和输出文件夹。已保存的路线和搜索历史将会保留。</string>
     <string name="msg_default_configuration_restored">已恢复默认配置</string>
     <string name="format_nav_battery_partial_usage">%1$s（部分测量，时长 %2$s）</string>
+    <string name="auto_setup_required">安全停车后，请在手机上完成设置：确认欢迎页面，安装 BRouter 和路线数据，选择路线配置，并启用位置和通知。然后返回此处重试。</string>
+    <string name="label_simulation">模拟</string>
+    <string name="simulation_speed_kmh">模拟速度 (km/h)</string>
+    <string name="simulation_speed_mph">模拟速度 (mph)</string>
+    <string name="simulation_initial_position">初始 GPS 位置（可选）</string>
+    <string name="simulation_position_hint">纬度, 经度</string>
+    <string name="simulation_config_help">设置将在下次开始导航时生效。位置留空将使用设备位置。速度为 0 时位置保持不变。</string>
+    <string name="simulation_info">无需移动即可体验导航。两个版本均可使用。模拟位置沿所选路线前进，并在导航暂停时停止。开始实际导航前请关闭此选项。</string>
+    <string name="nav_simulation_mode_title">模拟模式</string>
+    <string name="nav_simulation_started">你正在通过模拟移动预览导航。</string>
+    <string name="simulation_invalid_speed">请输入 0 至 300 km/h（0–186.41 mph）的速度。</string>
+    <string name="simulation_invalid_position">请输入有效的纬度和经度，使用小数点和英文逗号。</string>
+    <string name="simulation_save">保存</string>
+    <string name="action_configure_simulation">配置模拟</string>
+    <string name="auto_destination_timeout">目的地加载超时。请重试。</string>
+    <string name="auto_retry">重试</string>
+    <string name="auto_navigation_operation_unsupported">不支持此语音导航请求。</string>
+    <string name="auto_hint_switch_views">切换视图</string>
+    <string name="auto_hint_switch_views_text">轻点地图一次，或向左或向右滑动，即可在路线概览、2D 和 3D 之间切换。</string>
+    <string name="auto_hint_swipe_views_text">向左或向右滑动，即可在路线概览、2D 和 3D 之间切换。</string>
+    <string name="auto_hint_zoom">缩放</string>
+    <string name="auto_hint_zoom_text">在 2D 或 3D 视图中，用双指捏合或张开。</string>
+    <string name="auto_hint_tilt">倾斜 3D 视图</string>
+    <string name="auto_hint_tilt_text">用一根手指向上或向下拖动。</string>
 </resources>

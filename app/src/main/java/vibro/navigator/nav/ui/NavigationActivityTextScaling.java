@@ -2,11 +2,9 @@ package vibro.navigator.nav.ui;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Typeface;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
-import android.text.style.StyleSpan;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.TextView;
@@ -44,10 +42,10 @@ final class NavigationActivityTextScaling {
         );
         TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
                 speedLimit,
-                10,
-                16,
                 1,
-                TypedValue.COMPLEX_UNIT_SP
+                speedLimit.getResources().getDimensionPixelSize(R.dimen.speed_limit_badge_text_size),
+                1,
+                TypedValue.COMPLEX_UNIT_PX
         );
     }
 
@@ -95,23 +93,9 @@ final class NavigationActivityTextScaling {
             return styledText;
         }
         styleAccuracy(context, styledText, statusText, state);
-        if (!NavigationSpeedLimitFormatter.isOverLimit(
-                state.gpsStatus.telemetry.speedMps,
-                state.routeStatus.speedLimit
-        )) {
-            return styledText;
+        if (isOverSpeedLimit(state)) {
+            NavigationGpsSpeedStyle.apply(context, styledText, state.gpsStatus.telemetry.speedText);
         }
-        int speedStart = statusText.indexOf(state.gpsStatus.telemetry.speedText);
-        if (speedStart < 0) {
-            return styledText;
-        }
-        int speedEnd = speedStart + state.gpsStatus.telemetry.speedText.length();
-        styledText.setSpan(
-                new StyleSpan(Typeface.BOLD),
-                speedStart,
-                speedEnd,
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-        );
         return styledText;
     }
 

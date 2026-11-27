@@ -17,25 +17,11 @@ import vibro.navigator.nav.model.NavState;
 
 final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
 
-    interface Controls {
-        void onBlockedRoad();
-
-        void onStopNavigation();
-
-        void onTogglePaused();
-
-        void onToggleCustomButton();
-
-        @NonNull
-        String buildCurrentDirectionDetailsText();
-    }
-
     private static final String TAG = "ViBRoAutoSurface";
     private final TaskScheduler uiScheduler;
-    private final CarContext carContext;
-    private final Controls controls;
     private final ViBRoAutoCompassStreetViewportSink compassStreetViewportSink;
-    private ViBRoAutoSurfacePainter painter;
+    private final Runnable surfaceChanged;
+    private final ViBRoAutoSurfacePainter painter;
     private final Rect stableArea = new Rect();
     private final Runnable surfaceAnimationTicker = this::renderOnMainThread;
 
@@ -47,17 +33,15 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
 
     ViBRoAutoSurfaceRenderer(
             @NonNull CarContext carContext,
-            @NonNull Controls controls,
             @NonNull TaskScheduler uiScheduler,
-            @NonNull ViBRoAutoCompassStreetViewportSink compassStreetViewportSink
+            @NonNull ViBRoAutoCompassStreetViewportSink compassStreetViewportSink,
+            @NonNull Runnable surfaceChanged
     ) {
-        this.carContext = carContext;
-        this.controls = controls;
         this.compassStreetViewportSink = compassStreetViewportSink;
         this.uiScheduler = uiScheduler;
+        this.surfaceChanged = surfaceChanged;
         painter = new ViBRoAutoSurfacePainter(
                 carContext,
-                controls,
                 compassStreetViewportSink,
                 AndroidElapsedRealtimeClock.INSTANCE
         );
@@ -73,7 +57,7 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
     }
 
     void render() {
-        if (renderPosted) {
+        if (surfaceContainer == null || renderPosted) {
             return;
         }
         renderPosted = true;
@@ -85,6 +69,11 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
         painter.resetCompass();
         compassStreetViewportSink.clearCompassStreetViewport();
         clearAnimationCallbacks();
+        surfaceChanged.run();
+    }
+
+    boolean hasSurface() {
+        return surfaceContainer != null && surfaceContainer.getSurface() != null;
     }
 
     void dispose() {
@@ -94,19 +83,14 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
     }
 
     void refreshTheme() {
-        painter.dispose();
-        painter = new ViBRoAutoSurfacePainter(
-                carContext,
-                controls,
-                compassStreetViewportSink,
-                AndroidElapsedRealtimeClock.INSTANCE
-        );
+        painter.refreshTheme();
         render();
     }
 
     @Override
     public void onSurfaceAvailable(@NonNull SurfaceContainer surfaceContainer) {
         this.surfaceContainer = surfaceContainer;
+        surfaceChanged.run();
         render();
     }
 
@@ -177,15 +161,6 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
         clearAnimationCallbacks();
         if (painter.isCompassTransitionInProgress()) {
             uiScheduler.postAnimationFrame(surfaceAnimationTicker);
-        } else {
-            scheduleInstructionRefresh();
-        }
-    }
-
-    private void scheduleInstructionRefresh() {
-        long delay = painter.nextInstructionRefreshDelayMs();
-        if (delay > 0L) {
-            uiScheduler.postDelayed(surfaceAnimationTicker, delay);
         }
     }
 

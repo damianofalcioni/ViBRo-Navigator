@@ -41,7 +41,7 @@ public final class PolylineIndex {
     }
 
     public double totalLengthMeters() {
-        return cumulative.length == 0 ? 0 : cumulative[cumulative.length - 1];
+        return cumulative[cumulative.length - 1];
     }
 
     public double distanceAtPointIndex(int idx) {
@@ -83,7 +83,8 @@ public final class PolylineIndex {
             }
             double t = (alongTrackMeters - segmentStart) / segmentLength;
             double lat = start.lat + (end.lat - start.lat) * t;
-            double lon = start.lon + (end.lon - start.lon) * t;
+            double lonSpan = GeoMath.normalizeLongitude(end.lon - start.lon);
+            double lon = GeoMath.normalizeLongitude(start.lon + lonSpan * t);
             return new LatLon(lat, lon);
         }
 
@@ -112,11 +113,44 @@ public final class PolylineIndex {
 
     @Nullable
     public Match matchFromSegmentIndex(@NonNull LatLon point, int firstSegmentIndex) {
-        if (pts.size() < 2) {
-            return null;
-        }
         int start = Math.max(0, Math.min(firstSegmentIndex, pts.size() - 2));
         return findBestMatchInRange(point, start, pts.size() - 2);
+    }
+
+    @NonNull
+    public List<Double> matchStopDistancesInOrder(@NonNull List<LatLon> stops) {
+        List<Double> distances = new ArrayList<>(stops.size());
+        double minimumAlongTrackMeters = 0;
+        for (LatLon stop : stops) {
+            Match match = matchAtOrAfterDistance(stop, minimumAlongTrackMeters);
+            if (match == null) {
+                break;
+            }
+            minimumAlongTrackMeters = match.alongTrackMeters;
+            distances.add(minimumAlongTrackMeters);
+        }
+        return distances;
+    }
+
+    @Nullable
+    private Match matchAtOrAfterDistance(@NonNull LatLon point, double minimumAlongTrackMeters) {
+        Match best = null;
+        for (int i = 0; i < pts.size() - 1; i++) {
+            double end = distanceAtPointIndex(i + 1);
+            if (end < minimumAlongTrackMeters) {
+                continue;
+            }
+            double length = end - distanceAtPointIndex(i);
+            if (length <= 0.0) {
+                continue;
+            }
+            double minimumFraction = Math.max(0.0, 1.0 - (end - minimumAlongTrackMeters) / length);
+            Match candidate = projectToSegment(point, pts.get(i), pts.get(i + 1), i, minimumFraction);
+            if (isCloserMatch(candidate, best)) {
+                best = candidate;
+            }
+        }
+        return best;
     }
 
     @Nullable
@@ -140,7 +174,7 @@ public final class PolylineIndex {
     private Match findBestMatchInRange(@NonNull LatLon p, int start, int end) {
         Match best = null;
         for (int i = start; i <= end; i++) {
-            Match candidate = projectToSegment(p, pts.get(i), pts.get(i + 1), i);
+            Match candidate = projectToSegment(p, pts.get(i), pts.get(i + 1), i, 0.0);
             if (isCloserMatch(candidate, best)) {
                 best = candidate;
             }
@@ -153,28 +187,27 @@ public final class PolylineIndex {
     }
 
     @Nullable
-    private Match projectToSegment(@NonNull LatLon p, @NonNull LatLon a, @NonNull LatLon b, int segIndex) {
+    private Match projectToSegment(@NonNull LatLon p, @NonNull LatLon a, @NonNull LatLon b, int segIndex,
+            double minimumFraction) {
         // Equirectangular projection around p.lat for local metric computations.
         double refLatRad = Math.toRadians(p.lat);
         double kx = 111320.0 * Math.cos(refLatRad);
         double ky = 111320.0;
 
-        double ax = (a.lon - p.lon) * kx;
+        // Unwrap both endpoints around the same midpoint so date-line segments remain short.
+        double lonSpan = GeoMath.normalizeLongitude(b.lon - a.lon);
+        double lonMidpoint = a.lon + lonSpan / 2;
+        double ax = (GeoMath.normalizeLongitude(lonMidpoint - p.lon) - lonSpan / 2) * kx;
         double ay = (a.lat - p.lat) * ky;
-        double bx = (b.lon - p.lon) * kx;
-        double by = (b.lat - p.lat) * ky;
-
-        double abx = bx - ax;
-        double aby = by - ay;
+        double abx = lonSpan * kx;
+        double aby = (b.lat - a.lat) * ky;
         double ab2 = abx * abx + aby * aby;
         if (ab2 <= 0) {
             return null;
         }
 
         // p is at (0,0), so projection t is -dot(a,ab)/|ab|^2
-        double t = -(ax * abx + ay * aby) / ab2;
-        if (t < 0) t = 0;
-        if (t > 1) t = 1;
+        double t = Math.max(minimumFraction, Math.min(1.0, -(ax * abx + ay * aby) / ab2));
 
         double projx = ax + t * abx;
         double projy = ay + t * aby;

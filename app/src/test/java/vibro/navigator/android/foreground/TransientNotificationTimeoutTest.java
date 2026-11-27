@@ -44,6 +44,22 @@ public class TransientNotificationTimeoutTest {
         assertEquals(1, removeCalls[0]);
     }
 
+    @Test
+    public void stopRemovesAlertImmediatelyAndInvalidatesItsPendingTimeout() {
+        TestScheduler scheduler = new TestScheduler();
+        int[] removals = {0};
+        TransientNotificationTimeout timeout = new TransientNotificationTimeout(scheduler, () -> removals[0]++);
+        timeout.schedule();
+        Runnable stale = scheduler.delayedTask;
+        timeout.cancel();
+        assertEquals(1, removals[0]);
+        timeout.schedule();
+        stale.run();
+        assertEquals(1, removals[0]);
+        scheduler.runDelayedTask();
+        assertEquals(2, removals[0]);
+    }
+
     private static final class TestScheduler implements TaskScheduler {
         private Runnable delayedTask;
         private long delayMs;

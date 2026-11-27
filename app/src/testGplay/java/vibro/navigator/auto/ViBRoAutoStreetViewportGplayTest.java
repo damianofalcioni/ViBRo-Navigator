@@ -11,11 +11,13 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.graphics.RectF;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.car.app.CarContext;
+import androidx.car.app.SurfaceContainer;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LifecycleRegistry;
@@ -56,11 +58,9 @@ public class ViBRoAutoStreetViewportGplayTest {
     public void compassPainterPublishesDrawnStreetViewport() throws Exception {
         CarContext carContext = testCarContext();
         carContext.setTheme(R.style.Theme_ViBRoNavigator);
-        RecordingAutoControls controls = new RecordingAutoControls();
         RecordingStreetViewportSink streetViewportSink = new RecordingStreetViewportSink();
         ViBRoAutoCompassPainter painter = new ViBRoAutoCompassPainter(
                 carContext,
-                controls,
                 streetViewportSink,
                 () -> 1_000L
         );
@@ -85,13 +85,12 @@ public class ViBRoAutoStreetViewportGplayTest {
 
     @Test
     public void surfaceRendererClearsStreetViewportWhenInactiveOrDestroyed() throws Exception {
-        RecordingAutoControls controls = new RecordingAutoControls();
         RecordingStreetViewportSink streetViewportSink = new RecordingStreetViewportSink();
         ViBRoAutoSurfaceRenderer renderer = new ViBRoAutoSurfaceRenderer(
                 testCarContext(),
-                controls,
                 Runnable::run,
-                streetViewportSink
+                streetViewportSink,
+                () -> { }
         );
 
         streetViewportSink.lastCompassStreetViewport = movingCompassState();
@@ -217,19 +216,19 @@ public class ViBRoAutoStreetViewportGplayTest {
     }
 
     @Test
-    public void scaleOnCustomButtonDoesNotZoomOrInvokeTheControl() throws Exception {
+    public void formerCustomButtonAreaNowUsesMapGestures() throws Exception {
         AppNavigationCustomButtonSettings.setEnabled(context, true);
         PainterFixture fixture = painterFixture();
-        assertFalse(fixture.painter.handleScale(220f, 20f, 2f, fixture.state));
+        assertTrue(fixture.painter.handleScale(220f, 20f, 2f, fixture.state));
         fixture.draw();
-        assertEquals(300f, fixture.viewport.lastCompassStreetViewport.radiusState.visibleRadiusMeters, 0f);
+        assertEquals(150f, fixture.viewport.lastCompassStreetViewport.radiusState.visibleRadiusMeters, 0f);
     }
 
     @Test
     public void destroyedOrInactiveSurfaceIgnoresHostGestures() throws Exception {
         RecordingStreetViewportSink viewport = new RecordingStreetViewportSink();
         ViBRoAutoSurfaceRenderer renderer = new ViBRoAutoSurfaceRenderer(testCarContext(),
-                new RecordingAutoControls(), Runnable::run, viewport);
+                Runnable::run, viewport, () -> { });
         renderer.setState(activeNavigationState(movingCompassState()));
         renderer.onScroll(100f, 0f);
         renderer.onScale(-1f, -1f, 2f);
@@ -240,11 +239,31 @@ public class ViBRoAutoStreetViewportGplayTest {
         assertEquals(1, viewport.compassStreetViewportUpdates);
     }
 
+    @Test
+    public void changingMapThemeRetainsManualZoom() throws Exception {
+        CarContext carContext = testCarContext();
+        carContext.setTheme(R.style.Theme_ViBRoNavigator_Light);
+        RecordingStreetViewportSink viewport = new RecordingStreetViewportSink();
+        ViBRoAutoSurfacePainter painter = new ViBRoAutoSurfacePainter(carContext, viewport, () -> 1_000L);
+        NavState state = activeNavigationState(movingCompassState());
+        Canvas canvas = new Canvas(Bitmap.createBitmap(240, 240, Bitmap.Config.ARGB_8888));
+        SurfaceContainer surface = new SurfaceContainer(null, 240, 240, 160);
+        Rect area = new Rect(0, 0, 240, 240);
+        painter.draw(canvas, surface, area, state);
+        assertTrue(painter.handleScale(120, 120, 2, state));
+
+        carContext.setTheme(R.style.Theme_ViBRoNavigator);
+        painter.refreshTheme();
+        painter.draw(canvas, surface, area, state);
+
+        assertEquals(150f, viewport.lastCompassStreetViewport.radiusState.visibleRadiusMeters, 0.01f);
+    }
+
     private PainterFixture painterFixture() throws Exception {
         CarContext carContext = testCarContext();
         carContext.setTheme(R.style.Theme_ViBRoNavigator);
         PainterFixture fixture = new PainterFixture();
-        fixture.painter = new ViBRoAutoCompassPainter(carContext, new RecordingAutoControls(),
+        fixture.painter = new ViBRoAutoCompassPainter(carContext,
                 fixture.viewport, () -> fixture.timeMs);
         fixture.draw();
         return fixture;
@@ -323,30 +342,6 @@ public class ViBRoAutoStreetViewportGplayTest {
         @NonNull
         public Lifecycle getLifecycle() {
             return lifecycle;
-        }
-    }
-
-    private static final class RecordingAutoControls implements ViBRoAutoSurfaceRenderer.Controls {
-        @Override
-        public void onBlockedRoad() {
-        }
-
-        @Override
-        public void onStopNavigation() {
-        }
-
-        @Override
-        public void onTogglePaused() {
-        }
-
-        @Override
-        public void onToggleCustomButton() {
-        }
-
-        @Override
-        @NonNull
-        public String buildCurrentDirectionDetailsText() {
-            return "";
         }
     }
 

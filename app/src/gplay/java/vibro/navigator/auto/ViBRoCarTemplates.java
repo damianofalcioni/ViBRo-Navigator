@@ -12,68 +12,142 @@ import androidx.car.app.model.Row;
 import androidx.car.app.model.Template;
 import androidx.car.app.navigation.model.NavigationTemplate;
 
+import java.util.Objects;
+
 import vibro.navigator.R;
 import vibro.navigator.android.language.AndroidAppLanguage;
+import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.settings.AppSettings;
 
 final class ViBRoCarTemplates {
     interface Actions {
-        void onOpenPhoneApp();
+        void onStopNavigation();
+
+        default void onTogglePaused() { }
+        default void onBlockedRoad() { }
+        default void onCustomButton(ViBRoCarCustomButton.State presented) { }
     }
 
     @NonNull
     private final CarContext carContext;
     @NonNull
     private final Actions actions;
+    private final ViBRoCarManeuvers.Icons maneuverIcons;
+    private boolean lastPresentedImperial;
+    @Nullable private ViBRoCarArrivalMinutes lastPresentedArrivals;
+    @Nullable private ViBRoCarCustomButton.State lastPresentedCustomButton;
 
     ViBRoCarTemplates(@NonNull CarContext carContext, @NonNull Actions actions) {
         this.carContext = carContext;
         this.actions = actions;
+        maneuverIcons = ViBRoCarManeuvers.Icons.from(carContext);
+        lastPresentedImperial = AppSettings.isImperialUnitsEnabled(carContext);
     }
 
     @NonNull
     Template build(@Nullable NavState state) {
+        lastPresentedImperial = AppSettings.isImperialUnitsEnabled(carContext);
         if (!usesNavigationTemplate(state)) {
+            lastPresentedArrivals = null;
+            lastPresentedCustomButton = null;
             return buildNoActiveNavigationTemplate();
         }
-        return buildNavigationTemplate();
+        lastPresentedArrivals = ViBRoCarArrivalMinutes.from(state);
+        lastPresentedCustomButton = ViBRoCarCustomButton.State.read(carContext);
+        var estimate = state.routeStatus.progress.travelEstimate;
+        return buildNavigationTemplate(state, estimate == null ? 0 : estimate.observationWallTimeMs);
+    }
+
+    boolean customButtonChanged() {
+        return !Objects.equals(lastPresentedCustomButton, ViBRoCarCustomButton.State.read(carContext));
     }
 
     boolean requiresInvalidation(@Nullable NavState previous, @Nullable NavState next) {
-        return usesNavigationTemplate(previous) != usesNavigationTemplate(next);
+        boolean active = usesNavigationTemplate(next);
+        if (usesNavigationTemplate(previous) != active) {
+            return true;
+        }
+        if (!active) { return false; }
+        // Compare the arrival clocks to the last published view so small updates can accumulate.
+        return lastPresentedImperial != AppSettings.isImperialUnitsEnabled(carContext)
+                || hasChangedArrivalMinutes(previous, next)
+                || hasChangedRelativeProgress(previous, next);
+    }
+
+    private boolean hasChangedArrivalMinutes(NavState previous, NavState next) {
+        var published = lastPresentedArrivals == null ? ViBRoCarArrivalMinutes.from(previous) : lastPresentedArrivals;
+        return !published.equals(ViBRoCarArrivalMinutes.from(next));
+    }
+
+    private boolean hasChangedRelativeProgress(NavState previous, NavState next) {
+        return !sameTemplateInputs(previous, next)
+                && !buildNavigationTemplate(previous, 0).equals(buildNavigationTemplate(next, 0));
+    }
+
+    private static boolean sameTemplateInputs(NavState previous, NavState next) {
+        return previous.routeStatus.guidance == next.routeStatus.guidance
+                && previous.routeStatus.progress == next.routeStatus.progress
+                && previous.pauseStatus.paused == next.pauseStatus.paused
+                && previous.routeStatus.blockedRoadActionAvailable == next.routeStatus.blockedRoadActionAvailable;
     }
 
     @NonNull
     private Template buildNoActiveNavigationTemplate() {
-        Pane pane = new Pane.Builder()
+        Pane.Builder pane = new Pane.Builder()
                 .addRow(new Row.Builder()
                         .setTitle(text(R.string.auto_no_active_navigation_title))
                         .addText(text(R.string.auto_no_active_navigation_text))
-                        .build())
-                .build();
-        return buildPaneTemplate(text(R.string.auto_title), pane);
+                        .build());
+        ViBRoCarGestureHints.addRows(pane, carContext);
+        return buildPaneTemplate(text(R.string.auto_title), pane.build());
     }
 
     @NonNull
-    private Template buildNavigationTemplate() {
+    private Template buildNavigationTemplate(@NonNull NavState state, long observationTimeMs) {
+        var custom = lastPresentedCustomButton;
+        boolean hasMapStrip = carContext.getCarAppApiLevel() >= 2;
+        boolean customOnMap = hasMapStrip && custom != null && custom.isMapControl();
         NavigationTemplate.Builder builder = new NavigationTemplate.Builder()
-                .setActionStrip(buildNavigationActionStrip());
-        if (carContext.getCarAppApiLevel() >= 2) {
+                .setActionStrip(buildNavigationActionStrip(state, customOnMap ? null : custom));
+        ViBRoCarGuidance.apply(builder, state, new AndroidNavigationTextResources(carContext), observationTimeMs,
+                maneuverIcons);
+        if (hasMapStrip) {
             // Required by the host before it delivers scroll, pinch, or double-tap zoom.
-            builder.setMapActionStrip(new ActionStrip.Builder().addAction(Action.PAN).build());
+            var mapActions = new ActionStrip.Builder().addAction(Action.PAN);
+            if (customOnMap) {
+                mapActions.addAction(customButton(custom));
+            }
+            builder.setMapActionStrip(mapActions.build());
         }
         return builder.build();
     }
 
     @NonNull
-    private ActionStrip buildNavigationActionStrip() {
-        // NavigationTemplate requires a strip action; the surface-drawn controls stay primary.
-        return new ActionStrip.Builder()
-                .addAction(new Action.Builder()
-                        .setIcon(CarIcon.APP_ICON)
-                        .setOnClickListener(actions::onOpenPhoneApp)
-                        .build())
-                .build();
+    private ActionStrip buildNavigationActionStrip(@NonNull NavState state,
+            @Nullable ViBRoCarCustomButton.State custom) {
+        ActionStrip.Builder strip = new ActionStrip.Builder();
+        if (state.routeStatus.blockedRoadActionAvailable && !state.pauseStatus.paused) {
+            strip.addAction(iconAction(R.drawable.ic_blocked_road, actions::onBlockedRoad));
+        }
+        strip.addAction(iconAction(R.drawable.ic_stop, actions::onStopNavigation))
+                .addAction(iconAction(state.pauseStatus.paused ? R.drawable.ic_play : R.drawable.ic_pause,
+                        actions::onTogglePaused));
+        if (custom != null) {
+            strip.addAction(customButton(custom));
+        }
+        return strip.build();
+    }
+
+    private Action customButton(ViBRoCarCustomButton.State state) {
+        return iconAction(state.icon(), () -> actions.onCustomButton(state));
+    }
+
+    private Action iconAction(int drawable, Runnable action) {
+        return new Action.Builder().setIcon(new CarIcon.Builder(
+                androidx.core.graphics.drawable.IconCompat.createWithResource(carContext, drawable))
+                .build())
+                .setOnClickListener(action::run).build();
     }
 
     @NonNull

@@ -564,7 +564,7 @@
     <string name="sensor_status_unavailable">nedostupný</string>
     <string name="sensor_status_permission_denied">přístup odepřen</string>
     <string name="auto_no_active_navigation_title">Žádná aktivní navigace</string>
-    <string name="auto_no_active_navigation_text">Spusťte navigaci v telefonu, aby se zde zobrazovalo vedení.</string>
+    <string name="auto_no_active_navigation_text">Až bezpečně zaparkujete, spusťte navigaci v telefonu a zde se zobrazí pokyny.</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="one">Klepnutím kamkoli zavřete nebo počkejte %1$d sekundu</item>
         <item quantity="few">Klepnutím kamkoli zavřete nebo počkejte %1$d sekundy</item>
@@ -595,4 +595,28 @@
     <string name="about_setting_restore_defaults_info">To zahrnuje jazyk, motiv, klíče API a výstupní složky. Uložené trasy a historie hledání budou zachovány.</string>
     <string name="msg_default_configuration_restored">Výchozí konfigurace obnovena</string>
     <string name="format_nav_battery_partial_usage">%1$s (částečně, za %2$s)</string>
+    <string name="auto_setup_required">Po bezpečném zaparkování dokončete nastavení v telefonu: potvrďte uvítání, nainstalujte BRouter a data tras, vyberte profil a povolte polohu a oznámení. Pak se vraťte a zkuste to znovu.</string>
+    <string name="label_simulation">Simulace</string>
+    <string name="simulation_speed_kmh">Simulovaná rychlost (km/h)</string>
+    <string name="simulation_speed_mph">Simulovaná rychlost (mph)</string>
+    <string name="simulation_initial_position">Počáteční poloha GPS (volitelná)</string>
+    <string name="simulation_position_hint">Zeměpisná šířka, délka</string>
+    <string name="simulation_config_help">Nastavení se použije při příštím spuštění navigace. Prázdná poloha použije polohu zařízení. Rychlost 0 drží polohu na místě.</string>
+    <string name="simulation_info">Vyzkoušejte navigaci bez pohybu. K dispozici v obou verzích. Simulované polohy sledují vybranou trasu a při pozastavení navigace se zastaví. Před skutečnou navigací tuto možnost vypněte.</string>
+    <string name="nav_simulation_mode_title">Režim simulace</string>
+    <string name="nav_simulation_started">Prohlížíte si náhled navigace se simulovaným pohybem.</string>
+    <string name="simulation_invalid_speed">Zadejte rychlost od 0 do 300 km/h (0–186,41 mph).</string>
+    <string name="simulation_invalid_position">Zadejte platnou zeměpisnou šířku a délku s desetinnými tečkami.</string>
+    <string name="simulation_save">Uložit</string>
+    <string name="action_configure_simulation">Nastavit simulaci</string>
+    <string name="auto_destination_timeout">Vypršel časový limit načítání cíle. Zkuste to znovu.</string>
+    <string name="auto_retry">Zkusit znovu</string>
+    <string name="auto_navigation_operation_unsupported">Tento hlasový požadavek na navigaci není podporován.</string>
+    <string name="auto_hint_switch_views">Přepínání zobrazení</string>
+    <string name="auto_hint_switch_views_text">Jedním klepnutím na mapu nebo přejetím doleva či doprava přepnete mezi přehledem, 2D a 3D.</string>
+    <string name="auto_hint_swipe_views_text">Přejetím doleva či doprava přepnete mezi přehledem, 2D a 3D.</string>
+    <string name="auto_hint_zoom">Přiblížení</string>
+    <string name="auto_hint_zoom_text">V zobrazení 2D nebo 3D přibližte nebo oddalte dva prsty.</string>
+    <string name="auto_hint_tilt">Náklon ve 3D</string>
+    <string name="auto_hint_tilt_text">Táhněte jedním prstem nahoru nebo dolů.</string>
 </resources>

@@ -2,6 +2,7 @@ package vibro.navigator.about;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,12 +21,19 @@ final class AboutSettingsControllers {
     private AboutCompassProjectionSettings compassProjectionSettings;
     private AboutNavigationHintSettings navigationHintSettings;
     private AboutOutputFolderSettings outputFolderSettings;
+    private final AboutSimulationSettings simulationSettings;
 
     AboutSettingsControllers(@NonNull Activity activity) {
         this.activity = activity;
+        simulationSettings = new AboutSimulationSettings(activity);
     }
 
+    void restoreState(Bundle state) { simulationSettings.restoreState(state); }
+
+    void saveState(Bundle state) { simulationSettings.saveState(state); }
+
     void configure() {
+        simulationSettings.configure();
         outputFolderSettings = new AboutOutputFolderSettings(activity);
         outputFolderSettings.configure();
         compassProjectionSettings = new AboutCompassProjectionSettings(activity);
@@ -76,7 +84,8 @@ final class AboutSettingsControllers {
     }
 
     void shutdown() {
-        outputFolderSettings.shutdown();
+        simulationSettings.shutdown();
+        if (outputFolderSettings != null) { outputFolderSettings.shutdown(); }
         if (speechRecognitionSettings != null) {
             speechRecognitionSettings.shutdown();
         }
@@ -89,7 +98,8 @@ final class AboutSettingsControllers {
     }
 
     boolean handleActivityResult(int requestCode, int resultCode, Intent data) {
-        return outputFolderSettings.handleActivityResult(requestCode, resultCode, data);
+        return simulationSettings.handleActivityResult(requestCode, resultCode, data)
+                || outputFolderSettings.handleActivityResult(requestCode, resultCode, data);
     }
 
     void renderStorage() {
@@ -105,6 +115,7 @@ final class AboutSettingsControllers {
     }
 
     void refreshAfterDatabaseImport() {
+        simulationSettings.refresh();
         compassProjectionSettings.refresh();
         navigationHintSettings.refresh();
         refreshGooglePoiApiKeySetting();
@@ -119,6 +130,7 @@ final class AboutSettingsControllers {
     }
 
     void flush() {
+        simulationSettings.flush();
         if (outputFolderSettings != null) {
             outputFolderSettings.flush();
         }

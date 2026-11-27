@@ -48,6 +48,10 @@ final class NavigationServiceRouteRecalculator {
         this.stateEmitter = stateEmitter;
     }
 
+    NavigationServiceLocationHandler.RouteRecalculator locationActions() {
+        return new NavigationServiceLocationRouteRecalculator(this);
+    }
+
     void attachSpeculativeRouteConfirmationSink(
             @NonNull SpeculativeRouteConfirmationSink speculativeRouteConfirmationSink
     ) {

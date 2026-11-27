@@ -1,9 +1,12 @@
 package vibro.navigator.android.location;
 
+import vibro.navigator.nav.simulation.NavigationSimulator;
+
 import android.content.Context;
 import android.location.LocationManager;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.distribution.DistributionServices;
@@ -21,6 +24,11 @@ public final class AndroidNavigationLocationControllerFactory {
             @NonNull Context context,
             @NonNull NavigationLocationListener listener
     ) {
+        return create(context, listener, null);
+    }
+
+    public static NavigationLocationController create(Context context, NavigationLocationListener listener,
+            @Nullable NavigationSimulator simulation) {
         Context appContext = context.getApplicationContext();
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         AndroidLocationProviderAccess providerAccess = new AndroidLocationProviderAccess(
@@ -39,7 +47,7 @@ public final class AndroidNavigationLocationControllerFactory {
                 () -> DistributionServices.supportsFusedLocation()
                         && AppSettings.isFusedLocationEnabled(appContext)
                         && fusedClient.isAvailable(),
-                AndroidElapsedRealtimeClock.INSTANCE
+                AndroidElapsedRealtimeClock.INSTANCE, simulation
         );
     }
 }

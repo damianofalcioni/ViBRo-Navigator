@@ -76,8 +76,8 @@ android {
         applicationId = "vibro.navigator"
         minSdk = 23
         targetSdk = 37
-        versionCode = 1000000
-        versionName = "1.0.0"
+        versionCode = 1000001
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -150,8 +150,8 @@ dependencies {
     implementation "androidx.core:core:1.19.1"
 
     gplayImplementation "com.google.android.gms:play-services-location:21.4.0"
-    gplayImplementation "androidx.car.app:app:1.7.0"
-    gplayImplementation "androidx.car.app:app-projected:1.7.0"
+    gplayImplementation "androidx.car.app:app:1.8.0-rc01"
+    gplayImplementation "androidx.car.app:app-projected:1.8.0-rc01"
 
     testImplementation "junit:junit:4.13.2"
     testImplementation "androidx.test:core:1.7.0"

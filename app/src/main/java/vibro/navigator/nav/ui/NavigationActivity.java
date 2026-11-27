@@ -12,7 +12,6 @@ import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.service.NavigationServiceBinder;
 import vibro.navigator.nav.startup.NavigationStartupCoordinator;
-import vibro.navigator.nav.policy.NavigationLifecyclePolicy;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.presentation.NavStateComposer;
 import android.annotation.SuppressLint;
@@ -36,12 +35,12 @@ public class NavigationActivity extends AndroidLocalizedActivity {
     private boolean bound;
     private boolean appliedLightTheme;
     private boolean refreshLocationSettingsOnReconnect;
-    private final NavigationLifecyclePolicy lifecyclePolicy = new NavigationLifecyclePolicy();
     private final TaskScheduler uiScheduler = AndroidTaskScheduler.main();
     private NavigationActivityCommands commands;
     private NavigationActivityRenderer renderer;
     private NavigationActivityBackHandler backHandler;
     private NavigationGestureHints gestureHints;
+    private final NavigationSimulationNotice simulationNotice = new NavigationSimulationNotice(this);
     private final NavigationStartupCoordinator startupCoordinator =
             NavigationActivityStartupHost.createCoordinator(this);
     private final NavigationStartupSegmentsTreeAccess startupSegmentsTreeAccess =
@@ -136,7 +135,7 @@ public class NavigationActivity extends AndroidLocalizedActivity {
         AppLogger.i(TAG, "onCreate savedState=" + (savedInstanceState != null)
                 + " autoStartNavigation=" + startupCoordinator.isAutoStartNavigation()
                 + " request=" + describeNavigationRequest());
-        backHandler = new NavigationActivityBackHandler(this, lifecyclePolicy, this::runLegacyBackFallback);
+        backHandler = new NavigationActivityBackHandler(this, this::runLegacyBackFallback);
         backHandler.registerPredictiveBackCallbackIfSupported();
 
         renderer = new NavigationActivityRenderer(
@@ -209,10 +208,12 @@ public class NavigationActivity extends AndroidLocalizedActivity {
         gestureHints.refreshCountdown();
         startupCoordinator.onResume();
         startupSegmentsTreeAccess.onResume();
+        simulationNotice.onResume(navBinder);
     }
 
     @Override
     protected void onPause() {
+        simulationNotice.onPause();
         startupSegmentsTreeAccess.onPause();
         startupCoordinator.onPause();
         super.onPause();
@@ -267,6 +268,7 @@ public class NavigationActivity extends AndroidLocalizedActivity {
 
     private void render(@NonNull NavState state) {
         renderer.render(state, navBinder);
+        simulationNotice.showIfPending(navBinder);
     }
 
     private void ensureReadyThenStart() {

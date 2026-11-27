@@ -10,6 +10,7 @@ import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.format.NavigationTextFormatter;
 import vibro.navigator.nav.guidance.NavigationArrivalTurnEvents;
 import vibro.navigator.nav.model.NavGuidanceStatus;
+import vibro.navigator.nav.model.NavManeuver;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.route.VoiceHint;
 
@@ -41,7 +42,24 @@ final class StraightLineNavigationGuidanceText {
         return new NavGuidanceStatus(
                 formatNextTargetLine(snapshot, targets),
                 formatFollowingTargetLine(snapshot, targets)
-        );
+        ).withManeuvers(maneuvers(snapshot, targets));
+    }
+
+    private static List<NavManeuver> maneuvers(NavigationDisplaySnapshot snapshot, List<LatLon> targets) {
+        List<NavManeuver> result = new ArrayList<>();
+        LatLon cursor = new LatLon(snapshot.lastFiltered.getLatitude(), snapshot.lastFiltered.getLongitude());
+        double distance = 0;
+        for (int i = 0; i < Math.min(2, targets.size()); i++) {
+            distance += distanceMeters(cursor, targets.get(i));
+            VoiceHint hint = new VoiceHint(0, commandForTarget(targets, i), 0, 0, 0);
+            Double seconds = StraightLineNavigationProgress.estimateSeconds(
+                    distance, snapshot.speedMps, snapshot.likelyStationary);
+            result.add(new NavManeuver(hint,
+                    NavigationTextFormatter.maneuverInstruction(snapshot.textResources, hint),
+                    distance, seconds == null ? Double.NaN : seconds));
+            cursor = targets.get(i);
+        }
+        return result;
     }
 
     @NonNull

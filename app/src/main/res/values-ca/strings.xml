@@ -564,7 +564,7 @@
     <string name="sensor_status_unavailable">no disponible</string>
     <string name="sensor_status_permission_denied">permís denegat</string>
     <string name="auto_no_active_navigation_title">No hi ha navegació activa</string>
-    <string name="auto_no_active_navigation_text">Inicia la navegació al telèfon per mostrar la guia aquí.</string>
+    <string name="auto_no_active_navigation_text">Quan estiguis aparcat en un lloc segur, inicia la navegació al telèfon per mostrar les indicacions aquí.</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="one">Toca qualsevol lloc per tancar o espera %1$d segon</item>
         <item quantity="many">Toca qualsevol lloc per tancar o espera %1$d segons</item>
@@ -591,4 +591,28 @@
     <string name="about_setting_restore_defaults_info">Això inclou la llengua, el tema, les claus API i les carpetes de sortida. Es conservaran les rutes desades i l’historial de cerca.</string>
     <string name="msg_default_configuration_restored">S’ha restaurat la configuració predeterminada</string>
     <string name="format_nav_battery_partial_usage">%1$s (parcial, durant %2$s)</string>
+    <string name="auto_setup_required">Amb el vehicle estacionat de manera segura, configura el telèfon: accepta la benvinguda, instal·la BRouter i les dades, tria un perfil i activa la ubicació i les notificacions. Després torna aquí per reintentar-ho.</string>
+    <string name="label_simulation">Simulació</string>
+    <string name="simulation_speed_kmh">Velocitat simulada (km/h)</string>
+    <string name="simulation_speed_mph">Velocitat simulada (mph)</string>
+    <string name="simulation_initial_position">Posició GPS inicial (opcional)</string>
+    <string name="simulation_position_hint">Latitud, longitud</string>
+    <string name="simulation_config_help">Els ajustos s’apliquen quan es torna a iniciar la navegació. Deixa la posició buida per utilitzar la del dispositiu. La velocitat 0 manté la posició.</string>
+    <string name="simulation_info">Prova la navegació sense moure’t. Disponible en totes dues versions. Les posicions simulades segueixen la ruta seleccionada i s’aturen quan es pausa la navegació. Desactiva aquesta opció abans d’iniciar una navegació real.</string>
+    <string name="nav_simulation_mode_title">Mode de simulació</string>
+    <string name="nav_simulation_started">Estàs previsualitzant la navegació amb un moviment simulat.</string>
+    <string name="simulation_invalid_speed">Introdueix una velocitat entre 0 i 300 km/h (0–186,41 mph).</string>
+    <string name="simulation_invalid_position">Introdueix una latitud i longitud vàlides amb punts decimals.</string>
+    <string name="simulation_save">Desa</string>
+    <string name="action_configure_simulation">Configura la simulació</string>
+    <string name="auto_destination_timeout">La càrrega de la destinació ha superat el temps límit. Torna-ho a provar.</string>
+    <string name="auto_retry">Torna-ho a provar</string>
+    <string name="auto_navigation_operation_unsupported">Aquesta sol·licitud de navegació per veu no és compatible.</string>
+    <string name="auto_hint_switch_views">Canvia de vista</string>
+    <string name="auto_hint_switch_views_text">Toca el mapa una vegada o llisca a l’esquerra o a la dreta per canviar entre la vista general, 2D i 3D.</string>
+    <string name="auto_hint_swipe_views_text">Llisca a l’esquerra o a la dreta per canviar entre la vista general, 2D i 3D.</string>
+    <string name="auto_hint_zoom">Zoom</string>
+    <string name="auto_hint_zoom_text">Ajunta o separa dos dits en 2D o 3D.</string>
+    <string name="auto_hint_tilt">Inclina en 3D</string>
+    <string name="auto_hint_tilt_text">Arrossega cap amunt o cap avall amb un dit.</string>
 </resources>

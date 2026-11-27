@@ -12,9 +12,28 @@ import vibro.navigator.nav.model.NavGpsStatus;
 import vibro.navigator.nav.model.NavGpsTelemetry;
 import vibro.navigator.nav.model.NavPauseStatus;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.model.NavManeuver;
+import vibro.navigator.nav.model.NavProgressStatus;
+import vibro.navigator.nav.model.NavStopEstimate;
 
 public final class NavStateResourceComposer {
     private NavStateResourceComposer() {
+    }
+
+    @NonNull
+    static NavState withTravelEstimate(@NonNull NavState state, @NonNull NavStateBuildInput input,
+            @Nullable NavStopEstimate nextStop) {
+        NavProgressStatus progress = state.routeStatus.progress;
+        return new NavState(state.routeStatus.withProgress(new NavProgressStatus(progress.destinationLine,
+                progress.stopProgressBlock, progress.detailBlock, NavTravelEstimateFactory.from(input), nextStop)),
+                state.gpsStatus, state.pauseStatus, state.tripStatus);
+    }
+
+    @NonNull
+    public static NavState withDirectGuidance(@NonNull NavState state, @NonNull String line,
+            @NonNull NavManeuver approach) {
+        return new NavState(state.routeStatus.withGuidance(state.routeStatus.guidance.withDirectGuidance(line, approach)),
+                state.gpsStatus, state.pauseStatus, state.tripStatus);
     }
 
     @NonNull

@@ -564,7 +564,7 @@
     <string name="sensor_status_unavailable">μη διαθέσιμο</string>
     <string name="sensor_status_permission_denied">άδεια αρνηθεί</string>
     <string name="auto_no_active_navigation_title">Καμία ενεργή πλοήγηση</string>
-    <string name="auto_no_active_navigation_text">Ξεκινήστε πλοήγηση στο τηλέφωνο για να εμφανιστεί καθοδήγηση εδώ.</string>
+    <string name="auto_no_active_navigation_text">Όταν σταθμεύσετε με ασφάλεια, ξεκινήστε την πλοήγηση στο τηλέφωνο για να εμφανιστούν οδηγίες εδώ.</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="one">Αγγίξτε οπουδήποτε για κλείσιμο ή περιμένετε %1$d δευτερόλεπτο</item>
         <item quantity="other">Αγγίξτε οπουδήποτε για κλείσιμο ή περιμένετε %1$d δευτερόλεπτα</item>
@@ -587,4 +587,28 @@
     <string name="about_setting_restore_defaults_info">Περιλαμβάνονται η γλώσσα, το θέμα, τα κλειδιά API και οι φάκελοι εξόδου. Οι αποθηκευμένες διαδρομές και το ιστορικό αναζήτησης θα διατηρηθούν.</string>
     <string name="msg_default_configuration_restored">Έγινε επαναφορά προεπιλεγμένων ρυθμίσεων</string>
     <string name="format_nav_battery_partial_usage">%1$s (μερική μέτρηση, σε %2$s)</string>
+    <string name="auto_setup_required">Όταν σταθμεύσετε με ασφάλεια, ολοκληρώστε τη ρύθμιση στο τηλέφωνο: αποδεχτείτε την υποδοχή, εγκαταστήστε το BRouter και τα δεδομένα, επιλέξτε προφίλ και ενεργοποιήστε τοποθεσία και ειδοποιήσεις. Έπειτα επιστρέψτε για νέα προσπάθεια.</string>
+    <string name="label_simulation">Προσομοίωση</string>
+    <string name="simulation_speed_kmh">Προσομοιωμένη ταχύτητα (km/h)</string>
+    <string name="simulation_speed_mph">Προσομοιωμένη ταχύτητα (mph)</string>
+    <string name="simulation_initial_position">Αρχική θέση GPS (προαιρετική)</string>
+    <string name="simulation_position_hint">Γεωγραφικό πλάτος, μήκος</string>
+    <string name="simulation_config_help">Οι ρυθμίσεις εφαρμόζονται στην επόμενη έναρξη πλοήγησης. Αφήστε τη θέση κενή για χρήση της θέσης της συσκευής. Η ταχύτητα 0 διατηρεί τη θέση σταθερή.</string>
+    <string name="simulation_info">Δοκιμάστε την πλοήγηση χωρίς μετακίνηση. Διαθέσιμη και στις δύο εκδόσεις. Οι προσομοιωμένες θέσεις ακολουθούν την επιλεγμένη διαδρομή και σταματούν κατά την παύση πλοήγησης. Απενεργοποιήστε το πριν ξεκινήσετε πραγματική πλοήγηση.</string>
+    <string name="nav_simulation_mode_title">Λειτουργία προσομοίωσης</string>
+    <string name="nav_simulation_started">Βλέπεις μια προεπισκόπηση της πλοήγησης με προσομοιωμένη κίνηση.</string>
+    <string name="simulation_invalid_speed">Εισαγάγετε ταχύτητα από 0 έως 300 km/h (0–186,41 mph).</string>
+    <string name="simulation_invalid_position">Εισαγάγετε έγκυρο γεωγραφικό πλάτος και μήκος με δεκαδικές τελείες.</string>
+    <string name="simulation_save">Αποθήκευση</string>
+    <string name="action_configure_simulation">Ρύθμιση προσομοίωσης</string>
+    <string name="auto_destination_timeout">Η φόρτωση του προορισμού έληξε. Δοκιμάστε ξανά.</string>
+    <string name="auto_retry">Δοκιμή ξανά</string>
+    <string name="auto_navigation_operation_unsupported">Αυτό το φωνητικό αίτημα πλοήγησης δεν υποστηρίζεται.</string>
+    <string name="auto_hint_switch_views">Αλλαγή προβολής</string>
+    <string name="auto_hint_switch_views_text">Πατήστε μία φορά τον χάρτη ή σύρετε αριστερά ή δεξιά για εναλλαγή μεταξύ επισκόπησης, 2D και 3D.</string>
+    <string name="auto_hint_swipe_views_text">Σύρετε αριστερά ή δεξιά για εναλλαγή μεταξύ επισκόπησης, 2D και 3D.</string>
+    <string name="auto_hint_zoom">Ζουμ</string>
+    <string name="auto_hint_zoom_text">Ενώστε ή απομακρύνετε δύο δάχτυλα σε 2D ή 3D.</string>
+    <string name="auto_hint_tilt">Κλίση σε 3D</string>
+    <string name="auto_hint_tilt_text">Σύρετε προς τα πάνω ή προς τα κάτω με ένα δάχτυλο.</string>
 </resources>

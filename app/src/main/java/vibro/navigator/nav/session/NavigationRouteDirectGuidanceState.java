@@ -106,6 +106,10 @@ final class NavigationRouteDirectGuidanceState {
         return routeBeelineState.isActive();
     }
 
+    int minimumRouteSegmentIndex() {
+        return routeBeelineState.minimumRouteSegmentIndex();
+    }
+
     @Nullable
     PolylineIndex.Match completeRouteBeelineIfReached(
             @NonNull NavigationLocation location,

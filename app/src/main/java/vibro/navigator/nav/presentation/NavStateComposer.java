@@ -107,17 +107,7 @@ public final class NavStateComposer {
                 input.targets,
                 input.textResources
         );
-        String stopProgress = NavStateTextFactory.buildStopProgress(
-                input.route,
-                input.index,
-                input.routeProgress.alongTrackMeters,
-                input.routeProgress.currentSegmentIndex,
-                input.motion.etaSpeedMps,
-                input.timing.nowMs,
-                input.destinationReached,
-                input.targets,
-                input.textResources
-        );
+        var nextStop = NavTravelEstimateFactory.nextStop(input);
         NavGpsTelemetry gpsTelemetry = NavigationGpsTelemetryFormatter.format(
                 input.textResources,
                 input.motion.speedMps,
@@ -129,9 +119,9 @@ public final class NavStateComposer {
         NavCompassState compassState = input.compassInput == null
                 ? null
                 : NavCompassStateFactory.buildCompassState(input.compassInput);
-        return create(
+        NavState state = create(
                 destination,
-                stopProgress,
+                NavStateTextFactory.formatStopProgress(input.textResources, nextStop, input.timing.nowMs),
                 gpsTelemetry.compactLine,
                 input.timing.nextEvaluationDeadlineElapsedMs,
                 "",
@@ -141,6 +131,7 @@ public final class NavStateComposer {
                 false,
                 gpsTelemetry
         );
+        return NavStateResourceComposer.withTravelEstimate(state, input, nextStop);
     }
 
     @NonNull
@@ -186,26 +177,6 @@ public final class NavStateComposer {
                 base.gpsStatus,
                 base.pauseStatus,
                 tripStatus
-        );
-    }
-
-    @NonNull
-    public static NavState withGuidanceLines(
-            @NonNull NavState base,
-            @NonNull String nextLine,
-            @NonNull String afterNextLine
-    ) {
-        return new NavState(
-                new NavRouteStatus(
-                        base.routeStatus.guidance.withDisplayedLines(nextLine, afterNextLine),
-                        base.routeStatus.progress,
-                        base.routeStatus.compassState,
-                        base.routeStatus.speedLimit,
-                        base.routeStatus.blockedRoadActionAvailable
-                ),
-                base.gpsStatus,
-                base.pauseStatus,
-                base.tripStatus
         );
     }
 

@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="oval">
-    <solid android:color="@color/white" />
-    <stroke
-        android:width="5dp"
-        android:color="@color/danger" />
-</shape>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="@dimen/speed_limit_badge_size"
+    android:height="@dimen/speed_limit_badge_size"
+    android:viewportWidth="44"
+    android:viewportHeight="44">
+    <path
+        android:fillColor="?attr/vibroSpeedLimitBadgeEdgeColor"
+        android:pathData="M22,0 A22,22 0,1 0,22 44 A22,22 0,1 0,22 0 Z" />
+    <path
+        android:fillColor="#CA252E"
+        android:pathData="M22,1 A21,21 0,1 0,22 43 A21,21 0,1 0,22 1 Z" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M22,5 A17,17 0,1 0,22 39 A17,17 0,1 0,22 5 Z" />
+</vector>

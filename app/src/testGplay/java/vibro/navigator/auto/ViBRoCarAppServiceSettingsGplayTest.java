@@ -8,12 +8,11 @@ import static org.junit.Assert.assertTrue;
 import android.app.Application;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.RectF;
+import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.car.app.AppInfo;
@@ -34,6 +33,7 @@ import org.robolectric.RobolectricTestRunner;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Field;
+import java.util.List;
 
 import vibro.navigator.R;
 import vibro.navigator.distribution.DistributionServices;
@@ -43,7 +43,6 @@ import vibro.navigator.nav.model.NavPauseStatus;
 import vibro.navigator.nav.model.NavProgressStatus;
 import vibro.navigator.nav.model.NavRouteStatus;
 import vibro.navigator.nav.model.NavState;
-import vibro.navigator.settings.AppNavigationCustomButtonSettings;
 
 @RunWith(RobolectricTestRunner.class)
 public class ViBRoCarAppServiceSettingsGplayTest {
@@ -95,24 +94,37 @@ public class ViBRoCarAppServiceSettingsGplayTest {
     }
 
     @Test
+    @SuppressWarnings("deprecation")
+    public void standardNavigationIntentResolvesToTheCarService() {
+        Intent navigate = new Intent(CarContext.ACTION_NAVIGATE, Uri.parse("geo:48.2082,16.3738"))
+                .addCategory(Intent.CATEGORY_DEFAULT).setPackage(context.getPackageName());
+        var services = context.getPackageManager().queryIntentServices(navigate, PackageManager.MATCH_DEFAULT_ONLY);
+        assertEquals(1, services.size());
+        assertEquals(ViBRoCarAppService.class.getName(), services.get(0).serviceInfo.name);
+    }
+
+    @Test
     public void carAppMinApiLevelIsDeclaredForLibraryHandshake() {
         assertEquals(1, AppInfo.retrieveMinCarAppApiLevel(context));
     }
 
     @Test
-    public void activeNavigationTemplateBuildsWithMinimalRequiredActionStrip() throws Exception {
+    public void activeNavigationTemplateUsesHostControls() throws Exception {
         ViBRoCarTemplates templates = new ViBRoCarTemplates(
                 testCarContext(),
                 () -> {
                 }
         );
 
-        Template template = templates.build(activeNavigationState());
+        Template template = templates.build(CarNavigationTestStates.active(false, false));
 
         assertTrue(template instanceof NavigationTemplate);
         NavigationTemplate navigationTemplate = (NavigationTemplate) template;
-        assertEquals(1, navigationTemplate.getActionStrip().getActions().size());
-        assertNull(navigationTemplate.getActionStrip().getActions().get(0).getTitle());
+        List<Action> actions = navigationTemplate.getActionStrip().getActions();
+        assertEquals(List.of(R.drawable.ic_blocked_road, R.drawable.ic_stop, R.drawable.ic_pause,
+                        R.drawable.ic_custom_light_theme_disabled),
+                actions.stream().map(action -> action.getIcon().getIcon().getResId()).toList());
+        assertTrue(actions.stream().allMatch(action -> action.getTitle() == null));
         assertEquals(Action.PAN, navigationTemplate.getMapActionStrip().getActions().get(0));
     }
 
@@ -121,6 +133,22 @@ public class ViBRoCarAppServiceSettingsGplayTest {
         ViBRoCarTemplates templates = new ViBRoCarTemplates(testCarContext(1), () -> { });
         NavigationTemplate template = (NavigationTemplate) templates.build(activeNavigationState());
         assertNull(template.getMapActionStrip());
+    }
+
+    @Test
+    public void guidanceAndEtaUseHostTemplateComponents() throws Exception {
+        ViBRoCarTemplates templates = new ViBRoCarTemplates(testCarContext(), () -> { });
+        NavigationTemplate active = (NavigationTemplate) templates.build(CarNavigationTestStates.active(false, false));
+        androidx.car.app.navigation.model.RoutingInfo routing =
+                (androidx.car.app.navigation.model.RoutingInfo) active.getNavigationInfo();
+        assertEquals("Turn right · 12 s", routing.getCurrentStep().getCue().toString());
+        assertEquals(120, routing.getCurrentDistance().getDisplayDistance(), 0);
+        assertEquals(50, active.getDestinationTravelEstimate().getRemainingTimeSeconds());
+        assertEquals(4, active.getActionStrip().getActions().size());
+        NavigationTemplate paused = (NavigationTemplate) templates.build(CarNavigationTestStates.active(true, false));
+        assertTrue(paused.getNavigationInfo() instanceof androidx.car.app.navigation.model.MessageInfo);
+        assertNull(paused.getDestinationTravelEstimate());
+        assertEquals(3, paused.getActionStrip().getActions().size());
     }
 
     @Test
@@ -166,29 +194,13 @@ public class ViBRoCarAppServiceSettingsGplayTest {
         assertFalse(templates.requiresInvalidation(noActive, null));
     }
 
-    @Test
-    public void compassOverlayIgnoresFormerSettingsAndExportButtonAreas() throws Exception {
-        AppNavigationCustomButtonSettings.setEnabled(context, false);
-        CarContext carContext = testCarContext();
-        carContext.setTheme(R.style.Theme_ViBRoNavigator);
-        RecordingAutoControls controls = new RecordingAutoControls();
-        ViBRoAutoCompassOverlayPainter painter = new ViBRoAutoCompassOverlayPainter(carContext, controls);
-        Bitmap bitmap = Bitmap.createBitmap(220, 220, Bitmap.Config.ARGB_8888);
-
-        painter.draw(new Canvas(bitmap), activeNavigationState(), new RectF(10f, 10f, 210f, 210f), 1f);
-
-        assertFalse(painter.handleClick(32f, 188f));
-        assertFalse(painter.handleClick(188f, 188f));
-        assertEquals(0, controls.customButtonToggles);
-    }
-
     @NonNull
     CarContext testCarContext() throws Exception {
         return testCarContext(5);
     }
 
     @NonNull
-    private CarContext testCarContext(int carApiLevel) throws Exception {
+    CarContext testCarContext(int carApiLevel) throws Exception {
         CarContext carContext = CarContext.create(new TestLifecycleOwner().getLifecycle());
         Method attachBaseContext = CarContext.class.getDeclaredMethod(
                 "attachBaseContext",
@@ -239,30 +251,4 @@ public class ViBRoCarAppServiceSettingsGplayTest {
         }
     }
 
-    static final class RecordingAutoControls implements ViBRoAutoSurfaceRenderer.Controls {
-        private int customButtonToggles;
-
-        @Override
-        public void onBlockedRoad() {
-        }
-
-        @Override
-        public void onStopNavigation() {
-        }
-
-        @Override
-        public void onTogglePaused() {
-        }
-
-        @Override
-        public void onToggleCustomButton() {
-            customButtonToggles++;
-        }
-
-        @Override
-        @NonNull
-        public String buildCurrentDirectionDetailsText() {
-            return "";
-        }
-    }
 }

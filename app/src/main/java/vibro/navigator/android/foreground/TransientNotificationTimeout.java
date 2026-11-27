@@ -45,6 +45,15 @@ final class TransientNotificationTimeout {
         scheduler.postDelayed(removal, TRANSIENT_NOTIFICATION_DURATION_MS);
     }
 
+    void cancel() {
+        generation++;
+        if (pendingRemoval != null) {
+            scheduler.removeCallbacks(pendingRemoval);
+        }
+        pendingRemoval = null;
+        removeNotification.run();
+    }
+
     private void removeIfCurrent(long scheduledGeneration) {
         if (scheduledGeneration != generation) {
             return;

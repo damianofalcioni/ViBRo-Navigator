@@ -6,14 +6,18 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
+import vibro.navigator.nav.format.AndroidNavigationTextResources;
+import vibro.navigator.nav.format.NavigationTextResources;
+import vibro.navigator.nav.location.NavigationGpsStatusFormatter;
 import vibro.navigator.nav.location.NavigationGpsTelemetryFormatter;
+import vibro.navigator.nav.model.NavGpsStatus;
 import vibro.navigator.nav.model.NavState;
-import vibro.navigator.nav.presentation.NavStateComposer;
+import vibro.navigator.nav.presentation.NavStateResourceComposer;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
 final class NavigationGpsDetailsDialog {
     @NonNull
-    private final Activity activity;
+    private final NavigationTextResources resources;
     @NonNull
     private final ElapsedRealtimeClock elapsedRealtimeClock;
     @NonNull
@@ -23,7 +27,7 @@ final class NavigationGpsDetailsDialog {
             @NonNull Activity activity,
             @NonNull ElapsedRealtimeClock elapsedRealtimeClock
     ) {
-        this.activity = activity;
+        resources = new AndroidNavigationTextResources(activity);
         this.elapsedRealtimeClock = elapsedRealtimeClock;
         detailsDialog = new NavigationDetailsDialog(activity, R.string.title_nav_gps_details);
     }
@@ -34,12 +38,14 @@ final class NavigationGpsDetailsDialog {
     }
 
     void update(@Nullable NavState state) {
-        NavState detailsState = state == null ? NavStateComposer.waiting(activity) : state;
+        if (!detailsDialog.isShowing()) { return; }
+        NavGpsStatus status = gpsStatus(state);
+        long nowMs = elapsedRealtimeClock.elapsedRealtimeMs();
         detailsDialog.update(NavigationGpsTelemetryFormatter.formatDetails(
-                activity,
-                detailsState.gpsStatus.telemetry,
-                nextEvaluationValue(state),
-                elapsedRealtimeClock.elapsedRealtimeMs()
+                resources,
+                status.telemetry,
+                NavigationGpsStatusFormatter.nextEvaluationValue(resources, status, nowMs),
+                nowMs
         ));
     }
 
@@ -48,17 +54,11 @@ final class NavigationGpsDetailsDialog {
     }
 
     @NonNull
-    String nextEvaluationValue(@Nullable NavState state) {
-        if (state == null) {
-            return activity.getString(R.string.nav_status_unavailable);
-        }
-        long deadlineElapsedMs = state.gpsStatus.nextEvaluationDeadlineElapsedMs;
-        long remainingMs = Math.max(0L, deadlineElapsedMs - elapsedRealtimeClock.elapsedRealtimeMs());
-        if (deadlineElapsedMs == NavState.NO_DEADLINE || remainingMs <= 0L) {
-            return activity.getString(R.string.nav_status_unavailable);
-        }
-        long remainingSeconds = (long) Math.ceil(remainingMs / 1000.0);
-        return activity.getString(R.string.format_nav_next_position_check_value, remainingSeconds);
+    String statusLine(@Nullable NavState state) {
+        return NavigationGpsStatusFormatter.statusLine(resources, gpsStatus(state), elapsedRealtimeClock.elapsedRealtimeMs());
     }
 
+    private NavGpsStatus gpsStatus(@Nullable NavState state) {
+        return state == null ? NavStateResourceComposer.waiting(resources).gpsStatus : state.gpsStatus;
+    }
 }

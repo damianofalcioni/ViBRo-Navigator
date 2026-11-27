@@ -2,12 +2,9 @@ package vibro.navigator.auto;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.car.app.CarContext;
 
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.compass.NavCompassState;
-import vibro.navigator.nav.model.NavState;
-import vibro.navigator.nav.presentation.NavStateComposer;
 import vibro.navigator.nav.service.NavigationServiceBinder;
 
 final class ViBRoCarNavigationActions {
@@ -17,18 +14,14 @@ final class ViBRoCarNavigationActions {
     }
 
     @NonNull
-    private final CarContext carContext;
-    @NonNull
     private final ViBRoCarNavigationController.Host host;
     @NonNull
     private final BinderProvider binderProvider;
 
     ViBRoCarNavigationActions(
-            @NonNull CarContext carContext,
             @NonNull ViBRoCarNavigationController.Host host,
             @NonNull BinderProvider binderProvider
     ) {
-        this.carContext = carContext;
         this.host = host;
         this.binderProvider = binderProvider;
     }
@@ -37,6 +30,13 @@ final class ViBRoCarNavigationActions {
         NavigationServiceBinder binder = binderProvider.currentBinder();
         if (binder != null) {
             binder.setCompassStreetViewport(compassState);
+        }
+    }
+
+    void refreshLocationUpdateSettings() {
+        NavigationServiceBinder binder = binderProvider.currentBinder();
+        if (binder != null) {
+            binder.refreshLocationUpdateSettings();
         }
     }
 
@@ -62,10 +62,8 @@ final class ViBRoCarNavigationActions {
         }
         if (binder.isPaused()) {
             binder.resume();
-            updatePauseState(false);
         } else {
             binder.pause();
-            updatePauseState(true);
         }
     }
 
@@ -76,13 +74,6 @@ final class ViBRoCarNavigationActions {
         }
         binder.stop();
         host.updateCurrentState(null);
-    }
-
-    void openPhoneNavigationIfActive() {
-        NavigationServiceBinder binder = binderProvider.currentBinder();
-        if (binder != null && binder.isNavigationStarted()) {
-            ViBRoAutoPhoneLauncher.openNavigation(carContext);
-        }
     }
 
     @Nullable
@@ -98,10 +89,5 @@ final class ViBRoCarNavigationActions {
         return null;
     }
 
-    private void updatePauseState(boolean paused) {
-        NavState state = host.currentState();
-        if (state != null) {
-            host.updateCurrentState(NavStateComposer.withPauseState(carContext, state, paused));
-        }
-    }
+
 }

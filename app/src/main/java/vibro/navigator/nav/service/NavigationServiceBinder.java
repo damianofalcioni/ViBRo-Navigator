@@ -34,7 +34,7 @@ public final class NavigationServiceBinder extends Binder {
 
         void setNavigationUiVisible(boolean visible);
 
-        void setCarNavigationUiVisible(boolean visible);
+        void setCarNavigationClient(boolean connected, boolean visible);
 
         void setCompassStreetViewport(@Nullable NavCompassState compassState);
 
@@ -74,9 +74,23 @@ public final class NavigationServiceBinder extends Binder {
     }
 
     private final Host host;
+    private final NavigationServiceSimulation simulation;
+    private final Runnable restartNavigation;
 
-    public NavigationServiceBinder(@NonNull Host host) {
+    NavigationServiceBinder(Host host, NavigationServiceSimulation simulation, Runnable restartNavigation) {
         this.host = host;
+        this.simulation = simulation;
+        this.restartNavigation = restartNavigation;
+    }
+
+    public void enableSimulation() { simulation.enable(restartNavigation); }
+
+    public boolean consumeCarSimulationStartNotice() {
+        return simulation.consumeCarStartNotice();
+    }
+
+    public boolean consumeSimulationStartNotice() {
+        return simulation.consumePhoneStartNotice();
     }
 
     public void registerListener(@NonNull NavigationService.Listener listener) {
@@ -93,8 +107,8 @@ public final class NavigationServiceBinder extends Binder {
         host.setNavigationUiVisible(visible);
     }
 
-    public void setCarNavigationUiVisible(boolean visible) {
-        host.setCarNavigationUiVisible(visible);
+    public void setCarNavigationClient(boolean connected, boolean visible) {
+        host.setCarNavigationClient(connected, visible);
     }
 
     public void setCompassStreetViewport(@Nullable NavCompassState compassState) {

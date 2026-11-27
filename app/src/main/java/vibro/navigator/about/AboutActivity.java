@@ -30,7 +30,7 @@ public class AboutActivity extends AndroidLocalizedActivity {
     @NonNull
     private final Runnable initializeSettings = this::initializeSettingsSection;
 
-    private AboutSettingsControllers settingsControllers;
+    private final AboutSettingsControllers settingsControllers = new AboutSettingsControllers(this);
     private AboutDiagnosticSection diagnosticSection;
     private AboutSettingsSwitches settingsSwitches;
     private Bundle initialSettingsState;
@@ -51,6 +51,7 @@ public class AboutActivity extends AndroidLocalizedActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about);
         outputSaving.restoreState(savedInstanceState);
+        settingsControllers.restoreState(savedInstanceState);
         initialSettingsState = savedInstanceState;
 
         TextView version = findViewById(R.id.aboutVersion);
@@ -118,7 +119,6 @@ public class AboutActivity extends AndroidLocalizedActivity {
         settingsSwitches.streetPicker.restore(initialSettingsState);
         initialSettingsState = null;
         settingsSwitches.configure();
-        settingsControllers = new AboutSettingsControllers(this);
         settingsControllers.configure();
         databaseBackupActions.configure(exportDatabaseButton, importDatabaseButton);
         AboutRestoreDefaultsAction.configure(this, () -> {
@@ -159,10 +159,10 @@ public class AboutActivity extends AndroidLocalizedActivity {
         if (diagnosticSection != null) {
             diagnosticSection.shutdown();
         }
-        if (settingsControllers != null) {
+        if (settingsSwitches != null) {
             settingsSwitches.streetPicker.dispose();
-            settingsControllers.shutdown();
         }
+        settingsControllers.shutdown();
         super.onDestroy();
     }
 
@@ -230,6 +230,7 @@ public class AboutActivity extends AndroidLocalizedActivity {
     protected void onSaveInstanceState(@NonNull Bundle state) {
         flushDeferredSettings();
         outputSaving.saveState(state);
+        settingsControllers.saveState(state);
         AboutSettingsSwitches.savePicker(settingsSwitches, initialSettingsState, state);
         super.onSaveInstanceState(state);
     }

@@ -196,12 +196,8 @@ public final class CompassRouteGeometryFactory {
             @NonNull List<LatLon> intermediateStops
     ) {
         List<LatLon> intermediateSamplePoints = new ArrayList<>();
-        for (LatLon stop : intermediateStops) {
-            PolylineIndex.Match match = index.match(stop, -1);
-            if (match == null) {
-                continue;
-            }
-            LatLon point = index.pointAtDistance(match.alongTrackMeters);
+        for (double alongTrackMeters : index.matchStopDistancesInOrder(intermediateStops)) {
+            LatLon point = index.pointAtDistance(alongTrackMeters);
             if (point != null) {
                 intermediateSamplePoints.add(point);
             }

@@ -24,15 +24,14 @@ final class ViBRoAutoCompassPainter {
     private final ViBRoAutoGestureSequence gestures;
     private final ElapsedRealtimeClock elapsedRealtimeClock;
     private final CarContext carContext;
-    private final NavigationCompassView compassView;
-    private final ViBRoAutoCompassOverlayPainter overlayPainter;
+    private NavigationCompassView compassView;
+    private ViBRoAutoCompassOverlayPainter overlayPainter;
     private final ViBRoAutoCompassStreetViewportSink compassStreetViewportSink;
     private final RectF bounds = new RectF();
     private Boolean lastFullscreenRouteMode;
 
     ViBRoAutoCompassPainter(
             @NonNull CarContext carContext,
-            @NonNull ViBRoAutoSurfaceRenderer.Controls controls,
             @NonNull ViBRoAutoCompassStreetViewportSink compassStreetViewportSink,
             @NonNull ElapsedRealtimeClock elapsedRealtimeClock
     ) {
@@ -43,9 +42,15 @@ final class ViBRoAutoCompassPainter {
         float density = carContext.getResources().getDisplayMetrics().density;
         gestures = new ViBRoAutoGestureSequence(Math.max(48f * density, touchSlop * 2f),
                 touchSlop, ViewConfiguration.getDoubleTapTimeout());
-        compassView = new NavigationCompassView(carContext);
         this.compassStreetViewportSink = compassStreetViewportSink;
-        overlayPainter = new ViBRoAutoCompassOverlayPainter(carContext, controls);
+        refreshTheme();
+    }
+
+    void refreshTheme() {
+        compassView = new NavigationCompassView(carContext);
+        compassView.setFullscreenOuterDistanceOnly(true);
+        overlayPainter = new ViBRoAutoCompassOverlayPainter(carContext);
+        lastFullscreenRouteMode = null;
     }
 
     void draw(
@@ -76,19 +81,21 @@ final class ViBRoAutoCompassPainter {
         int measuredWidth = Math.max(1, compassView.getMeasuredWidth());
         int measuredHeight = Math.max(1, compassView.getMeasuredHeight());
         compassView.layout(0, 0, measuredWidth, measuredHeight);
-        bounds.set(left, top, left + measuredWidth, top + measuredHeight);
+        float drawLeft = left + (width - measuredWidth) / 2f;
+        float drawTop = top + (height - measuredHeight) / 2f;
+        bounds.set(drawLeft, drawTop, drawLeft + measuredWidth, drawTop + measuredHeight);
         int saveCount = canvas.save();
-        canvas.clipRect(left, top, left + measuredWidth, top + measuredHeight);
-        canvas.translate(left, top);
+        // The fullscreen map can continue beneath the host's cards.
+        if (!fullscreenRouteMode) {
+            canvas.clipRect(bounds);
+        }
+        canvas.translate(drawLeft, drawTop);
         compassView.draw(canvas);
         canvas.restoreToCount(saveCount);
         overlayPainter.draw(canvas, state, overlayBounds, scale);
     }
 
     boolean handleClick(float x, float y, @NonNull NavState state) {
-        if (overlayPainter.handleClick(x, y)) {
-            return true;
-        }
         if (!bounds.contains(x, y)) {
             return false;
         }
@@ -122,7 +129,7 @@ final class ViBRoAutoCompassPainter {
             return false;
         }
         // Rotary hosts can omit the focal point by supplying negative coordinates.
-        return (x < 0f || y < 0f || bounds.contains(x, y)) && !overlayPainter.containsControl(x, y);
+        return (x < 0f || y < 0f || bounds.contains(x, y));
     }
 
     @Nullable

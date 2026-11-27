@@ -1,9 +1,11 @@
 package vibro.navigator.nav.service;
 
+import vibro.navigator.android.dispatch.AndroidTaskScheduler;
+import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
+
 import vibro.navigator.nav.time.NavigationDisplayTime;
 import vibro.navigator.nav.session.NavigationSessionContextResources;
 
-import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
@@ -76,14 +78,15 @@ public class NavigationService extends AndroidLocalizedService {
             this,
             navigationSession,
             turnEvents,
-            new NavigationServiceLocationRouteRecalculator(routeRecalculator),
+            routeRecalculator.locationActions(),
             this::hasRunningNavigationSession,
             (raw, filtered, sleepEligible) -> {
                 if (runtime != null) {
                     runtime.onAcceptedLocation(raw, filtered, sleepEligible);
                 }
             },
-            this::emitState
+            this::emitState,
+            AndroidElapsedRealtimeClock.INSTANCE
     );
     private final NavigationForegroundCoordinator foregroundCoordinator =
             new NavigationForegroundCoordinator(
@@ -117,7 +120,7 @@ public class NavigationService extends AndroidLocalizedService {
             },
             this::pauseNavigation,
             this::resumeNavigation
-    ));
+    ), locationHandler.simulation(), this::startNavigation);
     private final NavigationServiceCommandHandler commandHandler = new NavigationServiceCommandHandler(
             this::readNavRequest,
             this::startNavigation,
@@ -167,11 +170,13 @@ public class NavigationService extends AndroidLocalizedService {
     }
 
     private void readNavRequest(@NonNull Intent intent) {
+        runtime().stopManeuverSpeech();
         NavigationRequest request = AndroidNavigationRequestIntentContract.fromIntent(intent);
         navigationSession.loadRequest(request);
     }
 
     private void startNavigation() {
+        locationHandler.simulation().prepare();
         runtime().resetTrackingState();
         runtime().resetStreetOverlay();
 
@@ -187,6 +192,7 @@ public class NavigationService extends AndroidLocalizedService {
             return;
         }
 
+        locationHandler.simulation().onNavigationStarted();
         AppExitDiagnostics.navigationStarted(this);
 
         setGnssStatusDisplayActive(uiVisibility.canDispatchStateToUi());
@@ -240,6 +246,8 @@ public class NavigationService extends AndroidLocalizedService {
         AppExitDiagnostics.navigationStoppedAsync(this, navigationSession.isStarted());
         AppLogger.i(TAG, "Stopping navigation listeners=" + stateBroadcaster.size()
                 + " routeLoaded=" + navigationSession.hasActiveRoute());
+        commandHandler.clearInitialRoute();
+        locationHandler.simulation().stop();
         navigationSession.stop();
         runtime().resetStreetOverlay();
         foregroundCoordinator.stopMonitoring();
@@ -280,6 +288,7 @@ public class NavigationService extends AndroidLocalizedService {
     }
 
     private void emitState() {
+        commandHandler.reportInitialRoute(navigationSession, uiScheduler);
         if (runtime != null) {
             runtime.locationRecovery.onUpdateIntervalChanged();
             NavigationSessionResourceAdapter.recordBatterySnapshot(
@@ -287,7 +296,7 @@ public class NavigationService extends AndroidLocalizedService {
                     runtime.batterySnapshotReader.read()
             );
         }
-        if (!uiVisibility.canDispatchStateToUi()) {
+        if (!uiVisibility.canDispatchNavigationState()) {
             return;
         }
         var orientationCue = runtime().activeOrientationCue();

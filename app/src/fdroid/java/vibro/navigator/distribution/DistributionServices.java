@@ -31,6 +31,13 @@ public final class DistributionServices {
         return false;
     }
 
+    public static void monitorAndroidAutoConnection(@NonNull Context context) {
+    }
+
+    public static boolean shouldSilenceGuidanceNotifications() {
+        return false;
+    }
+
     public static boolean supportsGooglePlayServicesDiagnostics() {
         return false;
     }

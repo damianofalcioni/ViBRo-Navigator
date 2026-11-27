@@ -19,7 +19,7 @@ import java.util.List;
 // Route coordinator: route safety policies stay split across named helpers even though they meet in this class.
 public final class NavigationSessionRouteState {
 
-    private final NavigationSessionRouteComponents components = new NavigationSessionRouteComponents();
+    final NavigationSessionRouteComponents components = new NavigationSessionRouteComponents();
     private boolean singleInstructionMode;
     private long displayedHistoryRevision = -1;
 

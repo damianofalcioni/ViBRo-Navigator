@@ -32,6 +32,7 @@ public final class ViBRoNavigatorApp extends Application {
         AppLogger.init(this);
         installCrashLogging();
         AppExitDiagnostics.onProcessStart(this);
+        DistributionServices.monitorAndroidAutoConnection(this);
         DistributionServices.configureAndroidAutoIntegration(
                 this,
                 AppAndroidAutoSettings.isIntegrationEnabled(this)

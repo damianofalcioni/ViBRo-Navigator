@@ -179,12 +179,7 @@ final class NavigationActivityRenderer {
     }
 
     private void renderGpsStatus() {
-        String nextEvaluationValue = detailsDialogs.nextGpsEvaluationValue(currentState);
-        String statusText = activity.getString(
-                R.string.format_nav_gps_status_with_countdown,
-                detailsDialogs.gpsStatusLine(currentState),
-                nextEvaluationValue
-        );
+        String statusText = detailsDialogs.gpsStatusLine(currentState);
         boolean overLimit = NavigationActivityTextScaling.isOverSpeedLimit(currentState);
         if (TextUtils.equals(lastGpsStatusText, statusText)
                 && lastGpsOverLimit != null

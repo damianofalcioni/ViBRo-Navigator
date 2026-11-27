@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailabilityLight;
 
+import vibro.navigator.android.automotive.AndroidAutoConnectionMonitor;
 import vibro.navigator.android.location.GplayFusedLocationClient;
 import vibro.navigator.auto.ViBRoCarAppComponent;
 import vibro.navigator.nav.location.FusedLocationDiagnosticClient;
@@ -33,6 +34,14 @@ public final class DistributionServices {
 
     public static boolean supportsAndroidAutoIntegration() {
         return true;
+    }
+
+    public static void monitorAndroidAutoConnection(@NonNull Context context) {
+        AndroidAutoConnectionMonitor.start(context);
+    }
+
+    public static boolean shouldSilenceGuidanceNotifications() {
+        return AndroidAutoConnectionMonitor.shouldSilenceGuidance();
     }
 
     public static boolean supportsGooglePlayServicesDiagnostics() {

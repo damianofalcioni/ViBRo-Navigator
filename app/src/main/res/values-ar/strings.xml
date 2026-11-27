@@ -564,7 +564,7 @@
     <string name="sensor_status_unavailable">غير متاح</string>
     <string name="sensor_status_permission_denied">تم رفض الإذن</string>
     <string name="auto_no_active_navigation_title">لا يوجد تنقل نشط</string>
-    <string name="auto_no_active_navigation_text">ابدأ التنقل على الهاتف لعرض الإرشادات هنا.</string>
+    <string name="auto_no_active_navigation_text">عندما تكون متوقفًا بأمان، ابدأ التنقل على الهاتف لعرض الإرشادات هنا.</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="zero">المس أي مكان للإغلاق أو انتظر %1$d ثانية</item>
         <item quantity="one">المس أي مكان للإغلاق أو انتظر %1$d ثانية</item>
@@ -603,4 +603,28 @@
     <string name="about_setting_restore_defaults_info">يشمل ذلك اللغة والمظهر ومفاتيح API ومجلدات الإخراج. سيتم الاحتفاظ بالمسارات المحفوظة وسجل البحث.</string>
     <string name="msg_default_configuration_restored">تمت استعادة الإعدادات الافتراضية</string>
     <string name="format_nav_battery_partial_usage">%1$s (جزئي، خلال %2$s)</string>
+    <string name="auto_setup_required">عند الوقوف بأمان، أكمل الإعداد على الهاتف: اقبل شاشة الترحيب وثبّت BRouter وبيانات المسارات واختر ملف توجيه وفعّل الموقع والإشعارات. ثم عد إلى هنا للمحاولة مجددًا.</string>
+    <string name="label_simulation">المحاكاة</string>
+    <string name="simulation_speed_kmh">السرعة المحاكية (كم/س)</string>
+    <string name="simulation_speed_mph">السرعة المحاكية (ميل/س)</string>
+    <string name="simulation_initial_position">موقع GPS الأولي (اختياري)</string>
+    <string name="simulation_position_hint">خط العرض، خط الطول</string>
+    <string name="simulation_config_help">تُطبق الإعدادات عند بدء التنقل التالي. اترك الموقع فارغًا لاستخدام موقع الجهاز. السرعة 0 تُبقي الموقع ثابتًا.</string>
+    <string name="simulation_info">جرّب التنقل دون حركة. متاح في كلا الإصدارين. تتبع المواقع المحاكية المسار المحدد وتتوقف عند إيقاف التنقل مؤقتًا. عطّل هذا الخيار قبل بدء التنقل الفعلي.</string>
+    <string name="nav_simulation_mode_title">وضع المحاكاة</string>
+    <string name="nav_simulation_started">أنت تعاين الملاحة باستخدام حركة محاكاة.</string>
+    <string name="simulation_invalid_speed">أدخل سرعة من 0 إلى 300 كم/س (0–186.41 ميل/س).</string>
+    <string name="simulation_invalid_position">أدخل خط عرض وخط طول صالحين باستخدام النقطة العشرية والفاصلة الإنجليزية.</string>
+    <string name="simulation_save">حفظ</string>
+    <string name="action_configure_simulation">إعداد المحاكاة</string>
+    <string name="auto_destination_timeout">انتهت مهلة تحميل الوجهة. حاول مرة أخرى.</string>
+    <string name="auto_retry">إعادة المحاولة</string>
+    <string name="auto_navigation_operation_unsupported">طلب الملاحة الصوتي هذا غير مدعوم.</string>
+    <string name="auto_hint_switch_views">تبديل العرض</string>
+    <string name="auto_hint_switch_views_text">المس الخريطة مرة واحدة أو اسحب يمينًا أو يسارًا للتبديل بين النظرة العامة والعرضين 2D و3D.</string>
+    <string name="auto_hint_swipe_views_text">اسحب يمينًا أو يسارًا للتبديل بين النظرة العامة والعرضين 2D و3D.</string>
+    <string name="auto_hint_zoom">التكبير والتصغير</string>
+    <string name="auto_hint_zoom_text">قرّب إصبعين أو باعد بينهما في العرض 2D أو 3D.</string>
+    <string name="auto_hint_tilt">إمالة العرض 3D</string>
+    <string name="auto_hint_tilt_text">اسحب لأعلى أو لأسفل بإصبع واحد.</string>
 </resources>

@@ -564,7 +564,7 @@
     <string name="sensor_status_unavailable">利用不可</string>
     <string name="sensor_status_permission_denied">許可が拒否されました</string>
     <string name="auto_no_active_navigation_title">アクティブなナビゲーションはありません</string>
-    <string name="auto_no_active_navigation_text">ここに案内を表示するには、電話でナビゲーションを開始してください。</string>
+    <string name="auto_no_active_navigation_text">安全な場所に駐車してから、スマートフォンでナビを開始すると、ここに案内が表示されます。</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="other">画面のどこかをタップして閉じるか、%1$d秒待ってください</item>
     </plurals>
@@ -583,4 +583,28 @@
     <string name="about_setting_restore_defaults_info">言語、テーマ、API キー、出力フォルダーが含まれます。保存済みのルートと検索履歴は保持されます。</string>
     <string name="msg_default_configuration_restored">デフォルト設定に戻しました</string>
     <string name="format_nav_battery_partial_usage">%1$s（部分測定、%2$s間）</string>
+    <string name="auto_setup_required">安全に駐車してから、スマートフォンで初期設定を完了してください。ようこそ画面を確認し、BRouterとルートデータをインストールしてプロファイルを選択し、位置情報と通知を有効にします。その後、ここに戻って再試行してください。</string>
+    <string name="label_simulation">シミュレーション</string>
+    <string name="simulation_speed_kmh">シミュレーション速度 (km/h)</string>
+    <string name="simulation_speed_mph">シミュレーション速度 (mph)</string>
+    <string name="simulation_initial_position">開始GPS位置（任意）</string>
+    <string name="simulation_position_hint">緯度, 経度</string>
+    <string name="simulation_config_help">設定は次回のナビゲーション開始時に適用されます。位置を空欄にすると端末の位置を使用します。速度0では位置を固定します。</string>
+    <string name="simulation_info">移動せずにナビゲーションを試せます。両方のバージョンで利用できます。シミュレーション位置は選択したルートに沿って進み、ナビゲーションの一時停止中は止まります。実際のナビゲーションを開始する前に無効にしてください。</string>
+    <string name="nav_simulation_mode_title">シミュレーションモード</string>
+    <string name="nav_simulation_started">移動をシミュレーションしてナビゲーションをプレビューしています。</string>
+    <string name="simulation_invalid_speed">0～300 km/h（0～186.41 mph）の速度を入力してください。</string>
+    <string name="simulation_invalid_position">小数点と半角カンマを使って有効な緯度、経度を入力してください。</string>
+    <string name="simulation_save">保存</string>
+    <string name="action_configure_simulation">シミュレーションを設定</string>
+    <string name="auto_destination_timeout">目的地の読み込みがタイムアウトしました。もう一度お試しください。</string>
+    <string name="auto_retry">再試行</string>
+    <string name="auto_navigation_operation_unsupported">この音声ナビゲーション リクエストには対応していません。</string>
+    <string name="auto_hint_switch_views">表示を切り替える</string>
+    <string name="auto_hint_switch_views_text">地図を1回タップするか左右にスワイプして、全体表示、2D、3Dを切り替えます。</string>
+    <string name="auto_hint_swipe_views_text">左右にスワイプして、全体表示、2D、3Dを切り替えます。</string>
+    <string name="auto_hint_zoom">ズーム</string>
+    <string name="auto_hint_zoom_text">2Dまたは3Dで、2本の指を閉じるか広げます。</string>
+    <string name="auto_hint_tilt">3D表示の傾きを調整</string>
+    <string name="auto_hint_tilt_text">指1本で上または下にドラッグします。</string>
 </resources>

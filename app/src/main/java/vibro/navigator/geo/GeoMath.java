@@ -29,6 +29,26 @@ public final class GeoMath {
         return brng;
     }
 
+    /** Returns the equivalent longitude in [-180, 180) for positions and signed offsets. */
+    public static double normalizeLongitude(double longitude) {
+        double wrapped = longitude % 360.0;
+        if (wrapped >= 180.0) {
+            return wrapped - 360.0;
+        }
+        return wrapped < -180.0 ? wrapped + 360.0 : wrapped;
+    }
+
+    public static LatLon destinationPoint(LatLon start, double bearingDegrees, double distanceMeters) {
+        double bearing = Math.toRadians(bearingDegrees);
+        double angle = distanceMeters / EARTH_RADIUS_M;
+        double lat = Math.toRadians(start.lat);
+        double sinLat = Math.sin(lat) * Math.cos(angle) + Math.cos(lat) * Math.sin(angle) * Math.cos(bearing);
+        double endLat = Math.asin(Math.max(-1.0, Math.min(1.0, sinLat)));
+        double lonOffset = Math.atan2(Math.sin(bearing) * Math.sin(angle) * Math.cos(lat),
+                Math.cos(angle) - Math.sin(lat) * Math.sin(endLat));
+        return new LatLon(Math.toDegrees(endLat), normalizeLongitude(start.lon + Math.toDegrees(lonOffset)));
+    }
+
     public static double angularDiffDegrees(double a, double b) {
         double d = ((a - b + 540.0) % 360.0) - 180.0;
         return Math.abs(d);
@@ -36,7 +56,7 @@ public final class GeoMath {
 
     public static double eastMeters(double refLat, double refLon, double lat, double lon) {
         double refLatRad = Math.toRadians(refLat);
-        return (lon - refLon) * 111320.0 * Math.cos(refLatRad);
+        return normalizeLongitude(lon - refLon) * 111320.0 * Math.cos(refLatRad);
     }
 
     public static double northMeters(double refLat, double lat) {

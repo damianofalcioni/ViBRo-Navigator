@@ -1,3 +1,5 @@
+For Android Auto setup, review prerequisites and remaining simulation work, see [ANDROID_AUTO_REVIEW.md](ANDROID_AUTO_REVIEW.md).
+
 # Google Play publishing
 
 Published GitHub Releases, including prereleases, trigger `.github/workflows/build-apk.yml`.
