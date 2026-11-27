@@ -266,18 +266,21 @@ jobs:
           existing = api(
               "GET",
               "/projects/{}/merge_requests?{}".format(
-                  source_project["id"],
+                  target_project_info["id"],
                   urllib.parse.urlencode(
                       {
                           "state": "all",
+                          "scope": "all",
                           "source_branch": branch,
                           "target_branch": target_branch,
-                          "target_project_id": target_project_info["id"],
                       }
                   ),
               ),
           )
-          existing = [mr for mr in existing if mr["state"] in ("opened", "closed")]
+          existing = [
+              mr for mr in existing
+              if mr["source_project_id"] == source_project["id"] and mr["state"] in ("opened", "closed")
+          ]
 
           if existing:
               mr = existing[0]
