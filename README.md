@@ -8,6 +8,12 @@
 
 ---
 
+<p align="center">
+  <a href="https://play.google.com/store/apps/details?id=vibro.navigator"><img src="./docs/assets/google-play-badge.png" alt="Get it on Google Play" width="160"/></a>
+  <a href="https://f-droid.org/packages/vibro.navigator.foss/"><img src="./docs/assets/fdroid-badge.png" alt="Get it on F-Droid" width="160"/></a>
+  <a href="https://github.com/damianofalcioni/ViBRo-Navigator/releases/latest"><img src="./docs/assets/github-apk-badge.png" alt="Get APK from GitHub" width="160"/></a>
+</p>
+
 <table align="center" cellspacing="0" cellpadding="0" border="0">
   <tr>
     <td align="center" width="220">
