@@ -199,18 +199,27 @@ GitHub Release and its signed FOSS APK are already public.
 
 ## Release preparation and retries
 
-For stable releases and prereleases, share the proposed changelog with the
-maintainer and get explicit approval before committing the release changes,
-tagging, publishing, or submitting to a store.
+Follow this order for both stable releases and prereleases.
+
+1. Create a short-lived release branch from the latest `origin/main`.
+   Prepare the release and run its checks on that branch.
+2. Share the proposed changelog with the maintainer and wait for explicit
+   approval before committing the release changes. Ask for approval again
+   if the changelog text changes.
+3. With explicit merge approval, merge the release branch into `main` and
+   push `main` to `origin`.
+4. Verify that `origin/main` contains the approved release commit. Tag that
+   exact commit, push the tag, and publish the GitHub Release from it.
 
 ### Publish a beta/prerelease
 
-1. Prepare a new numeric app version, for example
+1. On the release branch, prepare a new numeric app version, for example
    `.\gradlew.bat prepareRelease --release-version=1.0.1 --tag=v1.0.1-beta`, and review its
    generated notes. Every new uploaded bundle needs an unused, increasing
    versionCode; the example uses `1000001`.
-2. Commit the changes, create and push `v1.0.1-beta`, and publish a GitHub
-   Release. Selecting **Set as a pre-release** makes its testing status
+2. Follow the approval and merge steps above, then tag the approved commit on
+   `main` as `v1.0.1-beta`, push the tag, and publish the GitHub Release.
+   Selecting **Set as a pre-release** makes its testing status
    visible immediately; the workflow also recognizes `-beta` and `-beta.N`
    tags automatically and marks the release as a prerelease when attaching
    the APK. A title containing "beta" alone does not select testing.
@@ -292,7 +301,9 @@ for service account and first-upload details.
 
 ### Publish a release manually
 
-Prepare the version with `prepareRelease` and review its changelogs first.
+Prepare the version with `prepareRelease` and follow the
+[release review and merge steps](#release-preparation-and-retries) before
+uploading a new bundle.
 The task derives `versionCode` as `major * 1000000 + minor * 1000 + patch`
 (`1.0.0` becomes `1000000`), with minor and patch each limited to `0..999`.
 Use a new semantic version for a new upload; do not increment the code separately.

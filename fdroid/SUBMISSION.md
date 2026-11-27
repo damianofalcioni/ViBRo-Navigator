@@ -68,17 +68,21 @@ Before opening the official F-Droid merge request, complete these steps:
 1. Push the repository to a public GitHub URL.
 2. Enable GitHub Pages from the repository `docs/` folder so the public
    store-document URLs are live.
-3. Prepare local release metadata without creating a commit or tag:
+3. Create a short-lived release branch from the latest `origin/main` and
+   prepare the release metadata on that branch using
    `.\gradlew.bat prepareRelease --release-version=1.0.0`.
    This derives Android `versionCode` as `major * 1000000 + minor * 1000 + patch`;
    `1.0.0` uses `1000000`. Minor and patch must each be `0..999`.
-4. Review the console changelog summary, `docs/CHANGELOG/index.html`, and
-   `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt`.
-5. Commit the current F-Droid prep changes.
-6. Create and push a release tag matching `versionName`, for example `v1.0.0`.
-   Publish a stable GitHub Release for that tag. The `Build and Publish Release`
-   workflow checks/builds the tagged source and attaches only the signed FOSS
-   (`fdroid`) APK. Google Play artifacts remain in CI for Play publishing.
+4. Run the release checks and share the proposed changelog with the maintainer.
+   Wait for explicit approval of the text before committing the release changes.
+5. With explicit merge approval, merge the release branch into `main` and push
+   `main` to `origin`.
+6. Verify that `origin/main` contains the approved release commit. Create
+   the matching version tag on that commit, for example `v1.0.0`, and push
+   the tag. Publish a stable GitHub Release from it.
+   The `Build and Publish Release` workflow checks and builds the tagged source
+   and attaches only the signed FOSS (`fdroid`) APK. Google Play artifacts
+   remain in CI for Play publishing.
    After attachment succeeds, it starts both Google Play upload and F-Droid
    submission automatically. A tag push alone does not submit to either store.
 7. Confirm the release workflow's F-Droid readiness and submission jobs pass.
