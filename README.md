@@ -16,6 +16,8 @@
   <a href="https://github.com/damianofalcioni/ViBRo-Navigator/releases/latest"><img src="./docs/assets/github-apk-badge.png" alt="Get APK from GitHub" width="160"/></a>
 </p>
 
+---
+
 <table align="center" cellspacing="0" cellpadding="0" border="0">
   <tr>
     <td align="center" width="220">
