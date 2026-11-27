@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import android.graphics.Bitmap;
 
@@ -48,12 +49,23 @@ public class ViBRoCarManeuverIconsTest {
     }
 
     @Test
-    public void compactPreviewIconsDistinguishForksExitsAndFinalArrival() {
-        assertEquals(R.drawable.ic_auto_keep_left, drawable(8));
-        assertEquals(R.drawable.ic_auto_keep_right, drawable(9));
-        assertEquals(R.drawable.ic_auto_exit_left, drawable(17));
-        assertEquals(R.drawable.ic_auto_exit_right, drawable(18));
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void keepsAndExitsUsePhoneArrowsWithTheirOwnManeuverTypes() {
+        assertDirectionIconAndManeuverType(8, 3, Maneuver.TYPE_KEEP_LEFT);
+        assertDirectionIconAndManeuverType(9, 6, Maneuver.TYPE_KEEP_RIGHT);
+        assertDirectionIconAndManeuverType(17, 2, Maneuver.TYPE_OFF_RAMP_NORMAL_LEFT);
+        assertDirectionIconAndManeuverType(18, 5, Maneuver.TYPE_OFF_RAMP_NORMAL_RIGHT);
+    }
+
+    @Test
+    public void finalDestinationUsesACheckeredFlag() {
         assertEquals(R.drawable.ic_auto_destination, drawable(100));
+    }
+
+    private void assertDirectionIconAndManeuverType(int command, int matchingTurn, int expectedType) {
+        Maneuver actual = maneuver(command, 0);
+        assertEquals(expectedType, actual.getType());
+        assertTrue(bitmap(actual).sameAs(bitmap(maneuver(matchingTurn, 0))));
     }
 
     private Maneuver maneuver(int command, int exitNumber) {

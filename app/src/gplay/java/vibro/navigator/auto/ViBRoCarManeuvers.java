@@ -26,13 +26,9 @@ final class ViBRoCarManeuvers {
     private static final int[] CUSTOM_DRAWABLES = new int[101];
 
     static {
-        CUSTOM_DRAWABLES[8] = R.drawable.ic_auto_keep_left;
-        CUSTOM_DRAWABLES[9] = R.drawable.ic_auto_keep_right;
         CUSTOM_DRAWABLES[12] = R.drawable.ic_auto_off_route;
         CUSTOM_DRAWABLES[15] = R.drawable.ic_auto_uturn;
         CUSTOM_DRAWABLES[RouteStartApproach.BEELINE_COMMAND] = R.drawable.ic_auto_beeline;
-        CUSTOM_DRAWABLES[17] = R.drawable.ic_auto_exit_left;
-        CUSTOM_DRAWABLES[18] = R.drawable.ic_auto_exit_right;
         CUSTOM_DRAWABLES[100] = R.drawable.ic_auto_destination;
     }
 

@@ -758,3 +758,14 @@ Do not redo the completed template/metadata/intent integration merely because a 
 - The full JVM suites passed 2,456 Google Play and 2,318 F-Droid tests with zero failures, errors, or skips. Both debug lints, complexity, the Google Play debug APK, and both release APK builds passed. The local log is `build/android-auto-open-review-fixes-verified.log`.
 - Installed the Google Play debug APK on the Android 16 emulator. The standard navigation intent resolved to `ViBRoCarAppService`. The merged Google Play release manifest contains the filter, and the F-Droid release manifest omits it. The automated checks cover the current-turn duration payload, alternate roundabout exits, and preserving an active or pending trip.
 - Rendered all 20 supported icons from the Android Auto adapter using native graphics. Checked the right-side number in both roundabout directions and the distinct shapes for Off route, keeps, exits, and arrival. The render log is `build/android-auto-updated-symbols.log`. Live Assistant delivery and actual head-unit and cluster rendering remain unverified.
+
+## Restore the phone arrows for keeps and exits (2026-11-27)
+
+- Restore diagonal arrows for keep left and keep right and horizontal arrows for motorway exit left and exit right. Keep the native maneuver types and the current-turn wording. The compact following-turn preview can again show the same arrow for a keep and a slight turn or for an exit and an ordinary turn on the same side.
+- Google's published quality criteria require contrast, turn-by-turn guidance, and next-turn cluster metadata. The Navigation template recommends standardized or locally consistent symbols. Neither document specifies unique artwork for each maneuver. [Car app quality](https://developer.android.com/docs/quality-guidelines/car-app-quality) and [Navigation template](https://developer.android.com/design/ui/cars/guides/templates/navigation-template#navigation-template-ux-requirements)
+- The focused Google Play run passed 110 Android Auto tests with zero failures, errors, or skips. Native graphics tests matched all four restored arrows to their prior shapes and verified the maneuver types. Google Play debug lint and the complexity check passed. The local log is `build/android-auto-restore-phone-arrows.log`.
+
+  ```powershell
+  $carTests = '--tests','vibro.navigator.auto.*','--tests','vibro.navigator.android.automotive.*'
+  .\gradlew.bat :app:lintGplayDebug :app:complexityCheck :app:testGplayDebugUnitTest @carTests --max-workers=2 --continue --console=plain
+  ```
