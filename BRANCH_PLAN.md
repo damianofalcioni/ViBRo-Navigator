@@ -739,3 +739,14 @@ Do not redo the completed template/metadata/intent integration merely because a 
   ```powershell
   .\gradlew.bat :app:testGplayDebugUnitTest --tests '*ViBRoCarGuidanceGplayTest' --tests '*ViBRoCarHostNavigationTest' --tests '*ViBRoCarScreenLifecycleTest' --tests '*ViBRoAutoStreetViewportGplayTest' --max-workers=2 --console=plain
   ```
+
+## Follow-up review of trip progress and route changes (2026-11-27)
+
+- Reviewed `55c963bc` against `main` at `2ba4dad3`. Checked the shared route and Straight Line estimates, stop progression, route replacement and retention, arrival confirmation, and Android Auto pause/resume and template refresh. No additional meaningful regression was confirmed in these workflows. Earlier findings and the deferred maneuver icon audit remain open.
+- Focused verification passed 42 F-Droid and 64 Google Play tests with zero failures, errors, or skips. `git diff --check main...HEAD` passed. The ignored log is `build/current-trip-progress-review.log`. This pass used source review and automated tests.
+
+  ```powershell
+  $tripShared = '--tests','*NavigationArrivalLifecycleTest','--tests','*NavigationSessionRouteStateTest','--tests','*NavigationSimulationArrivalTest','--tests','*NavigationServiceInitialRouteTest','--tests','*RouteTimeEstimatorTest'
+  $tripCar = '--tests','*ViBRoCarGuidanceGplayTest','--tests','*ViBRoCarHostNavigationTest','--tests','*ViBRoCarScreenLifecycleTest'
+  .\gradlew.bat :app:testFdroidDebugUnitTest @tripShared :app:testGplayDebugUnitTest @tripShared @tripCar --max-workers=2 --continue --console=plain
+  ```
